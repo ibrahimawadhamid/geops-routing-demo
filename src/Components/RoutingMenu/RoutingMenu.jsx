@@ -5,6 +5,7 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import axios from 'axios';
 import {connect} from 'react-redux';
 
@@ -49,7 +50,8 @@ class RoutingMenu extends React.Component {
             currentSearchResults: [],
             focusedFieldIndex: null,
             currentStops: ["", ""],
-            canSearchForRoute: false
+            canSearchForRoute: false,
+            showLoadingBar: false,
         };
 
         this.searchCancelToken = axios.CancelToken;
@@ -88,14 +90,16 @@ class RoutingMenu extends React.Component {
             updateCurrentStops[fieldIndex] = "";
             this.setState({
                 currentSearchResults: [],
-                currentStops: updateCurrentStops
+                currentStops: updateCurrentStops,
+                showLoadingBar: false
             });
             return;
         } else {
             let updateCurrentStops = this.state.currentStops;
             updateCurrentStops[fieldIndex] = event.target.value;
             this.setState({
-                currentStops: updateCurrentStops
+                currentStops: updateCurrentStops,
+                showLoadingBar: true
             });
         }
         if (this.searchCancel)
@@ -116,10 +120,14 @@ class RoutingMenu extends React.Component {
                         searchResults.push(singleResult.properties.name);
                 });
                 this.setState({
-                    currentSearchResults: searchResults
+                    currentSearchResults: searchResults,
+                    showLoadingBar: false
                 });
             }, (error) => {
                 console.log(error);
+                this.setState({
+                    showLoadingBar: false
+                })
             });
     };
 
@@ -221,6 +229,7 @@ class RoutingMenu extends React.Component {
                             </Grid>
                         </Grid>
                     </TabPanel>
+                    {this.state.showLoadingBar ? <LinearProgress /> : null}
                 </Paper>
                 {
                     this.state.currentSearchResults.length !== 0 ?

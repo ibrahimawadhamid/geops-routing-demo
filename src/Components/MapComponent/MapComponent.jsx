@@ -53,7 +53,6 @@ class MapComponent extends Component {
                 })
             })
                 .then((response) => {
-                    console.log(response);
                     const vectorSource = new VectorSource({
                         features: (new GeoJSON()).readFeatures(response.data)
                     });
