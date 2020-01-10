@@ -37,6 +37,13 @@
     "type": "git",
     "url": "https://github.com/ibrahimawadhamid/geops-routing-demo.git"
   },
+  "keywords": [
+    "gis",
+    "geops",
+    "routing",
+    "leaflet",
+    "demo"
+  ],
   "browserslist": {
     "production": [
       ">0.2%",
