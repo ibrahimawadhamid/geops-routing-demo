@@ -1,8 +1,3 @@
-/* @preserve
- * Leaflet 1.6.0, a JS library for interactive maps. http://leafletjs.com
- * (c) 2010-2019 Vladimir Agafonkin, (c) 2010-2011 CloudMade
- */
-
 /*
 object-assign
 (c) Sindre Sorhus
@@ -34,6 +29,11 @@ object-assign
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ */
+
+/*!
+ * PEP v0.5.3 | https://github.com/jquery/PEP
+ * Copyright jQuery Foundation and other contributors | http://jquery.org/license
  */
 
 /** @license React v16.12.0
