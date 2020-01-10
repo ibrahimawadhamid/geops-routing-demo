@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import L from 'leaflet';
+import RoutingMenu from "../RoutingMenu/RoutingMenu";
 import "./Map.css";
 
 class Map extends Component {
@@ -16,14 +17,21 @@ class Map extends Component {
         this.map = L.map('map', {
             center: [25, 25],
             zoom: 4,
+            zoomControl: false,
             layers: [stamenTonerLite]
         });
+        L.control.zoom({
+            position: 'topright'
+        }).addTo(this.map);
     }
 
     render() {
         return (
-            <div id="map" className="map" />
-        )
+            <div>
+                <RoutingMenu/>
+                <div id="map" className="map"/>
+            </div>
+        );
     }
 }
 
