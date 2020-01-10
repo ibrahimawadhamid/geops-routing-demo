@@ -8,7 +8,7 @@ function GeopsRoutingDemo(props) {
     return (
         <Provider store={store}>
             <RoutingMenu {...props}/>
-            <MapComponent/>
+            <MapComponent {...props}/>
         </Provider>
     );
 }

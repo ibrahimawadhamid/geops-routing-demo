@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
+import {connect} from 'react-redux';
 
 import Adjust from '@material-ui/icons/Adjust';
 import Room from '@material-ui/icons/Room';
@@ -14,6 +15,7 @@ import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
 import DirectionsIcon from '@material-ui/icons/Directions';
 
+import * as actions from "../../store/actions";
 import "./RoutingMenu.css";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
@@ -101,7 +103,7 @@ class RoutingMenu extends React.Component {
         axios.get(this.props.stationSearchUrl, {
             params: {
                 q: event.target.value,
-                key: '5cc87b12d7c5370001c1d655d0a18192eba64838a5fa1ad7d482ab82'
+                key: this.props.APIKey
             },
             cancelToken: new this.searchCancelToken((cancel) => {
                 this.searchCancel = cancel;
@@ -133,6 +135,7 @@ class RoutingMenu extends React.Component {
     };
 
     processRoute = () => {
+        this.props.onFindRoute(this.state.currentStops, this.state.currentMot);
     };
 
     render() {
@@ -210,8 +213,8 @@ class RoutingMenu extends React.Component {
                                            onBlur={this.onFieldBlur}/>
                             </Grid>
                             <Grid item xs={1}>
-                                <IconButton disabled={!this.state.canSearchForRoute} className="addHop" color="primary"
-                                            aria-label="upload picture"
+                                <IconButton className="addHop" color="primary"
+                                            aria-label="upload picture" onClick={this.processRoute}
                                             component="span">
                                     <DirectionsIcon/>
                                 </IconButton>
@@ -252,5 +255,10 @@ class RoutingMenu extends React.Component {
     }
 };
 
-export default RoutingMenu;
+const mapDispatchToProps = dispatch => {
+    return {
+        onFindRoute: (hops, mot) => dispatch(actions.findRoute(hops, mot)),
+    }
+};
 
+export default connect(null, mapDispatchToProps)(RoutingMenu);
