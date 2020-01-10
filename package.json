@@ -31,7 +31,12 @@
   "module": "dist/index.js",
   "babel": {
     "presets": [
-      "@babel/react"
+      "@babel/react",
+      {
+        "plugins": [
+          "@babel/plugin-proposal-class-properties"
+        ]
+      }
     ]
   },
   "repository": {
@@ -60,6 +65,7 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/cli": "^7.7.7",
+    "@babel/plugin-proposal-class-properties": "^7.7.4",
     "@babel/preset-react": "^7.7.4",
     "gh-pages": "^2.2.0"
   }
