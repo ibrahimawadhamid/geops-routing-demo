@@ -1,0 +1,11 @@
+@import "~ol/ol.css";
+
+.MapComponent {
+    height: 100vh;
+    width: 100%;
+}
+
+.ol-zoom {
+    right: 10px;
+    left: unset;
+}

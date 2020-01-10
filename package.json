@@ -1,6 +1,6 @@
 {
   "name": "geops-routing-demo",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "private": false,
   "homepage": "http://ibrahimawadhamid.github.io/geops-routing-demo",
   "dependencies": {
@@ -10,7 +10,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "axios": "^0.19.1",
-    "leaflet": "^1.6.0",
+    "ol": "^6.1.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-scripts": "3.3.0"

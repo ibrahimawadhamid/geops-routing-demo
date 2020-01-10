@@ -1,12 +1,12 @@
 import React from 'react';
-import Map from "../Map";
+import MapComponent from "../MapComponent";
 import RoutingMenu from "../RoutingMenu/RoutingMenu";
 
 function GeopsRoutingDemo(props) {
     return (
         <div>
             <RoutingMenu {...props}/>
-            <Map/>
+            <MapComponent/>
         </div>
     );
 }
