@@ -50,7 +50,7 @@
     "gis",
     "geops",
     "routing",
-    "leaflet",
+    "openlayers",
     "demo"
   ],
   "browserslist": {
