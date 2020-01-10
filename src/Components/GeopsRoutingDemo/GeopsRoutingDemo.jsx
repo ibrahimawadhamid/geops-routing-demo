@@ -1,9 +1,13 @@
 import React from 'react';
 import Map from "../Map";
+import RoutingMenu from "../RoutingMenu/RoutingMenu";
 
-function GeopsRoutingDemo() {
+function GeopsRoutingDemo(props) {
     return (
-        <Map />
+        <div>
+            <RoutingMenu {...props}/>
+            <Map/>
+        </div>
     );
 }
 

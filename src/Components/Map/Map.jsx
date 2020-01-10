@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import L from 'leaflet';
-import RoutingMenu from "../RoutingMenu/RoutingMenu";
 import "./Map.css";
 
 class Map extends Component {
@@ -27,10 +26,7 @@ class Map extends Component {
 
     render() {
         return (
-            <div>
-                <RoutingMenu/>
                 <div id="map" className="map"/>
-            </div>
         );
     }
 }
