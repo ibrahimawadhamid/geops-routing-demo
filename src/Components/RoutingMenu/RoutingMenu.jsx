@@ -50,7 +50,6 @@ class RoutingMenu extends React.Component {
             currentSearchResults: [],
             focusedFieldIndex: null,
             currentStops: ["", ""],
-            canSearchForRoute: false,
             showLoadingBar: false,
         };
 
@@ -127,7 +126,7 @@ class RoutingMenu extends React.Component {
                 console.log(error);
                 this.setState({
                     showLoadingBar: false
-                })
+                });
             });
     };
 
@@ -147,6 +146,10 @@ class RoutingMenu extends React.Component {
     };
 
     render() {
+        const actualStops = this.state.currentStops.filter(function (singleStop) {
+            return singleStop !== "";
+        });
+        const canSearchForRoute = actualStops.length > 1 ? true : false;
         return (
             <div className="RoutingMenu">
                 <Paper square elevation={3}>
@@ -221,7 +224,7 @@ class RoutingMenu extends React.Component {
                                            onBlur={this.onFieldBlur}/>
                             </Grid>
                             <Grid item xs={1}>
-                                <IconButton className="addHop" color="primary"
+                                <IconButton disabled={!canSearchForRoute} className="addHop" color="primary"
                                             aria-label="upload picture" onClick={this.processRoute}
                                             component="span">
                                     <DirectionsIcon/>
@@ -229,7 +232,7 @@ class RoutingMenu extends React.Component {
                             </Grid>
                         </Grid>
                     </TabPanel>
-                    {this.state.showLoadingBar ? <LinearProgress /> : null}
+                    {this.state.showLoadingBar ? <LinearProgress/> : null}
                 </Paper>
                 {
                     this.state.currentSearchResults.length !== 0 ?
@@ -267,7 +270,7 @@ class RoutingMenu extends React.Component {
 const mapDispatchToProps = dispatch => {
     return {
         onFindRoute: (hops, mot) => dispatch(actions.findRoute(hops, mot)),
-    }
+    };
 };
 
 export default connect(null, mapDispatchToProps)(RoutingMenu);
