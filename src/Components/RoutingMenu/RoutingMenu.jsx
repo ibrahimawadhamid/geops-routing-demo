@@ -50,11 +50,13 @@ class RoutingMenu extends React.Component {
             currentSearchResults: [],
             focusedFieldIndex: null,
             currentStops: ["", ""],
+            currentStopsGeoJSON: {},
             showLoadingBar: false,
         };
 
         this.searchCancelToken = axios.CancelToken;
         this.searchCancel = null;
+        this.props.onSetCurrentMot(currentMots[0].name);
     }
 
     validateMots = mots => {
@@ -71,7 +73,7 @@ class RoutingMenu extends React.Component {
 
     handleMotChange = (event, newMot) => {
         this.setState({currentMot: newMot});
-        console.log(newMot);
+        this.props.onSetCurrentMot(newMot);
     };
 
     onFieldFocus = fieldIndex => {
@@ -116,7 +118,7 @@ class RoutingMenu extends React.Component {
                 const searchResults = [];
                 response.data.features.forEach(singleResult => {
                     if (singleResult.properties.mot[this.state.currentMot])
-                        searchResults.push(singleResult.properties.name);
+                        searchResults.push(singleResult);
                 });
                 this.setState({
                     currentSearchResults: searchResults,
@@ -133,16 +135,36 @@ class RoutingMenu extends React.Component {
     processHighlightedResultSelect = event => {
         if (event.key === "Enter" && this.state.currentSearchResults[0]) {
             let updateCurrentStops = this.state.currentStops;
-            updateCurrentStops[this.state.focusedFieldIndex] = this.state.currentSearchResults[0];
+            updateCurrentStops[this.state.focusedFieldIndex] = this.state.currentSearchResults[0].properties.name;
+            let updateCurrentStopsGeoJSON = {...this.state.currentStopsGeoJSON};
+            updateCurrentStopsGeoJSON[this.state.focusedFieldIndex] = this.state.currentSearchResults[0];
             this.setState({
                 currentStops: updateCurrentStops,
-                currentSearchResults: []
+                currentSearchResults: [],
+                currentStopsGeoJSON: updateCurrentStopsGeoJSON
             });
+            this.props.onSetCurrentStopsGeoJSON(updateCurrentStopsGeoJSON);
+        }
+        if(event.key === "Backspace") {
+            let updateCurrentSearchResults = [];
+            if(event.target.value)
+                updateCurrentSearchResults = this.state.currentSearchResults;
+            let updateCurrentStopsGeoJSON = {};
+            for (let key in this.state.currentStopsGeoJSON) {
+                if(key !== this.state.focusedFieldIndex.toString()) {
+                    updateCurrentStopsGeoJSON[key] = this.state.currentStopsGeoJSON[key];
+                }
+            }
+            this.setState({
+                currentStopsGeoJSON: updateCurrentStopsGeoJSON,
+                currentSearchResults: updateCurrentSearchResults
+            });
+            this.props.onSetCurrentStopsGeoJSON(updateCurrentStopsGeoJSON);
         }
     };
 
     processRoute = () => {
-        this.props.onFindRoute(this.state.currentStops, this.state.currentMot);
+        this.props.onFindRoute(this.state.currentStopsGeoJSON, this.state.currentMot);
     };
 
     render() {
@@ -171,66 +193,67 @@ class RoutingMenu extends React.Component {
                         }
                     </Tabs>
                     <TabPanel>
-                        <Grid container spacing={1} alignItems="flex-end" style={{width: '100%'}}>
-                            <Grid item xs={1}>
-                                <Adjust fontSize="small" color="secondary"/>
-                            </Grid>
-                            <Grid item xs={10}>
-                                <TextField style={{width: '100%'}} label="Source"
-                                           color="secondary" onChange={(e) => this.searchStops(e, 0)}
-                                           value={this.state.currentStops[0]}
-                                           onKeyDown={this.processHighlightedResultSelect}
-                                           onFocus={() => this.onFieldFocus(0)}
-                                           onBlur={this.onFieldBlur}/>
-                            </Grid>
-                            <Grid item xs={1}>
-                                <IconButton className="addHop" color="primary" aria-label="upload picture"
-                                            component="span">
-                                    <AddCircleOutlineIcon/>
-                                </IconButton>
-                            </Grid>
-                        </Grid>
-                        {/*<Grid container spacing={1} alignItems="flex-end" style={{width: '100%'}}>*/}
-                        {/*<Grid item xs={1}>*/}
-                        {/*<RadioButtonCheckedIcon fontSize="small" color="secondary"/>*/}
-                        {/*</Grid>*/}
-                        {/*<Grid item xs={9}>*/}
-                        {/*<TextField style={{width: '100%'}} label="Hop"*/}
-                        {/*color="secondary"/>*/}
-                        {/*</Grid>*/}
-                        {/*<Grid item xs={1}>*/}
-                        {/*<IconButton className="addHop" color="secondary" aria-label="upload picture"*/}
-                        {/*component="span">*/}
-                        {/*<RemoveCircleOutlineIcon/>*/}
-                        {/*</IconButton>*/}
-                        {/*</Grid>*/}
-                        {/*<Grid item xs={1}>*/}
-                        {/*<IconButton className="addHop" color="primary" aria-label="upload picture"*/}
-                        {/*component="span">*/}
-                        {/*<AddCircleOutlineIcon/>*/}
-                        {/*</IconButton>*/}
-                        {/*</Grid>*/}
-                        {/*</Grid>*/}
-                        <Grid container spacing={1} alignItems="flex-end" style={{width: '100%'}}>
-                            <Grid item xs={1}>
-                                <Room color="secondary"/>
-                            </Grid>
-                            <Grid item xs={10}>
-                                <TextField style={{width: '100%'}} label="Destination"
-                                           color="secondary" onChange={(e) => this.searchStops(e, 1)}
-                                           value={this.state.currentStops[1]}
-                                           onKeyDown={this.processHighlightedResultSelect}
-                                           onFocus={() => this.onFieldFocus(1)}
-                                           onBlur={this.onFieldBlur}/>
-                            </Grid>
-                            <Grid item xs={1}>
-                                <IconButton disabled={!canSearchForRoute} className="addHop" color="primary"
-                                            aria-label="upload picture" onClick={this.processRoute}
-                                            component="span">
-                                    <DirectionsIcon/>
-                                </IconButton>
-                            </Grid>
-                        </Grid>
+                        {
+                            this.state.currentStops.map((singleStop, index) => {
+                                let fieldLeftIcon = null;
+                                let searchFieldSize = 10;
+                                let searchFieldLabel = "";
+                                let fieldRightIcon = null;
+                                if(index === 0) {
+                                    fieldLeftIcon = <RadioButtonCheckedIcon fontSize="small" color="secondary"/>;
+                                    searchFieldLabel = "Select start station, or click on the map";
+                                    fieldRightIcon = (
+                                        <Grid item xs={1}>
+                                            <IconButton className="addHop" color="primary" aria-label="Add Hop"
+                                                        component="span">
+                                                <AddCircleOutlineIcon/>
+                                            </IconButton></Grid>);
+                                } else if (index === this.state.currentStops.length - 1) {
+                                    fieldLeftIcon = <Room color="secondary"/>;
+                                    searchFieldLabel = "Select end station, or click on the map";
+                                    fieldRightIcon = (
+                                        <Grid item xs={1}>
+                                            <IconButton disabled={!canSearchForRoute} className="addHop" color="primary"
+                                                        aria-label="Find Route" onClick={this.processRoute}
+                                                        component="span">
+                                                <DirectionsIcon/>
+                                            </IconButton></Grid>);
+                                } else {
+                                    fieldLeftIcon = <Adjust fontSize="small" color="secondary"/>;
+                                    searchFieldSize = 9;
+                                    searchFieldLabel = "Select station, or click on the map";
+                                    fieldRightIcon = (
+                                        <React.Fragment><Grid item xs={1}>
+                                            <IconButton className="addHop" color="secondary" aria-label="upload picture"
+                                                        component="span">
+                                                <RemoveCircleOutlineIcon/>
+                                            </IconButton>
+                                        </Grid>
+                                            <Grid item xs={1}>
+                                                <IconButton className="addHop" color="primary"
+                                                            aria-label="upload picture"
+                                                            component="span">
+                                                    <AddCircleOutlineIcon/>
+                                                </IconButton></Grid></React.Fragment>);
+                                }
+                                return(
+                                    <Grid key={"searchField-"+index} container spacing={1} alignItems="flex-end" style={{width: '100%'}}>
+                                        <Grid item xs={1}>
+                                            {fieldLeftIcon}
+                                        </Grid>
+                                        <Grid item xs={searchFieldSize}>
+                                            <TextField style={{width: '100%'}} label={searchFieldLabel}
+                                                       color="secondary" onChange={(e) => this.searchStops(e, index)}
+                                                       value={singleStop}
+                                                       onKeyDown={this.processHighlightedResultSelect}
+                                                       onFocus={() => this.onFieldFocus(index)}
+                                                       onBlur={this.onFieldBlur}/>
+                                        </Grid>
+                                            {fieldRightIcon}
+                                    </Grid>
+                                )
+                            })
+                        }
                     </TabPanel>
                     {this.state.showLoadingBar ? <LinearProgress/> : null}
                 </Paper>
@@ -243,17 +266,17 @@ class RoutingMenu extends React.Component {
                                     {this.state.currentSearchResults.map((searchResult, index) => {
                                         if (index !== 0) {
                                             return (
-                                                <Typography key={"searchResult-" + searchResult} variant="subtitle1"
+                                                <Typography key={"searchResult-" + searchResult.properties.name} variant="subtitle1"
                                                             gutterBottom>
-                                                    {searchResult}
+                                                    {searchResult.properties.name}
                                                 </Typography>
                                             );
                                         } else {
                                             // First Element
                                             return (
-                                                <Typography key={"searchResult-" + searchResult} variant="h6"
+                                                <Typography key={"searchResult-" + searchResult.properties.name} variant="h6"
                                                             gutterBottom>
-                                                    {searchResult}
+                                                    {searchResult.properties.name}
                                                 </Typography>
                                             );
                                         }
@@ -269,7 +292,8 @@ class RoutingMenu extends React.Component {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onFindRoute: (hops, mot) => dispatch(actions.findRoute(hops, mot)),
+        onSetCurrentMot: (currentMot) => dispatch(actions.setCurrentMot(currentMot)),
+        onSetCurrentStopsGeoJSON: (currentStopsGeoJSON) => dispatch(actions.setCurrentStopsGeoJSON(currentStopsGeoJSON)),
     };
 };
 

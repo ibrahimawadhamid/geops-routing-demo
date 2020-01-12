@@ -1,14 +1,13 @@
 import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
-    hops: [],
-    mot: "bus"
+    currentMot: "bus",
+    currentStopsGeoJSON: {},
 };
 
-const findRoute = (state, action) => {
+const setCurrentStopsGeoJSON = (state, action) => {
     const updatedState = {
-        hops: action.hops,
-        mot: action.mot,
+        currentStopsGeoJSON: action.currentStopsGeoJSON,
     };
     return {
         ...state,
@@ -16,10 +15,23 @@ const findRoute = (state, action) => {
     };
 };
 
+const setCurrentMot = (state, action) => {
+    const updatedState = {
+        currentMot: action.currentMot,
+    };
+    return {
+        ...state,
+        ...updatedState
+    };
+};
+
+
 const reducer = (state = initialState, action) => {
     switch (action.type) {
-        case actionTypes.FIND_ROUTE:
-            return findRoute(state, action);
+        case actionTypes.SET_CURRENT_STOPS_GEOJSON:
+            return setCurrentStopsGeoJSON(state, action);
+        case actionTypes.SET_CURRENT_MOT:
+            return setCurrentMot(state, action);
         default:
             return state;
     }

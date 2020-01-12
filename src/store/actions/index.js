@@ -1,3 +1,4 @@
 export {
-    findRoute,
+    setCurrentStopsGeoJSON,
+    setCurrentMot,
 } from "./Map";
