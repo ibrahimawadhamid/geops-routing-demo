@@ -84,6 +84,27 @@ class RoutingMenu extends React.Component {
         this.setState({focusedFieldIndex: null});
     };
 
+    addNewSearchField = (indexToInsertAt) => {
+        let updatedCurrentStops = this.state.currentStops;
+        updatedCurrentStops.splice(indexToInsertAt, 0, "");
+        this.setState({currentStops: updatedCurrentStops});
+    }
+    removeSearchField = (indexToRemoveFrom) => {
+        let updatedCurrentStops = this.state.currentStops;
+        updatedCurrentStops.splice(indexToRemoveFrom, 1);
+        let updateCurrentStopsGeoJSON = {};
+        for (let key in this.state.currentStopsGeoJSON) {
+            if(key !== indexToRemoveFrom.toString()) {
+                updateCurrentStopsGeoJSON[key] = this.state.currentStopsGeoJSON[key];
+            }
+        }
+        this.setState({
+            currentStops: updatedCurrentStops,
+            currentStopsGeoJSON: updateCurrentStopsGeoJSON
+        });
+        this.props.onSetCurrentStopsGeoJSON(updateCurrentStopsGeoJSON);
+    }
+
     searchStops = (event, fieldIndex) => {
         // only search if text is available
         if (!event.target.value) {
@@ -204,7 +225,7 @@ class RoutingMenu extends React.Component {
                                     searchFieldLabel = "Select start station, or click on the map";
                                     fieldRightIcon = (
                                         <Grid item xs={1}>
-                                            <IconButton className="addHop" color="primary" aria-label="Add Hop"
+                                            <IconButton onClick={() => this.addNewSearchField(index+1)} className="addHop" color="primary" aria-label="Add Hop"
                                                         component="span">
                                                 <AddCircleOutlineIcon/>
                                             </IconButton></Grid>);
@@ -224,13 +245,15 @@ class RoutingMenu extends React.Component {
                                     searchFieldLabel = "Select station, or click on the map";
                                     fieldRightIcon = (
                                         <React.Fragment><Grid item xs={1}>
-                                            <IconButton className="addHop" color="secondary" aria-label="upload picture"
+                                            <IconButton onClick={() => this.removeSearchField(index)}
+                                                        className="addHop" color="secondary" aria-label="upload picture"
                                                         component="span">
                                                 <RemoveCircleOutlineIcon/>
                                             </IconButton>
                                         </Grid>
                                             <Grid item xs={1}>
-                                                <IconButton className="addHop" color="primary"
+                                                <IconButton onClick={() => this.addNewSearchField(index+1)}
+                                                    className="addHop" color="primary"
                                                             aria-label="upload picture"
                                                             component="span">
                                                     <AddCircleOutlineIcon/>
