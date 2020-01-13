@@ -7,7 +7,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import {Vector as VectorSource} from 'ol/source';
 import axios from 'axios';
 import "./MapComponent.css";
-import {Stroke, Style, Icon} from "ol/style";
+import {Stroke, Style} from "ol/style";
 
 class MapComponent extends Component {
     constructor(props) {
@@ -51,15 +51,7 @@ class MapComponent extends Component {
                 const vectorSource = new VectorSource({
                     features: (new GeoJSON()).readFeatures(this.props.currentStopsGeoJSON[key])
                 });
-                const vectorLayer = new VectorLayer({
-                    source: vectorSource,
-                    style: new Style({
-                        image: new Icon({
-                            crossOrigin: 'anonymous',
-                            src: 'img/map-marker.png'
-                        })
-                    })
-                });
+                const vectorLayer = new VectorLayer({source: vectorSource});
                 vectorLayer.set('type', 'markers');
                 this.map.addLayer(vectorLayer);
                 const coordinate = vectorSource.getFeatures()[0].getGeometry().getCoordinates();
