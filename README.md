@@ -4,7 +4,6 @@
 
 Sample component that uses geOps Routing API
 
-
 ## Installation
 ```javascript
 npm i geops-routing-demo
@@ -21,6 +20,17 @@ import GeopsRoutingDemo from 'geops-routing-demo';
         mots={['rail','bus','tram']}
         routingUrl="https://api.geops.io/routing/v1/"
         stationSearchUrl="https://api.geops.io/stops/v1/"
-        APIKey="5cc87b12d7c5370001c1d655d0a18192eba64838a5fa1ad7d482ab82"
+        APIKey="SAMPLE_KEY"
     />
 ```
+
+# Development
+
+## Quick start
+```
+git clone https://github.com/ibrahimawadhamid/geops-routing-demo.git
+cd geops-routing-demo
+npm install
+npm start
+```
+Development server should be started at [localhost:3000](http://localhost:3000)
