@@ -1,13 +1,15 @@
 import React from 'react';
-import Map from "../Map";
+import {Provider} from 'react-redux';
+import store from '../../store/store';
+import MapComponent from "../MapComponent";
 import RoutingMenu from "../RoutingMenu/RoutingMenu";
 
 function GeopsRoutingDemo(props) {
     return (
-        <div>
+        <Provider store={store}>
             <RoutingMenu {...props}/>
-            <Map/>
-        </div>
+            <MapComponent {...props}/>
+        </Provider>
     );
 }
 
