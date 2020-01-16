@@ -112,6 +112,7 @@ class MapComponent extends Component {
                 this.map.getView().fit(vectorSource.getExtent(), {size: this.map.getSize(), duration: 500});
             }, (error) => {
                 console.log(error);
+                this.props.onShowNotification("Couldn't find route", "error");
             });
     };
 
@@ -140,6 +141,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         onSetClickLocation: (clickLocation) => dispatch(actions.setClickLocation(clickLocation)),
+        onShowNotification: (notificationMessage, notificationType) => dispatch(actions.showNotification(notificationMessage, notificationType)),
     };
 };
 

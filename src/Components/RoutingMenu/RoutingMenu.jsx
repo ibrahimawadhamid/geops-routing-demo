@@ -174,6 +174,10 @@ class RoutingMenu extends React.Component {
             })
         })
             .then((response) => {
+                if(response.data.features.length === 0) {
+                    // No results for the given query
+                    this.props.onShowNotification("Couldn't find stations", "warning");
+                }
                 const searchResults = [];
                 response.data.features.forEach(singleResult => {
                     if (singleResult.properties.mot[this.state.currentMot])
@@ -188,6 +192,7 @@ class RoutingMenu extends React.Component {
                 this.setState({
                     showLoadingBar: false
                 });
+                this.props.onShowNotification("Error while searching for stations", "error");
             });
     };
 
@@ -377,6 +382,7 @@ const mapDispatchToProps = dispatch => {
         onSetCurrentMot: (currentMot) => dispatch(actions.setCurrentMot(currentMot)),
         onSetCurrentStopsGeoJSON: (currentStopsGeoJSON) => dispatch(actions.setCurrentStopsGeoJSON(currentStopsGeoJSON)),
         onSetClickLocation: (clickLocation) => dispatch(actions.setClickLocation(clickLocation)),
+        onShowNotification: (notificationMessage, notificationType) => dispatch(actions.showNotification(notificationMessage, notificationType)),
     };
 };
 

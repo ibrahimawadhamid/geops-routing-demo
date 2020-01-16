@@ -4,6 +4,8 @@ const initialState = {
     currentMot: "bus",
     currentStopsGeoJSON: {},
     clickLocation: null,
+    notificationMessage: "",
+    notificationType: "info",
 };
 
 const setCurrentStopsGeoJSON = (state, action) => {
@@ -36,6 +38,17 @@ const setClickLocation = (state, action) => {
     };
 };
 
+const showNotification = (state, action) => {
+    const updatedState = {
+        notificationMessage: action.notificationMessage,
+        notificationType: action.notificationType,
+    };
+    return {
+        ...state,
+        ...updatedState
+    };
+};
+
 
 const reducer = (state = initialState, action) => {
     switch (action.type) {
@@ -45,6 +58,8 @@ const reducer = (state = initialState, action) => {
             return setCurrentMot(state, action);
         case actionTypes.SET_CLICK_LOCATION:
             return setClickLocation(state, action);
+        case actionTypes.SHOW_NOTIFICATION:
+            return showNotification(state, action);
         default:
             return state;
     }

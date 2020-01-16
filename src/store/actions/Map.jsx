@@ -20,3 +20,11 @@ export const setClickLocation = (clickLocation) => {
         clickLocation: clickLocation,
     };
 };
+
+export const showNotification = (notificationMessage, notificationType) => {
+    return {
+        type: actionTypes.SHOW_NOTIFICATION,
+        notificationMessage: notificationMessage,
+        notificationType: notificationType,
+    };
+};
