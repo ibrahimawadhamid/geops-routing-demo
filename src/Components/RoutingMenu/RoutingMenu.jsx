@@ -340,7 +340,7 @@ class RoutingMenu extends React.Component {
                                                             <MapMarkerIcon />
                                                         </ListItemIcon>
                                                         <ListItemText primary={searchResult.properties.name}
-                                                                      secondary={searchResult.properties.code}/>
+                                                                      secondary={searchResult.properties.code + " - " + searchResult.properties.country_code}/>
                                                     </ListItem>
                                                 );
                                             } else {
@@ -351,7 +351,7 @@ class RoutingMenu extends React.Component {
                                                             <MapMarkerIcon />
                                                         </ListItemIcon>
                                                         <ListItemText primary={searchResult.properties.name}
-                                                                      secondary={searchResult.properties.code}/>
+                                                                      secondary={searchResult.properties.code + " - " + searchResult.properties.country_code}/>
                                                     </ListItem>
                                                 );
                                             }
