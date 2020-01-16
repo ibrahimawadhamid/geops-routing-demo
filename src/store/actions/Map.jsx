@@ -13,3 +13,10 @@ export const setCurrentMot = (currentMot) => {
         currentMot: currentMot,
     };
 };
+
+export const setClickLocation = (clickLocation) => {
+    return {
+        type: actionTypes.SET_CLICK_LOCATION,
+        clickLocation: clickLocation,
+    };
+};

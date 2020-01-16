@@ -2,12 +2,13 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {Map, View} from 'ol';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
-import OSM from 'ol/source/OSM';
+import Stamen from 'ol/source/Stamen';
 import GeoJSON from 'ol/format/GeoJSON';
 import {Vector as VectorSource} from 'ol/source';
 import axios from 'axios';
 import "./MapComponent.css";
 import {Stroke, Style} from "ol/style";
+import * as actions from "../../store/actions";
 
 class MapComponent extends Component {
     constructor(props) {
@@ -16,25 +17,28 @@ class MapComponent extends Component {
         this.findRouteCancel = null;
         this.routeStyle = new Style({
             stroke: new Stroke({
-                color: 'blue',
-                lineDash: [4],
+                color: 'red',
+                // lineDash: [4],
                 width: 3
             })
         });
     }
 
     componentDidMount() {
-        const openStreetMap = new TileLayer({
-            source: new OSM()
+        const stamenTonerLite = new TileLayer({
+            source: new Stamen({layer: 'toner-lite'})
         });
         this.map = new Map({
             target: 'map',
-            layers: [openStreetMap],
+            layers: [stamenTonerLite],
             view: new View({
                 projection: 'EPSG:4326',
                 center: [10, 50],
                 zoom: 6
             }),
+        });
+        this.map.on('singleclick', (evt) => {
+            this.props.onSetClickLocation(evt.coordinate);
         });
     }
 
@@ -74,7 +78,10 @@ class MapComponent extends Component {
             this.findRouteCancel();
         let hops = [];
         for (let key in this.props.currentStopsGeoJSON) {
-            hops.push("!" + this.props.currentStopsGeoJSON[key].properties.id);
+            if(this.props.currentStopsGeoJSON[key].features)
+                hops.push("@" + this.props.currentStopsGeoJSON[key].features[0].properties.id);
+            else
+                hops.push("!" + this.props.currentStopsGeoJSON[key].properties.id);
         }
         axios.get(this.props.routingUrl, {
             params: {
@@ -124,4 +131,11 @@ const mapStateToProps = state => {
     };
 };
 
-export default connect(mapStateToProps)(MapComponent);
+const mapDispatchToProps = dispatch => {
+    return {
+        onSetClickLocation: (clickLocation) => dispatch(actions.setClickLocation(clickLocation)),
+    };
+};
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

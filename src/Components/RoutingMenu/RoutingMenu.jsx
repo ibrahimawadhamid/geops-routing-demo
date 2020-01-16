@@ -59,6 +59,38 @@ class RoutingMenu extends React.Component {
         this.props.onSetCurrentMot(currentMots[0].name);
     }
 
+    componentDidUpdate(prevProps) {
+        if (this.props.clickLocation && this.props.clickLocation !== prevProps.clickLocation) {
+            let updateCurrentStops = this.state.currentStops;
+            updateCurrentStops[this.state.focusedFieldIndex] = this.props.clickLocation;
+            let updateCurrentStopsGeoJSON = {...this.state.currentStopsGeoJSON};
+            // Create GeoJSON
+            let tempGeoJSON = {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "properties": {
+                            "id": this.props.clickLocation.slice().reverse(),
+                            "type": "coordinates"
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": this.props.clickLocation
+                        }
+                    }
+                ]
+            }
+            //
+            updateCurrentStopsGeoJSON[this.state.focusedFieldIndex] = tempGeoJSON;
+            this.setState({
+                currentStops: updateCurrentStops,
+                currentStopsGeoJSON: updateCurrentStopsGeoJSON
+            });
+            this.props.onSetCurrentStopsGeoJSON(updateCurrentStopsGeoJSON);
+        }
+    }
+
     validateMots = mots => {
         let currentMots = [];
         mots.forEach(providedMot => {
@@ -270,7 +302,8 @@ class RoutingMenu extends React.Component {
                                                        value={singleStop}
                                                        onKeyDown={this.processHighlightedResultSelect}
                                                        onFocus={() => this.onFieldFocus(index)}
-                                                       onBlur={this.onFieldBlur}/>
+                                                       onBlur={this.onFieldBlur}
+                                            />
                                         </Grid>
                                             {fieldRightIcon}
                                     </Grid>
@@ -313,11 +346,18 @@ class RoutingMenu extends React.Component {
     }
 };
 
+const mapStateToProps = state => {
+    return {
+        clickLocation: state.MapReducer.clickLocation,
+    };
+};
+
 const mapDispatchToProps = dispatch => {
     return {
         onSetCurrentMot: (currentMot) => dispatch(actions.setCurrentMot(currentMot)),
         onSetCurrentStopsGeoJSON: (currentStopsGeoJSON) => dispatch(actions.setCurrentStopsGeoJSON(currentStopsGeoJSON)),
+        onSetClickLocation: (clickLocation) => dispatch(actions.setClickLocation(clickLocation)),
     };
 };
 
-export default connect(null, mapDispatchToProps)(RoutingMenu);
+export default connect(mapStateToProps, mapDispatchToProps)(RoutingMenu);

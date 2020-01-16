@@ -34,3 +34,29 @@ npm install
 npm start
 ```
 Development server should be started at [localhost:3000](http://localhost:3000)
+
+# Branching model
+-   master
+```
+Holds only the major/minor releases, that come 
+from merging development into master.
+example: 0.1.5 - 0.2.0 - 0.3.0
+```
+-   development
+```
+Holds the latest code, each commit maps to 
+a single/unit feature/change made to the code.
+This branch is merged into master when there is a release.
+```
+
+-   gh-pages
+```
+github pages branch, for demo purposes only.
+```
+
+# Depenedencies
+-   [ol](https://www.npmjs.com/package/ol) (openlayers)
+-   [redux](https://www.npmjs.com/package/redux)
+-   [axios](https://www.npmjs.com/package/axios)
+-   [material UI Core](https://www.npmjs.com/package/@material-ui/core)
+-   [material UI Icons](https://www.npmjs.com/package/@material-ui/icons)

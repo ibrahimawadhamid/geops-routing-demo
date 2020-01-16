@@ -3,6 +3,7 @@ import * as actionTypes from '../actions/actionTypes';
 const initialState = {
     currentMot: "bus",
     currentStopsGeoJSON: {},
+    clickLocation: null,
 };
 
 const setCurrentStopsGeoJSON = (state, action) => {
@@ -25,6 +26,16 @@ const setCurrentMot = (state, action) => {
     };
 };
 
+const setClickLocation = (state, action) => {
+    const updatedState = {
+        clickLocation: action.clickLocation,
+    };
+    return {
+        ...state,
+        ...updatedState
+    };
+};
+
 
 const reducer = (state = initialState, action) => {
     switch (action.type) {
@@ -32,6 +43,8 @@ const reducer = (state = initialState, action) => {
             return setCurrentStopsGeoJSON(state, action);
         case actionTypes.SET_CURRENT_MOT:
             return setCurrentMot(state, action);
+        case actionTypes.SET_CLICK_LOCATION:
+            return setClickLocation(state, action);
         default:
             return state;
     }
