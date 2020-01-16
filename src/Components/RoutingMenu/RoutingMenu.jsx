@@ -22,6 +22,8 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MapMarkerIcon from '@material-ui/icons/LocationOn';
 
+import Tooltip from '@material-ui/core/Tooltip';
+
 import * as actions from "../../store/actions";
 import "./RoutingMenu.css";
 import Grid from "@material-ui/core/Grid";
@@ -265,7 +267,8 @@ class RoutingMenu extends React.Component {
                             this.state.currentMots.map(currentMot => {
                                 return (
                                     <Tab key={"mot-" + currentMot.name} value={currentMot.name} icon={currentMot.icon}
-                                         aria-label={currentMot.name}/>);
+                                         aria-label={currentMot.name}/>
+                                );
                             })
                         }
                     </Tabs>
@@ -281,10 +284,14 @@ class RoutingMenu extends React.Component {
                                     searchFieldLabel = "Select start station, or click on the map";
                                     fieldRightIcon = (
                                         <Grid item xs={1}>
-                                            <IconButton onClick={() => this.addNewSearchField(index+1)} className="addHop" color="primary" aria-label="Add Hop"
-                                                        component="span">
-                                                <AddCircleOutlineIcon/>
-                                            </IconButton></Grid>);
+                                            <Tooltip title="Add Hop">
+                                                <IconButton onClick={() => this.addNewSearchField(index + 1)}
+                                                            className="addHop" color="primary" aria-label="Add Hop"
+                                                            component="span">
+                                                    <AddCircleOutlineIcon/>
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Grid>);
                                 } else if (index === this.state.currentStops.length - 1) {
                                     fieldLeftIcon = <Room color="secondary"/>;
                                     searchFieldLabel = "Select end station, or click on the map";
@@ -294,19 +301,26 @@ class RoutingMenu extends React.Component {
                                     searchFieldLabel = "Select station, or click on the map";
                                     fieldRightIcon = (
                                         <React.Fragment><Grid item xs={1}>
-                                            <IconButton onClick={() => this.removeSearchField(index)}
-                                                        className="addHop" color="secondary" aria-label="upload picture"
-                                                        component="span">
-                                                <RemoveCircleOutlineIcon/>
-                                            </IconButton>
+                                            <Tooltip title="Remove Hop">
+                                                <IconButton onClick={() => this.removeSearchField(index)}
+                                                            className="addHop" color="secondary"
+                                                            aria-label="removeHop"
+                                                            component="span">
+                                                    <RemoveCircleOutlineIcon/>
+                                                </IconButton>
+                                            </Tooltip>
                                         </Grid>
                                             <Grid item xs={1}>
+                                                <Tooltip title="Add Hop">
                                                 <IconButton onClick={() => this.addNewSearchField(index+1)}
                                                     className="addHop" color="primary"
-                                                            aria-label="upload picture"
+                                                            aria-label="addHop"
                                                             component="span">
                                                     <AddCircleOutlineIcon/>
-                                                </IconButton></Grid></React.Fragment>);
+                                                </IconButton>
+                                                </Tooltip>
+                                            </Grid>
+                                        </React.Fragment>);
                                 }
                                 return(
                                     <Grid key={"searchField-"+index} container spacing={1} alignItems="flex-end" style={{width: '100%'}}>
