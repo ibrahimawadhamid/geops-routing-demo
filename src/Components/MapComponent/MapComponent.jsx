@@ -25,10 +25,11 @@ class MapComponent extends Component {
     }
 
     componentDidMount() {
+        const demoAttribution = `${process.env.REACT_APP_NAME} v-${process.env.REACT_APP_VERSION}`;
         const esriTopoMap = new TileLayer({
             source: new XYZ({
                 attributions: '<a href="https://geops.ch/" target="_blank">geOps</a>' +
-                    ' | <a href="https://ibrahimawadhamid.github.io/geops-routing-demo" target="_blank">Demo</a>' +
+                    ' | <a href="https://ibrahimawadhamid.github.io/geops-routing-demo" target="_blank">' + demoAttribution + '</a>' +
                     ' | <a href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer" target="_blank">ArcGIS</a>',
                 url: 'https://server.arcgisonline.com/ArcGIS/rest/services/' +
                     'World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
