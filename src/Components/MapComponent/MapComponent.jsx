@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {Map, View} from 'ol';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
-import Stamen from 'ol/source/Stamen';
+import XYZ from 'ol/source/XYZ';
 import GeoJSON from 'ol/format/GeoJSON';
 import {Vector as VectorSource} from 'ol/source';
 import axios from 'axios';
@@ -25,12 +25,18 @@ class MapComponent extends Component {
     }
 
     componentDidMount() {
-        const stamenTonerLite = new TileLayer({
-            source: new Stamen({layer: 'toner-lite'})
+        const esriTopoMap = new TileLayer({
+            source: new XYZ({
+                attributions: '<a href="https://geops.ch/" target="_blank">geOps</a>' +
+                    ' | <a href="https://ibrahimawadhamid.github.io/geops-routing-demo" target="_blank">Demo</a>' +
+                    ' | <a href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer" target="_blank">ArcGIS</a>',
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/' +
+                    'World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+            })
         });
         this.map = new Map({
             target: 'map',
-            layers: [stamenTonerLite],
+            layers: [esriTopoMap],
             view: new View({
                 projection: 'EPSG:4326',
                 center: [10, 50],
