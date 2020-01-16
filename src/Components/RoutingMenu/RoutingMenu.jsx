@@ -16,6 +16,12 @@ import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
 import DirectionsIcon from '@material-ui/icons/Directions';
 
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import MapMarkerIcon from '@material-ui/icons/LocationOn';
+
 import * as actions from "../../store/actions";
 import "./RoutingMenu.css";
 import Grid from "@material-ui/core/Grid";
@@ -113,7 +119,7 @@ class RoutingMenu extends React.Component {
     };
 
     onFieldBlur = () => {
-        this.setState({focusedFieldIndex: null});
+        // this.setState({focusedFieldIndex: null});
     };
 
     addNewSearchField = (indexToInsertAt) => {
@@ -216,6 +222,19 @@ class RoutingMenu extends React.Component {
         }
     };
 
+    processClickedResult = searchResult => {
+        let updateCurrentStops = this.state.currentStops;
+        updateCurrentStops[this.state.focusedFieldIndex] = searchResult.properties.name;
+        let updateCurrentStopsGeoJSON = {...this.state.currentStopsGeoJSON};
+        updateCurrentStopsGeoJSON[this.state.focusedFieldIndex] = searchResult;
+        this.setState({
+            currentStops: updateCurrentStops,
+            currentSearchResults: [],
+            currentStopsGeoJSON: updateCurrentStopsGeoJSON
+        });
+        this.props.onSetCurrentStopsGeoJSON(updateCurrentStopsGeoJSON);
+    };
+
     processRoute = () => {
         this.props.onFindRoute(this.state.currentStopsGeoJSON, this.state.currentMot);
     };
@@ -264,13 +283,6 @@ class RoutingMenu extends React.Component {
                                 } else if (index === this.state.currentStops.length - 1) {
                                     fieldLeftIcon = <Room color="secondary"/>;
                                     searchFieldLabel = "Select end station, or click on the map";
-                                    fieldRightIcon = (
-                                        <Grid item xs={1}>
-                                            <IconButton disabled={!canSearchForRoute} className="addHop" color="primary"
-                                                        aria-label="Find Route" onClick={this.processRoute}
-                                                        component="span">
-                                                <DirectionsIcon/>
-                                            </IconButton></Grid>);
                                 } else {
                                     fieldLeftIcon = <Adjust fontSize="small" color="secondary"/>;
                                     searchFieldSize = 9;
@@ -319,24 +331,32 @@ class RoutingMenu extends React.Component {
                             <hr/>
                             <Paper square elevation={1}>
                                 <TabPanel>
-                                    {this.state.currentSearchResults.map((searchResult, index) => {
-                                        if (index !== 0) {
-                                            return (
-                                                <Typography key={"searchResult-" + searchResult.properties.name} variant="subtitle1"
-                                                            gutterBottom>
-                                                    {searchResult.properties.name}
-                                                </Typography>
-                                            );
-                                        } else {
-                                            // First Element
-                                            return (
-                                                <Typography key={"searchResult-" + searchResult.properties.name} variant="h6"
-                                                            gutterBottom>
-                                                    {searchResult.properties.name}
-                                                </Typography>
-                                            );
-                                        }
-                                    })}
+                                    <List component="nav" aria-label="search results">
+                                        {this.state.currentSearchResults.map((searchResult, index) => {
+                                            if (index !== 0) {
+                                                return (
+                                                    <ListItem onClick={() => this.processClickedResult(searchResult)} button key={"searchResult-" + searchResult.properties.name}>
+                                                        <ListItemIcon>
+                                                            <MapMarkerIcon />
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={searchResult.properties.name}
+                                                                      secondary={searchResult.properties.code}/>
+                                                    </ListItem>
+                                                );
+                                            } else {
+                                                // First item
+                                                return (
+                                                    <ListItem onClick={() => this.processClickedResult(searchResult)} button selected key={"searchResult-" + searchResult.properties.name}>
+                                                        <ListItemIcon>
+                                                            <MapMarkerIcon />
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={searchResult.properties.name}
+                                                                      secondary={searchResult.properties.code}/>
+                                                    </ListItem>
+                                                );
+                                            }
+                                        })}
+                                    </List>
                                 </TabPanel>
                             </Paper>
                         </div> : null
