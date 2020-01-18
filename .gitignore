@@ -107,4 +107,5 @@ dist
 .idea
 
 # Build files
-build
+buildyarn.lock
+build/

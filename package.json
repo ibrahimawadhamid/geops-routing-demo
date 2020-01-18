@@ -1,46 +1,59 @@
 {
   "name": "geops-routing-demo",
-  "version": "0.2.0",
+  "description": "Sample component that uses geOps Routing API",
+  "main": "build/index.js",
+  "version": "0.5.0",
   "private": false,
   "homepage": "http://ibrahimawadhamid.github.io/geops-routing-demo",
   "dependencies": {
     "@material-ui/core": "^4.8.3",
     "@material-ui/icons": "^4.5.1",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.3.2",
-    "@testing-library/user-event": "^7.1.2",
+    "@material-ui/lab": "^4.0.0-alpha.39",
     "axios": "^0.19.1",
     "ol": "^6.1.1",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
+    "prop-types": "^15.7.2",
+    "react-id-generator": "^3.0.0",
     "react-redux": "^7.1.3",
-    "react-scripts": "3.3.0",
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0"
   },
+  "peerDependencies": {
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.3",
+    "@babel/core": "^7.8.3",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/preset-env": "^7.8.3",
+    "@babel/preset-es2015": "^7.0.0-beta.53",
+    "@babel/preset-react": "^7.8.3",
+    "babel-eslint": "^10.0.3",
+    "babel-loader": "^8.0.6",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "better-docs": "^1.4.7",
+    "css-loader": "^3.4.2",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-css-modules": "^2.11.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-react": "^7.18.0",
+    "eslint-plugin-react-hooks": "^1.7.0",
+    "jsdoc": "^3.6.3",
+    "prettier": "^1.19.1",
+    "style-loader": "^1.1.2",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "publish:npm": "mkdir dist &&  babel src/Components -d dist --copy-files",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "babel": {
-    "presets": [
-      "@babel/react",
-      {
-        "plugins": [
-          "@babel/plugin-proposal-class-properties"
-        ]
-      }
-    ]
+    "lint": "eslint src/**/* --ext .js,.jsx",
+    "docs": "./node_modules/.bin/jsdoc -c jsdoc.json",
+    "start": "webpack --watch",
+    "build": "webpack --mode 'production'"
   },
   "repository": {
     "type": "git",
@@ -53,23 +66,9 @@
     "openlayers",
     "demo"
   ],
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "author": {
+    "name": "Ibrahim Awad",
+    "email": "ibrahim.a.hamid@gmail.com"
   },
-  "license": "MIT",
-  "devDependencies": {
-    "@babel/cli": "^7.7.7",
-    "@babel/plugin-proposal-class-properties": "^7.7.4",
-    "@babel/preset-react": "^7.7.4",
-    "gh-pages": "^2.2.0"
-  }
+  "license": "MIT"
 }

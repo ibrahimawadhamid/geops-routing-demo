@@ -1,4 +1,6 @@
 export {
-    setCurrentStopsGeoJSON,
-    setCurrentMot,
+  setCurrentStopsGeoJSON,
+  setCurrentMot,
+  setClickLocation,
+  showNotification
 } from "./Map";
