@@ -1,8 +1,11 @@
-# geOps Routing [Demo](https://ibrahimawadhamid.github.io/geops-routing-demo/)
+# geOps Routing Demo
 ![npm_version](https://img.shields.io/npm/v/geops-routing-demo)
 ![keywords](https://img.shields.io/github/package-json/keywords/ibrahimawadhamid/geops-routing-demo)
+[![Documentation Status](https://readthedocs.org/projects/geops-routing-demo/badge/?version=latest)](https://geops-routing-demo.readthedocs.io/en/latest/?badge=latest)
 
-Sample component that uses geOps Routing API
+Sample component that uses geOps Routing API.
+
+## Check [Demo](https://ibrahimawadhamid.github.io/geops-routing-demo/)
 
 ## Installation
 ```javascript

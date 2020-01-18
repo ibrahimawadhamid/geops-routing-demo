@@ -5,3 +5,4 @@ webpack.production.config.js
 .babelrc
 demo
 src
+docs
