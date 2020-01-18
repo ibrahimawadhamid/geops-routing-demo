@@ -1,0 +1,12 @@
+ite_name: geops-routing-demo
+site_description: Sample component that uses geOps Routing API.
+repo_url: https://github.com/ibrahimawadhamid/geops-routing-demo
+
+theme:
+    name: readthedocs
+    highlightjs: true
+    hljs_languages:
+        - javascript
+
+pages:
+  - Home: 'index.html'
