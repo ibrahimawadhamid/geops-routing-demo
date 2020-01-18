@@ -7,6 +7,7 @@ Sample component that uses geOps Routing API.
 
 ## Check [Demo](https://ibrahimawadhamid.github.io/geops-routing-demo/)
 
+
 ## Installation
 ```javascript
 npm i geops-routing-demo
@@ -26,6 +27,7 @@ import GeopsRoutingDemo from 'geops-routing-demo';
         APIKey="SAMPLE_KEY"
     />
 ```
+Check [Documentation](https://geops-routing-demo.readthedocs.io/en/latest/)
 
 # Development
 
