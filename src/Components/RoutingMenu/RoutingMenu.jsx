@@ -28,7 +28,8 @@ import * as actions from "../../store/actions";
 import "./RoutingMenu.css";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
-import {VALID_MOTS} from "./constants";
+import {VALID_MOTS} from "../../constants";
+import {findMotIcon} from "../../utils";
 
 
 function TabPanel(props) {
@@ -102,12 +103,20 @@ class RoutingMenu extends React.Component {
     validateMots = mots => {
         let currentMots = [];
         mots.forEach(providedMot => {
-            let requestedMot = VALID_MOTS.find(mot => mot.name === providedMot);
-            if (requestedMot)
-                currentMots.push(requestedMot);
+            let requestedMot = VALID_MOTS.find(mot => mot === providedMot);
+            if (requestedMot) {
+                currentMots.push({
+                    name: requestedMot,
+                    icon: findMotIcon(requestedMot)
+                });
+            }
         });
-        if (currentMots.length === 0)
-            currentMots.push(VALID_MOTS[0]);
+        if (currentMots.length === 0) {
+            currentMots.push({
+                name: VALID_MOTS[0],
+                icon: findMotIcon(VALID_MOTS[0])
+            });
+        }
         return (currentMots);
     };
 
