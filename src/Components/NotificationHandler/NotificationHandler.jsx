@@ -1,60 +1,75 @@
-import React from 'react';
-import Snackbar from '@material-ui/core/Snackbar';
-import {connect} from 'react-redux';
-import MuiAlert from '@material-ui/lab/Alert';
-
-function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
+import React from "react";
+import Snackbar from "@material-ui/core/Snackbar";
+import { connect } from "react-redux";
+import Alert from "@material-ui/lab/Alert";
+import PropTypes from "prop-types";
 
 class NotificationHandler extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            open: false
-        };
-    }
-
-    handleClose = () => {
-        this.setState({
-            open: false
-        })
+  constructor(props) {
+    super(props);
+    this.state = {
+      open: false
     };
+  }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.notificationMessage && this.props.notificationMessage !== prevProps.notificationMessage) {
-            this.setState({
-                open: true
-            });
-        }
+  componentDidUpdate(prevProps) {
+    const { notificationMessage } = this.props;
+    if (
+      notificationMessage &&
+      notificationMessage !== prevProps.notificationMessage
+    ) {
+      this.handleOpen();
     }
+  }
 
-    render() {
-        return(
-            <Snackbar
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                }}
-                open={this.state.open}
-                autoHideDuration={6000}
-                onClose={this.handleClose}
-            >
-                <Alert onClose={this.handleClose} severity={this.props.notificationType}>
-                    {this.props.notificationMessage}
-                </Alert>
-            </Snackbar>
-        );
-    }
-};
+  handleOpen = () => {
+    this.setState({
+      open: true
+    });
+  };
 
+  handleClose = () => {
+    this.setState({
+      open: false
+    });
+  };
+
+  render() {
+    const { notificationMessage, notificationType } = this.props;
+    const { open } = this.state;
+    return (
+      <Snackbar
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left"
+        }}
+        open={open}
+        autoHideDuration={6000}
+        onClose={this.handleClose}
+      >
+        <Alert
+          onClose={this.handleClose}
+          severity={notificationType}
+          elevation={6}
+          variant="filled"
+        >
+          {notificationMessage}
+        </Alert>
+      </Snackbar>
+    );
+  }
+}
 
 const mapStateToProps = state => {
-    return {
-        notificationMessage: state.MapReducer.notificationMessage,
-        notificationType: state.MapReducer.notificationType,
-    };
+  return {
+    notificationMessage: state.MapReducer.notificationMessage,
+    notificationType: state.MapReducer.notificationType
+  };
 };
 
+NotificationHandler.propTypes = {
+  notificationMessage: PropTypes.string.isRequired,
+  notificationType: PropTypes.string.isRequired
+};
 
 export default connect(mapStateToProps)(NotificationHandler);

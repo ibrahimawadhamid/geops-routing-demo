@@ -1,3 +1,3 @@
-import NotificationHandler from "./NotificationHandler.jsx";
+import NotificationHandler from "./NotificationHandler";
 
 export default NotificationHandler;
