@@ -8,6 +8,12 @@ import CallMergeIcon from "@material-ui/icons/CallMerge";
 import SubwayIcon from "@material-ui/icons/Subway";
 import React from "react";
 
+/**
+ * Map each mot to an icon
+ * @param {string} name The name of the mot, ex('bus' or 'train')
+ * @returns {Icon} MotIcon
+ * @category Utils
+ */
 const findMotIcon = name => {
   let result = null;
   switch (name) {

@@ -1,9 +1,11 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Components/NotificationHandler/NotificationHandler.jsx</title>
 
     <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -51,8 +53,8 @@
             <div class="column is-9-desktop">
                 <div class="content" id="main-content-wrapper">
                     <header class="page-title">
-                        <p>Title</p>
-                        <h1>Home</h1>
+                        <p>Source</p>
+                        <h1>Components/NotificationHandler/NotificationHandler.jsx</h1>
                     </header>
                     
                     
@@ -60,85 +62,120 @@
 
 
     
-
-
-    <h3> </h3>
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
     <section>
-        <article><h1>geOps Routing Demo</h1>
-<p><img src="https://img.shields.io/npm/v/geops-routing-demo" alt="npm_version">
-<img src="https://img.shields.io/github/package-json/keywords/ibrahimawadhamid/geops-routing-demo" alt="keywords"></p>
-<p>Sample component that uses geOps Routing API.</p>
-<h2>Check <a href="https://ibrahimawadhamid.github.io/geops-routing-demo/">Demo</a></h2>
-<h2>Installation</h2>
-<pre class="prettyprint source lang-javascript"><code>npm i geops-routing-demo
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from "react";
+import Snackbar from "@material-ui/core/Snackbar";
+import { connect } from "react-redux";
+import Alert from "@material-ui/lab/Alert";
+import PropTypes from "prop-types";
+
+/**
+ * The notification handler props
+ * @typedef NotificationHandlerProps
+ * @type {props}
+ * @property {string} notificationMessage Obtained from the store, the message to be displayed. Can be any valid string.
+ * @property {string} notificationType Obtained from the store, the message type (error, success, info, etc...)
+ * @category Props
+ */
+
+/**
+ * Handles all application notification shown to the user
+ * @category NotificationHandler
+ */
+class NotificationHandler extends React.Component {
+    /**
+     * Default constructor. visibility is set to false by default. Controlled through state property "open"
+     * @param {...NotificationHandlerProps} props Props received so that the component can function properly.
+     * @category NotificationHandler
+     */
+  constructor(props) {
+    super(props);
+    this.state = {
+      open: false
+    };
+  }
+
+    /**
+     * If a new notification message is received, show it accordingly.
+     * @category NotificationHandler
+     */
+  componentDidUpdate(prevProps) {
+    const { notificationMessage } = this.props;
+    if (
+      notificationMessage &amp;&amp;
+      notificationMessage !== prevProps.notificationMessage
+    ) {
+      this.handleOpen();
+    }
+  }
+
+    /**
+     * Show the notification to the view.
+     * @category NotificationHandler
+     */
+  handleOpen = () => {
+    this.setState({
+      open: true
+    });
+  };
+
+    /**
+     * Hide the notification from the view.
+     * @category NotificationHandler
+     */
+  handleClose = () => {
+    this.setState({
+      open: false
+    });
+  };
+
+    /**
+     * Render the notification to the dom.
+     * @category NotificationHandler
+     */
+  render() {
+    const { notificationMessage, notificationType } = this.props;
+    const { open } = this.state;
+    return (
+      &lt;Snackbar
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left"
+        }}
+        open={open}
+        autoHideDuration={6000}
+        onClose={this.handleClose}
+      >
+        &lt;Alert
+          onClose={this.handleClose}
+          severity={notificationType}
+          elevation={6}
+          variant="filled"
+        >
+          {notificationMessage}
+        &lt;/Alert>
+      &lt;/Snackbar>
+    );
+  }
+}
+
+const mapStateToProps = state => {
+  return {
+    notificationMessage: state.MapReducer.notificationMessage,
+    notificationType: state.MapReducer.notificationType
+  };
+};
+
+NotificationHandler.propTypes = {
+  notificationMessage: PropTypes.string.isRequired,
+  notificationType: PropTypes.string.isRequired
+};
+
+export default connect(mapStateToProps)(NotificationHandler);
 </code></pre>
-<h2>Sample Usage</h2>
-<h3>Import</h3>
-<pre class="prettyprint source lang-javascript"><code>import GeopsRoutingDemo from 'geops-routing-demo';
-</code></pre>
-<h3>Render</h3>
-<pre class="prettyprint source lang-javascript"><code>&lt;GeopsRoutingDemo
-        mots={['rail','bus','tram']}
-        routingUrl=&quot;https://api.geops.io/routing/v1/&quot;
-        stationSearchUrl=&quot;https://api.geops.io/stops/v1/&quot;
-        APIKey=&quot;SAMPLE_KEY&quot;
-    />
-</code></pre>
-<p>Check documentation in <strong>/docs</strong></p>
-<h1>Development</h1>
-<h2>Quick start</h2>
-<pre class="prettyprint source"><code>git clone https://github.com/ibrahimawadhamid/geops-routing-demo.git
-cd geops-routing-demo
-npm install
-npm start
-</code></pre>
-<p>Development server should be started at <a href="http://localhost:3000">localhost:3000</a></p>
-<h1>Branching model</h1>
-<ul>
-<li>master</li>
-</ul>
-<pre class="prettyprint source"><code>Holds only the major/minor releases, that come 
-from merging development into master.
-example: 0.1.5 - 0.2.0 - 0.3.0
-</code></pre>
-<ul>
-<li>development</li>
-</ul>
-<pre class="prettyprint source"><code>Holds the latest code, each commit maps to 
-a single/unit feature/change made to the code.
-This branch is merged into master when there is a release.
-</code></pre>
-<ul>
-<li>gh-pages</li>
-</ul>
-<pre class="prettyprint source"><code>github pages branch, for demo purposes only.
-</code></pre>
-<h1>Depenedencies</h1>
-<ul>
-<li><a href="https://www.npmjs.com/package/ol">ol</a> (openlayers)</li>
-<li><a href="https://www.npmjs.com/package/redux">redux</a></li>
-<li><a href="https://www.npmjs.com/package/axios">axios</a></li>
-<li><a href="https://www.npmjs.com/package/@material-ui/core">material UI Core</a></li>
-<li><a href="https://www.npmjs.com/package/@material-ui/icons">material UI Icons</a></li>
-</ul></article>
+        </article>
     </section>
-
-
 
 
 

@@ -1,3 +1,8 @@
+/**
+ * The valid supported mots by the application
+ * @type {string[]}
+ * @category Constants
+ */
 const VALID_MOTS = [
   "bus",
   "ferry",

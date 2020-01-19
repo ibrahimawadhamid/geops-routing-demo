@@ -2,6 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import GeopsRoutingDemo from "../src/index";
 
+/**
+ * Example usage of the demo component.
+ */
 ReactDOM.render(
     <GeopsRoutingDemo
         mots={['rail', 'bus', 'tram']}
