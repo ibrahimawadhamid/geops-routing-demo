@@ -8,7 +8,7 @@ module.exports = {
     output: {
         path: join(__dirname, "dist"),
         filename: "index.js",
-        publicPath: "/"
+        publicPath: "/geops-routing-demo/"
     },
     resolve: {
         extensions: [".js", ".jsx"]

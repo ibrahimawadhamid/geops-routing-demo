@@ -46,6 +46,7 @@
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-react": "^7.18.0",
     "eslint-plugin-react-hooks": "^1.7.0",
+    "gh-pages": "^2.2.0",
     "html-webpack-plugin": "^3.2.0",
     "jsdoc": "^3.6.3",
     "prettier": "^1.19.1",
@@ -59,7 +60,8 @@
     "docs": "./node_modules/.bin/jsdoc -c jsdoc.json",
     "start": "webpack --watch",
     "build": "webpack --mode production",
-    "dev": "webpack-dev-server --config example/webpack.config.js"
+    "dev": "webpack-dev-server --config example/webpack.config.js",
+    "deploy:ghpages": "gh-pages -d dist"
   },
   "repository": {
     "type": "git",
