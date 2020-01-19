@@ -1,42 +1,47 @@
-const { resolve, join } = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require("webpack");
+const {resolve, join} = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
-    entry: resolve(__dirname),
-    devtool: 'source-map',
+    entry: resolve("./example/index.js"),
+    devtool: "source-map",
     output: {
-        path: join(__dirname, 'dist'),
-        filename: 'index.js',
-        publicPath: '/',
+        path: join(__dirname, "dist"),
+        filename: "index.js",
+        publicPath: "/"
     },
     resolve: {
-        extensions: ['.js', '.jsx'],
+        extensions: [".js", ".jsx"]
     },
     devServer: {
-        compress: true,
+        compress: false
     },
     module: {
         rules: [
             {
-                test: /\.jsx?$/,
+                test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
                 use: {
-                    loader: 'babel-loader',
-                },
+                    loader: "babel-loader",
+                    options: {
+                        presets: ["@babel/preset-env", "@babel/preset-react"]
+                    }
+                }
             },
             {
                 test: /\.css$/,
-                use: [
-                    { loader: 'style-loader' },
-                    { loader: 'css-loader' },
-                ],
-            },
-        ],
+                use: [{loader: "style-loader"}, {loader: "css-loader"}]
+            }
+        ]
     },
     plugins: [
-        new HtmlWebpackPlugin({
-            title: 'React select search',
-            template: resolve(__dirname, './template.html'),
+        new webpack.ProvidePlugin({
+            React: "react",
+            "react-dom": "react-dom"
         }),
+        new HtmlWebpackPlugin({
+            title: "geOps Routing Demo",
+            template: resolve(__dirname, "./index.html")
+        })
     ],
 };
