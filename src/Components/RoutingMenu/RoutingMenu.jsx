@@ -81,7 +81,7 @@ class RoutingMenu extends React.Component {
       currentMots,
       currentMot: currentMots[0].name,
       currentSearchResults: [],
-      focusedFieldIndex: null,
+      focusedFieldIndex: 0,
       currentStops: ["", ""],
       currentStopsGeoJSON: {},
       showLoadingBar: false
@@ -101,6 +101,7 @@ class RoutingMenu extends React.Component {
     const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
     if (clickLocation && clickLocation !== prevProps.clickLocation) {
       const updatedCurrentStops = currentStops;
+      const updatedFocusedFieldIndex = (focusedFieldIndex+1 < currentStops.length) ? focusedFieldIndex+1 : focusedFieldIndex;
       updatedCurrentStops[focusedFieldIndex] = clickLocation;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       // Create GeoJSON
@@ -121,7 +122,7 @@ class RoutingMenu extends React.Component {
         ]
       };
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
-      this.updateCurrentStops(updatedCurrentStops, updatedCurrentStopsGeoJSON);
+      this.updateCurrentStops(updatedCurrentStops, updatedCurrentStopsGeoJSON, updatedFocusedFieldIndex);
       onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
     }
   }
@@ -132,10 +133,11 @@ class RoutingMenu extends React.Component {
      * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
      * @category RoutingMenu
      */
-  updateCurrentStops = (updatedCurrentStops, updatedCurrentStopsGeoJSON) => {
+  updateCurrentStops = (updatedCurrentStops, updatedCurrentStopsGeoJSON, updatedFocusedFieldIndex) => {
     this.setState({
       currentStops: updatedCurrentStops,
-      currentStopsGeoJSON: updatedCurrentStopsGeoJSON
+      currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
+      focusedFieldIndex: updatedFocusedFieldIndex
     });
   };
 
