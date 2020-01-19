@@ -170,7 +170,7 @@ const mapDispatchToProps = dispatch => {
 MapComponent.propTypes = {
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
-  currentStopsGeoJSON: PropTypes.arrayOf(PropTypes.object).isRequired,
+  currentStopsGeoJSON: PropTypes.object.isRequired,
   APIKey: PropTypes.string.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired

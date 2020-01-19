@@ -31,6 +31,8 @@ import "./RoutingMenu.css";
 import VALID_MOTS from "../../constants";
 import findMotIcon from "../../utils";
 
+const _ = require('lodash/core');
+
 function TabPanel(props) {
   const { children, value, index } = props;
 
@@ -49,7 +51,7 @@ function TabPanel(props) {
 
 class RoutingMenu extends React.Component {
   constructor(props) {
-    const { mots, onSetCurrentMot } = { props };
+    const { mots, onSetCurrentMot } = props;
     super(props);
     const currentMots = this.validateMots(mots);
     this.state = {
@@ -73,7 +75,7 @@ class RoutingMenu extends React.Component {
     if (clickLocation && clickLocation !== prevProps.clickLocation) {
       const updatedCurrentStops = currentStops;
       updatedCurrentStops[focusedFieldIndex] = clickLocation;
-      const updatedCurrentStopsGeoJSON = { ...currentStopsGeoJSON };
+      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       // Create GeoJSON
       const tempGeoJSON = {
         type: "FeatureCollection",
@@ -226,18 +228,18 @@ class RoutingMenu extends React.Component {
       focusedFieldIndex,
       currentStopsGeoJSON
     } = this.state;
-    const { firstSearchResult } = currentSearchResults;
+    const [ firstSearchResult ] = currentSearchResults;
     if (event.key === "Enter" && firstSearchResult) {
       const updateCurrentStops = currentStops;
       updateCurrentStops[focusedFieldIndex] = firstSearchResult.properties.name;
-      const updateCurrentStopsGeoJSON = { ...currentStopsGeoJSON };
-      updateCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
+      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+        updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
       this.setState({
         currentStops: updateCurrentStops,
         currentSearchResults: [],
-        currentStopsGeoJSON: updateCurrentStopsGeoJSON
+        currentStopsGeoJSON: updatedCurrentStopsGeoJSON
       });
-      onSetCurrentStopsGeoJSON(updateCurrentStopsGeoJSON);
+      onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
     }
     if (event.key === "Backspace") {
       let updateCurrentSearchResults = [];
@@ -261,7 +263,7 @@ class RoutingMenu extends React.Component {
     const { onSetCurrentStopsGeoJSON } = this.props;
     const updateCurrentStops = currentStops;
     updateCurrentStops[focusedFieldIndex] = searchResult.properties.name;
-    const updatedCurrentStopsGeoJSON = { currentStopsGeoJSON };
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
     this.setState({
       currentStops: updateCurrentStops,
@@ -374,7 +376,7 @@ class RoutingMenu extends React.Component {
               }
               return (
                 <Grid
-                  key={nextId()}
+                  key={`searchField-${index}`}
                   container
                   spacing={1}
                   alignItems="flex-end"
@@ -392,7 +394,6 @@ class RoutingMenu extends React.Component {
                       value={singleStop}
                       onKeyDown={this.processHighlightedResultSelect}
                       onFocus={() => this.onFieldFocus(index)}
-                      onBlur={this.onFieldBlur}
                     />
                   </Grid>
                   {fieldRightIcon}
@@ -412,11 +413,11 @@ class RoutingMenu extends React.Component {
                     if (index !== 0) {
                       return (
                         <ListItem
-                          button
-                          key={nextId()}
                           onClick={() => {
                             this.processClickedResult(searchResult);
                           }}
+                          button
+                          key={nextId()}
                         >
                           <ListItemIcon>
                             <MapMarkerIcon />
@@ -476,18 +477,29 @@ const mapDispatchToProps = dispatch => {
 
 TabPanel.propTypes = {
   children: PropTypes.node.isRequired,
-  value: PropTypes.string.isRequired,
-  index: PropTypes.number.isRequired
+  value: PropTypes.string,
+  index: PropTypes.number
+};
+
+TabPanel.defaultProps = {
+  value: null,
+  index: null
 };
 
 RoutingMenu.propTypes = {
-  onFindRoute: PropTypes.func.isRequired,
+  onFindRoute: PropTypes.func,
   onSetCurrentMot: PropTypes.func.isRequired,
   onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
-  clickLocation: PropTypes.arrayOf(PropTypes.number).isRequired,
+  clickLocation: PropTypes.arrayOf(PropTypes.number),
+  mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
   stationSearchUrl: PropTypes.string.isRequired
+};
+
+RoutingMenu.defaultProps = {
+  onFindRoute: null,
+  clickLocation: null
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(RoutingMenu);

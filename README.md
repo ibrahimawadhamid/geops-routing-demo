@@ -1,7 +1,6 @@
 # geOps Routing Demo
 ![npm_version](https://img.shields.io/npm/v/geops-routing-demo)
 ![keywords](https://img.shields.io/github/package-json/keywords/ibrahimawadhamid/geops-routing-demo)
-[![Documentation Status](https://readthedocs.org/projects/geops-routing-demo/badge/?version=latest)](https://geops-routing-demo.readthedocs.io/en/latest/?badge=latest)
 
 Sample component that uses geOps Routing API.
 
@@ -27,7 +26,7 @@ import GeopsRoutingDemo from 'geops-routing-demo';
         APIKey="SAMPLE_KEY"
     />
 ```
-Check [Documentation](https://geops-routing-demo.readthedocs.io/en/latest/)
+Check documentation in **/docs**
 
 # Development
 
