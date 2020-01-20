@@ -1,3 +1,3 @@
-import NotificationHandler from "./NotificationHandler";
+import RoutingMenu from "./RoutingMenu";
 
-export default NotificationHandler;
+export default RoutingMenu;
