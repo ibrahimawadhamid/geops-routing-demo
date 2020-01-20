@@ -3,7 +3,7 @@ import { Provider } from "react-redux";
 import PropTypes from "prop-types";
 import store from "../../store/store";
 import MapComponent from "../MapComponent";
-import RoutingMenu from "../RoutingMenu/RoutingMenu";
+import RoutingMenu from "../RoutingMenu";
 import NotificationHandler from "../NotificationHandler";
 
 /**

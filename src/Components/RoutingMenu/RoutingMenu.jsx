@@ -15,11 +15,6 @@ import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@material-ui/icons/RemoveCircleOutline";
 import RadioButtonCheckedIcon from "@material-ui/icons/RadioButtonChecked";
 
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import MapMarkerIcon from "@material-ui/icons/LocationOn";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -30,8 +25,9 @@ import * as actions from "../../store/actions";
 import "./RoutingMenu.css";
 import VALID_MOTS from "../../constants";
 import findMotIcon from "../../utils";
+import SearchResults from "../SearchResults";
 
-const _ = require('lodash/core');
+const _ = require("lodash/core");
 
 function TabPanel(props) {
   const { children, value, index } = props;
@@ -68,11 +64,11 @@ function TabPanel(props) {
  * @category RoutingMenu
  */
 class RoutingMenu extends React.Component {
-    /**
-     * Default constructor, gets called automatically upon initialization.
-     * @param {...RoutingMenuProps} props Props received so that the component can function properly.
-     * @category RoutingMenu
-     */
+  /**
+   * Default constructor, gets called automatically upon initialization.
+   * @param {...RoutingMenuProps} props Props received so that the component can function properly.
+   * @category RoutingMenu
+   */
   constructor(props) {
     const { mots, onSetCurrentMot } = props;
     super(props);
@@ -92,16 +88,19 @@ class RoutingMenu extends React.Component {
     onSetCurrentMot(currentMots[0].name);
   }
 
-    /**
-     * If a location was received through the props (user click on map) act accordingly.
-     * @category RoutingMenu
-     */
+  /**
+   * If a location was received through the props (user click on map) act accordingly.
+   * @category RoutingMenu
+   */
   componentDidUpdate(prevProps) {
     const { clickLocation, onSetCurrentStopsGeoJSON } = this.props;
     const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
     if (clickLocation && clickLocation !== prevProps.clickLocation) {
       const updatedCurrentStops = currentStops;
-      const updatedFocusedFieldIndex = (focusedFieldIndex+1 < currentStops.length) ? focusedFieldIndex+1 : focusedFieldIndex;
+      const updatedFocusedFieldIndex =
+        focusedFieldIndex + 1 < currentStops.length
+          ? focusedFieldIndex + 1
+          : focusedFieldIndex;
       updatedCurrentStops[focusedFieldIndex] = clickLocation;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       // Create GeoJSON
@@ -122,18 +121,26 @@ class RoutingMenu extends React.Component {
         ]
       };
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
-      this.updateCurrentStops(updatedCurrentStops, updatedCurrentStopsGeoJSON, updatedFocusedFieldIndex);
+      this.updateCurrentStops(
+        updatedCurrentStops,
+        updatedCurrentStopsGeoJSON,
+        updatedFocusedFieldIndex
+      );
       onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
     }
   }
 
-    /**
-     * Update the current stops array (string array) and the GeoJSON array in the local state.
-     * @param updatedCurrentStops The updated stops.
-     * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
-     * @category RoutingMenu
-     */
-  updateCurrentStops = (updatedCurrentStops, updatedCurrentStopsGeoJSON, updatedFocusedFieldIndex) => {
+  /**
+   * Update the current stops array (string array) and the GeoJSON array in the local state.
+   * @param updatedCurrentStops The updated stops.
+   * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
+   * @category RoutingMenu
+   */
+  updateCurrentStops = (
+    updatedCurrentStops,
+    updatedCurrentStopsGeoJSON,
+    updatedFocusedFieldIndex
+  ) => {
     this.setState({
       currentStops: updatedCurrentStops,
       currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
@@ -141,12 +148,12 @@ class RoutingMenu extends React.Component {
     });
   };
 
-    /**
-     * Validate the mots provided from the props, then retrieve the icons for the valid ones.
-     * @param mots The provided mots
-     * @returns {Array} The valid mots with their icons
-     * @category RoutingMenu
-     */
+  /**
+   * Validate the mots provided from the props, then retrieve the icons for the valid ones.
+   * @param mots The provided mots
+   * @returns {Array} The valid mots with their icons
+   * @category RoutingMenu
+   */
   validateMots = mots => {
     const currentMots = [];
     mots.forEach(providedMot => {
@@ -167,32 +174,32 @@ class RoutingMenu extends React.Component {
     return currentMots;
   };
 
-    /**
-     * Process changing the current selected mot, save in local state and dispatch store action.
-     * @param event The change event
-     * @param newMot The new selected mot
-     * @category RoutingMenu
-     */
+  /**
+   * Process changing the current selected mot, save in local state and dispatch store action.
+   * @param event The change event
+   * @param newMot The new selected mot
+   * @category RoutingMenu
+   */
   handleMotChange = (event, newMot) => {
     const { onSetCurrentMot } = this.props;
     this.setState({ currentMot: newMot });
     onSetCurrentMot(newMot);
   };
 
-    /**
-     * Gets callled when a search field is in focus. Keep track of the last focused/selected field.
-     * @param fieldIndex The search field index(order)
-     * @category RoutingMenu
-     */
+  /**
+   * Gets callled when a search field is in focus. Keep track of the last focused/selected field.
+   * @param fieldIndex The search field index(order)
+   * @category RoutingMenu
+   */
   onFieldFocus = fieldIndex => {
     this.setState({ focusedFieldIndex: fieldIndex });
   };
 
-    /**
-     * Create a new search field (hop) between already existing search fields
-     * @param indexToInsertAt The index to insert the new search field at.
-     * @category RoutingMenu
-     */
+  /**
+   * Create a new search field (hop) between already existing search fields
+   * @param indexToInsertAt The index to insert the new search field at.
+   * @category RoutingMenu
+   */
   addNewSearchField = indexToInsertAt => {
     const { currentStops } = this.state;
     const updatedCurrentStops = currentStops;
@@ -200,12 +207,12 @@ class RoutingMenu extends React.Component {
     this.setState({ currentStops: updatedCurrentStops });
   };
 
-    /**
-     * Remove a search field (hop) from a defined index. Then dispatch an update to the stops,
-     * so that the route can be updated if exists.
-     * @param indexToRemoveFrom The index to remove the search field from.
-     * @category RoutingMenu
-     */
+  /**
+   * Remove a search field (hop) from a defined index. Then dispatch an update to the stops,
+   * so that the route can be updated if exists.
+   * @param indexToRemoveFrom The index to remove the search field from.
+   * @category RoutingMenu
+   */
   removeSearchField = indexToRemoveFrom => {
     const { currentStops, currentStopsGeoJSON } = this.state;
     const { onSetCurrentStopsGeoJSON } = this.props;
@@ -224,12 +231,12 @@ class RoutingMenu extends React.Component {
     onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
   };
 
-    /**
-     * Perform searching for stations through the station API
-     * @param event
-     * @param fieldIndex The search field(hop) index(order)
-     * @category RoutingMenu
-     */
+  /**
+   * Perform searching for stations through the station API
+   * @param event
+   * @param fieldIndex The search field(hop) index(order)
+   * @category RoutingMenu
+   */
   searchStops = (event, fieldIndex) => {
     const { currentStops, currentMot } = this.state;
     const { stationSearchUrl, APIKey, onShowNotification } = this.props;
@@ -253,7 +260,7 @@ class RoutingMenu extends React.Component {
 
     if (this.searchCancel) {
       // If a previous search request has been issues and not completed yet, cancel it.
-        this.searchCancel();
+      this.searchCancel();
     }
     axios
       .get(stationSearchUrl, {
@@ -292,12 +299,12 @@ class RoutingMenu extends React.Component {
       );
   };
 
-    /**
-     * The user makes changes to the current search. Either select the first result,
-     * or delete the text to make a new search.
-     * @param event
-     * @category RoutingMenu
-     */
+  /**
+   * The user makes changes to the current search. Either select the first result,
+   * or delete the text to make a new search.
+   * @param event
+   * @category RoutingMenu
+   */
   processHighlightedResultSelect = event => {
     const { onSetCurrentStopsGeoJSON } = this.props;
     const {
@@ -306,13 +313,13 @@ class RoutingMenu extends React.Component {
       focusedFieldIndex,
       currentStopsGeoJSON
     } = this.state;
-    const [ firstSearchResult ] = currentSearchResults;
+    const [firstSearchResult] = currentSearchResults;
     if (event.key === "Enter" && firstSearchResult) {
       // The user has chosen the first result by pressing 'Enter' key on keyboard
       const updateCurrentStops = currentStops;
       updateCurrentStops[focusedFieldIndex] = firstSearchResult.properties.name;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-        updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
+      updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
       this.setState({
         currentStops: updateCurrentStops,
         currentSearchResults: [],
@@ -338,12 +345,12 @@ class RoutingMenu extends React.Component {
     }
   };
 
-    /**
-     * The user uses the mouse/touch to select one of the search results.
-     * @param searchResult The clicked search result.
-     * @category RoutingMenu
-     */
-  processClickedResult = searchResult => {
+  /**
+   * The user uses the mouse/touch to select one of the search results.
+   * @param searchResult The clicked search result.
+   * @category RoutingMenu
+   */
+  processClickedResultHandler = searchResult => {
     const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
     const { onSetCurrentStopsGeoJSON } = this.props;
     const updateCurrentStops = currentStops;
@@ -358,10 +365,10 @@ class RoutingMenu extends React.Component {
     onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
   };
 
-    /**
-     * Render the component to the dom.
-     * @category RoutingMenu
-     */
+  /**
+   * Render the component to the dom.
+   * @category RoutingMenu
+   */
   render() {
     const {
       currentStops,
@@ -380,7 +387,7 @@ class RoutingMenu extends React.Component {
             scrollButtons="auto"
             indicatorColor="primary"
             textColor="primary"
-            aria-label="icon tabs example"
+            aria-label="mots icons"
           >
             {currentMots.map(singleMot => {
               return (
@@ -403,7 +410,7 @@ class RoutingMenu extends React.Component {
                 fieldLeftIcon = (
                   <RadioButtonCheckedIcon fontSize="small" color="secondary" />
                 );
-                searchFieldLabel = "Select start station, or click on the map";
+                searchFieldLabel = "Start";
                 fieldRightIcon = (
                   <Grid item xs={1}>
                     <Tooltip title="Add Hop">
@@ -421,11 +428,11 @@ class RoutingMenu extends React.Component {
                 );
               } else if (index === currentStops.length - 1) {
                 fieldLeftIcon = <Room color="secondary" />;
-                searchFieldLabel = "Select end station, or click on the map";
+                searchFieldLabel = "End";
               } else {
                 fieldLeftIcon = <Adjust fontSize="small" color="secondary" />;
                 searchFieldSize = 9;
-                searchFieldLabel = "Select station, or click on the map";
+                searchFieldLabel = "Hop";
                 fieldRightIcon = (
                   <>
                     <Grid item xs={1}>
@@ -486,55 +493,10 @@ class RoutingMenu extends React.Component {
           </TabPanel>
           {showLoadingBar ? <LinearProgress /> : null}
         </Paper>
-        {currentSearchResults.length !== 0 ? (
-          <div>
-            <hr />
-            <Paper square elevation={1}>
-              <TabPanel>
-                <List component="nav" aria-label="search results">
-                  {currentSearchResults.map((searchResult, index) => {
-                    if (index !== 0) {
-                      return (
-                        <ListItem
-                          onClick={() => {
-                            this.processClickedResult(searchResult);
-                          }}
-                          button
-                          key={nextId()}
-                        >
-                          <ListItemIcon>
-                            <MapMarkerIcon />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={searchResult.properties.name}
-                            secondary={`${searchResult.properties.code} - ${searchResult.properties.country_code}`}
-                          />
-                        </ListItem>
-                      );
-                    }
-                    // First item
-                    return (
-                      <ListItem
-                        onClick={() => this.processClickedResult(searchResult)}
-                        button
-                        selected
-                        key={`searchResult-${searchResult.properties.name}`}
-                      >
-                        <ListItemIcon>
-                          <MapMarkerIcon />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={searchResult.properties.name}
-                          secondary={`${searchResult.properties.code} - ${searchResult.properties.country_code}`}
-                        />
-                      </ListItem>
-                    );
-                  })}
-                </List>
-              </TabPanel>
-            </Paper>
-          </div>
-        ) : null}
+        <SearchResults
+          currentSearchResults={currentSearchResults}
+          processClickedResultHandler={this.processClickedResultHandler}
+        />
       </div>
     );
   }
