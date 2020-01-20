@@ -85,11 +85,10 @@ class MapComponent extends Component {
  * @category Map
  */
   componentDidUpdate(prevProps) {
-    const { currentStopsGeoJSON } = this.props;
-    if (
-      currentStopsGeoJSON &&
-      currentStopsGeoJSON !== prevProps.currentStopsGeoJSON
-    ) {
+    const { currentStopsGeoJSON, currentMot } = this.props;
+    const currentMotChanged = (currentMot && currentMot !== prevProps.currentMot);
+    const currentStopsGeoJSONChanged = (currentStopsGeoJSON && currentStopsGeoJSON !== prevProps.currentStopsGeoJSON);
+    if (currentMotChanged || currentStopsGeoJSONChanged) {
       // First remove layers
       this.map.getLayers().forEach(layer => {
         if (layer && layer.get("type") === "markers") {
