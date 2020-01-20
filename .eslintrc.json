@@ -15,7 +15,8 @@
     "plugins": [
         "react",
         "import",
-        "css-modules"
+        "css-modules",
+        "jest"
     ],
     "rules": {
         "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],

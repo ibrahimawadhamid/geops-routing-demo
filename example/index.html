@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title><%= htmlWebpackPlugin.options.title %></title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            .documentation {
+                position: absolute;
+                bottom: 10px;
+                left: 10px;
+                width: 64px;
+                height: 64px;
+                z-index: 1000;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app"></div>
+        <a target="_blank" href="/geops-routing-demo/docs/index.html"><img class="documentation" src="/geops-routing-demo/docs.png"></a>
+    </body>
+</html>

@@ -4,7 +4,25 @@ import { connect } from "react-redux";
 import Alert from "@material-ui/lab/Alert";
 import PropTypes from "prop-types";
 
+/**
+ * The notification handler props
+ * @typedef NotificationHandlerProps
+ * @type {props}
+ * @property {string} notificationMessage Obtained from the store, the message to be displayed. Can be any valid string.
+ * @property {string} notificationType Obtained from the store, the message type (error, success, info, etc...)
+ * @category Props
+ */
+
+/**
+ * Handles all application notification shown to the user
+ * @category NotificationHandler
+ */
 class NotificationHandler extends React.Component {
+    /**
+     * Default constructor. visibility is set to false by default. Controlled through state property "open"
+     * @param {...NotificationHandlerProps} props Props received so that the component can function properly.
+     * @category NotificationHandler
+     */
   constructor(props) {
     super(props);
     this.state = {
@@ -12,6 +30,10 @@ class NotificationHandler extends React.Component {
     };
   }
 
+    /**
+     * If a new notification message is received, show it accordingly.
+     * @category NotificationHandler
+     */
   componentDidUpdate(prevProps) {
     const { notificationMessage } = this.props;
     if (
@@ -22,18 +44,30 @@ class NotificationHandler extends React.Component {
     }
   }
 
+    /**
+     * Show the notification to the view.
+     * @category NotificationHandler
+     */
   handleOpen = () => {
     this.setState({
       open: true
     });
   };
 
+    /**
+     * Hide the notification from the view.
+     * @category NotificationHandler
+     */
   handleClose = () => {
     this.setState({
       open: false
     });
   };
 
+    /**
+     * Render the notification to the dom.
+     * @category NotificationHandler
+     */
   render() {
     const { notificationMessage, notificationType } = this.props;
     const { open } = this.state;
