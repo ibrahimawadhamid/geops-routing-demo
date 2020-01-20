@@ -408,7 +408,7 @@ class RoutingMenu extends React.Component {
               let fieldRightIcon = null;
               if (index === 0) {
                 fieldLeftIcon = (
-                  <RadioButtonCheckedIcon fontSize="small" color="secondary" />
+                  <RadioButtonCheckedIcon fontSize="small" color="primary" />
                 );
                 searchFieldLabel = "Start";
                 fieldRightIcon = (
@@ -416,21 +416,20 @@ class RoutingMenu extends React.Component {
                     <Tooltip title="Add Hop">
                       <IconButton
                         onClick={() => this.addNewSearchField(index + 1)}
-                        className="addHop"
                         color="primary"
                         aria-label="Add Hop"
-                        component="span"
+                        size="small"
                       >
-                        <AddCircleOutlineIcon />
+                        <AddCircleOutlineIcon fontSize="small"/>
                       </IconButton>
                     </Tooltip>
                   </Grid>
                 );
               } else if (index === currentStops.length - 1) {
-                fieldLeftIcon = <Room color="secondary" />;
+                fieldLeftIcon = <Room color="primary" />;
                 searchFieldLabel = "End";
               } else {
-                fieldLeftIcon = <Adjust fontSize="small" color="secondary" />;
+                fieldLeftIcon = <Adjust fontSize="small" color="primary" />;
                 searchFieldSize = 9;
                 searchFieldLabel = "Hop";
                 fieldRightIcon = (
@@ -439,12 +438,11 @@ class RoutingMenu extends React.Component {
                       <Tooltip title="Remove Hop">
                         <IconButton
                           onClick={() => this.removeSearchField(index)}
-                          className="addHop"
                           color="secondary"
                           aria-label="removeHop"
-                          component="span"
+                          size="small"
                         >
-                          <RemoveCircleOutlineIcon />
+                          <RemoveCircleOutlineIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </Grid>
@@ -452,12 +450,11 @@ class RoutingMenu extends React.Component {
                       <Tooltip title="Add Hop">
                         <IconButton
                           onClick={() => this.addNewSearchField(index + 1)}
-                          className="addHop"
                           color="primary"
                           aria-label="addHop"
-                          component="span"
+                          size="small"
                         >
-                          <AddCircleOutlineIcon />
+                          <AddCircleOutlineIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </Grid>
@@ -479,7 +476,7 @@ class RoutingMenu extends React.Component {
                     <TextField
                       style={{ width: "100%" }}
                       label={searchFieldLabel}
-                      color="secondary"
+                      color="primary"
                       onChange={e => this.searchStops(e, index)}
                       value={singleStop}
                       onKeyDown={this.processHighlightedResultSelect}

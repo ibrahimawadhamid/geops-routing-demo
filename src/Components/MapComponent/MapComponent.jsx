@@ -1,14 +1,15 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { Map, View } from "ol";
-import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import XYZ from "ol/source/XYZ";
+import React, {Component} from "react";
+import {connect} from "react-redux";
+import {Map, View} from "ol";
+import {Tile as TileLayer, Vector as VectorLayer} from "ol/layer";
+import OSM from 'ol/source/OSM';
 import GeoJSON from "ol/format/GeoJSON";
-import { Vector as VectorSource } from "ol/source";
+import {Vector as VectorSource} from "ol/source";
 import axios from "axios";
 import PropTypes from "prop-types";
+import Snackbar from '@material-ui/core/Snackbar';
+import {Stroke, Style, Fill, Circle as CircleStyle} from "ol/style";
 import "./MapComponent.css";
-import { Stroke, Style } from "ol/style";
 import * as actions from "../../store/actions";
 
 /**
@@ -29,44 +30,54 @@ import * as actions from "../../store/actions";
  * @category Map
  */
 class MapComponent extends Component {
-    /**
-     * Default constructor, gets called automatically upon initialization.
-     * @param {...MapComponentProps} props Props received so that the component can function properly.
-     * @category Map
-     */
+  /**
+   * Default constructor, gets called automatically upon initialization.
+   * @param {...MapComponentProps} props Props received so that the component can function properly.
+   * @category Map
+   */
   constructor(props) {
     super(props);
     this.FindRouteCancelToken = axios.CancelToken;
     this.findRouteCancel = null;
-    this.routeStyle = new Style({
+    this.routeStyleInner = new Style({
       stroke: new Stroke({
-        color: "red",
+        color: "orange",
         width: 3
       })
     });
+    this.routeStyleOuter = new Style({
+      stroke: new Stroke({
+        color: "black",
+        width: 5
+      })
+    });
+    this.pointStyle = new Style({
+      image: new CircleStyle({
+        radius: 7,
+        fill: new Fill({color: "orange"}),
+        stroke: new Stroke({color: 'black', width: 2})
+      })
+    });
+    this.hoveredFeature = null;
+    this.state = {
+      hoveredStationOpen: false,
+      hoveredStationName: ""
+    };
   }
 
   /**
-  * Create Openlayers map (source, view, layer, etc...).
-  * Add event listener onClick to handle location selection from map.
-  * @category Map
-  */
+   * Create Openlayers map (source, view, layer, etc...).
+   * Add event listener onClick to handle location selection from map.
+   * @category Map
+   */
   componentDidMount() {
     const demoAttribution = `${process.env.REACT_APP_NAME} v-${process.env.REACT_APP_VERSION}`;
-    const esriTopoMap = new TileLayer({
-      source: new XYZ({
-        attributions:
-          `${'<a href="https://geops.ch/" target="_blank">geOps</a>' +
-            ' | <a href="https://ibrahimawadhamid.github.io/geops-routing-demo" target="_blank">'}${demoAttribution}</a>` +
-          ` | <a href="https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer" target="_blank">ArcGIS</a>`,
-        url:
-          "https://server.arcgisonline.com/ArcGIS/rest/services/" +
-          "World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-      })
+    const openStreetMap = new TileLayer({
+      source: new OSM()
     });
     this.map = new Map({
       target: "map",
-      layers: [esriTopoMap],
+      layers: [openStreetMap],
       view: new View({
         projection: "EPSG:4326",
         center: [10, 50],
@@ -74,18 +85,34 @@ class MapComponent extends Component {
       })
     });
     this.map.on("singleclick", evt => {
-      const { onSetClickLocation } = this.props;
+      const {onSetClickLocation} = this.props;
       onSetClickLocation(evt.coordinate);
+    });
+    this.map.on('pointermove', evt => {
+      if(this.hoveredFeature) {
+        this.hoveredFeature = null;
+        this.setState({hoveredStationOpen: false, hoveredStationName: ""});
+      }
+      this.map.forEachFeatureAtPixel(evt.pixel, feature => {
+        if(feature.getGeometry().getType() === "Point") {
+          this.hoveredFeature = feature;
+          this.setState({
+            hoveredStationOpen: true,
+            hoveredStationName: feature.get("name") + " - " + feature.get("country_code")
+          });
+        }
+        return true;
+      });
     });
   }
 
-/**
- * Perform the necessary actions when receiving updated props.
- * If new stops are received, then remove any existing stops/routes and draw those stops/routes.
- * @category Map
- */
+  /**
+   * Perform the necessary actions when receiving updated props.
+   * If new stops are received, then remove any existing stops/routes and draw those stops/routes.
+   * @category Map
+   */
   componentDidUpdate(prevProps) {
-    const { currentStopsGeoJSON, currentMot } = this.props;
+    const {currentStopsGeoJSON, currentMot} = this.props;
     const currentMotChanged = (currentMot && currentMot !== prevProps.currentMot);
     const currentStopsGeoJSONChanged = (currentStopsGeoJSON && currentStopsGeoJSON !== prevProps.currentStopsGeoJSON);
     if (currentMotChanged || currentStopsGeoJSONChanged) {
@@ -100,7 +127,10 @@ class MapComponent extends Component {
         const vectorSource = new VectorSource({
           features: new GeoJSON().readFeatures(currentStopsGeoJSON[key])
         });
-        const vectorLayer = new VectorLayer({ source: vectorSource });
+        const vectorLayer = new VectorLayer({
+          source: vectorSource,
+          style: this.pointStyle
+        });
         vectorLayer.set("type", "markers");
         this.map.addLayer(vectorLayer);
         const coordinate = vectorSource
@@ -113,7 +143,7 @@ class MapComponent extends Component {
         });
       });
       // Remove the old route if exists
-        this.removeCurrentRoute();
+      this.removeCurrentRoute();
       // Draw a new route if more than 1 stop is defined
       if (Object.keys(currentStopsGeoJSON).length > 1) {
         this.drawNewRoute();
@@ -121,11 +151,11 @@ class MapComponent extends Component {
     }
   }
 
-    /**
-     * After receiving the updated stops, send a call to the routingAPI to find a suitable route between
-     * two points/stations, if a route is found, it's returned and drawn to the map.
-     * @category Map
-     */
+  /**
+   * After receiving the updated stops, send a call to the routingAPI to find a suitable route between
+   * two points/stations, if a route is found, it's returned and drawn to the map.
+   * @category Map
+   */
   drawNewRoute = () => {
     if (this.findRouteCancel) this.findRouteCancel();
     const hops = [];
@@ -138,11 +168,11 @@ class MapComponent extends Component {
     } = this.props;
     Object.keys(currentStopsGeoJSON).forEach(key => {
       if (currentStopsGeoJSON[key].features) {
-          // If the current item is a point selected on the map, not a station.
-          hops.push(`@${currentStopsGeoJSON[key].features[0].properties.id}`);
+        // If the current item is a point selected on the map, not a station.
+        hops.push(`@${currentStopsGeoJSON[key].features[0].properties.id}`);
       } else {
-          // The item selected is a station from the stations API.
-          hops.push(`!${currentStopsGeoJSON[key].properties.id}`);
+        // The item selected is a station from the stations API.
+        hops.push(`!${currentStopsGeoJSON[key].properties.id}`);
       }
     });
     axios
@@ -158,13 +188,13 @@ class MapComponent extends Component {
       })
       .then(
         response => {
-            // A route was found, prepare to draw it.
+          // A route was found, prepare to draw it.
           const vectorSource = new VectorSource({
             features: new GeoJSON().readFeatures(response.data)
           });
           const vectorLayer = new VectorLayer({
             source: vectorSource,
-            style: this.routeStyle
+            style: [this.routeStyleOuter, this.routeStyleInner]
           });
           vectorLayer.set("type", "route");
           this.map.addLayer(vectorLayer);
@@ -174,16 +204,16 @@ class MapComponent extends Component {
           });
         },
         error => {
-            // No route was found.
+          // No route was found.
           if (error) onShowNotification("Couldn't find route", "error");
         }
       );
   };
 
-    /**
-     * Remove the current route drawn on the map
-     * @category Map
-     */
+  /**
+   * Remove the current route drawn on the map
+   * @category Map
+   */
   removeCurrentRoute = () => {
     this.map.getLayers().forEach(layer => {
       if (layer && layer.get("type") === "route") {
@@ -192,12 +222,21 @@ class MapComponent extends Component {
     });
   };
 
-    /**
-     * Render the map component to the dom
-     * @category Map
-     */
+  /**
+   * Render the map component to the dom
+   * @category Map
+   */
   render() {
-    return <div id="map" className="MapComponent" />;
+    return (
+      <div>
+        <Snackbar
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          open={this.state.hoveredStationOpen}
+          message={this.state.hoveredStationName}
+        />
+      <div id="map" className="MapComponent"/>
+      </div>
+    );
   }
 }
 

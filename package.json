@@ -2,7 +2,7 @@
   "name": "geops-routing-demo",
   "description": "Sample component that uses geOps Routing API",
   "main": "build/index.js",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "private": false,
   "homepage": "http://ibrahimawadhamid.github.io/geops-routing-demo",
   "dependencies": {

@@ -10,10 +10,6 @@
     top: 10px;
 }
 
-.addHop {
-    padding-bottom: 0 !important;
-}
-
 @media (min-width: 768px) {
     .RoutingMenu {
         width: 500px;
