@@ -13,3 +13,38 @@
 .addHop {
     padding-bottom: 0 !important;
 }
+
+@media (min-width: 768px) {
+    .RoutingMenu {
+        width: 500px;
+        max-width: 500px;
+    }
+}
+
+@media (min-width: 551px) and (max-width: 767px) {
+    .RoutingMenu {
+        width: 370px;
+        max-width: 370px;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 550px) {
+    .RoutingMenu {
+        width: 350px;
+        max-width: 350px;
+    }
+}
+
+@media (max-width: 480px) {
+    .RoutingMenu {
+        width: 280px;
+        max-width: 280px;
+    }
+}
+
+@media (max-width: 420px) {
+    .RoutingMenu {
+        width: 280px;
+        max-width: 280px;
+    }
+}
