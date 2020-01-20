@@ -1,14 +1,14 @@
-import React, {Component} from "react";
-import {connect} from "react-redux";
-import {Map, View} from "ol";
-import {Tile as TileLayer, Vector as VectorLayer} from "ol/layer";
-import OSM from 'ol/source/OSM';
+import React, { Component } from "react";
+import { connect } from "react-redux";
+import { Map, View } from "ol";
+import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
+import OSM from "ol/source/OSM";
 import GeoJSON from "ol/format/GeoJSON";
-import {Vector as VectorSource} from "ol/source";
+import { Vector as VectorSource } from "ol/source";
 import axios from "axios";
 import PropTypes from "prop-types";
-import Snackbar from '@material-ui/core/Snackbar';
-import {Stroke, Style, Fill, Circle as CircleStyle} from "ol/style";
+import Snackbar from "@material-ui/core/Snackbar";
+import { Stroke, Style, Fill, Circle as CircleStyle } from "ol/style";
 import "./MapComponent.css";
 import * as actions from "../../store/actions";
 
@@ -54,8 +54,8 @@ class MapComponent extends Component {
     this.pointStyle = new Style({
       image: new CircleStyle({
         radius: 7,
-        fill: new Fill({color: "orange"}),
-        stroke: new Stroke({color: 'black', width: 2})
+        fill: new Fill({ color: "orange" }),
+        stroke: new Stroke({ color: "black", width: 2 })
       })
     });
     this.hoveredFeature = null;
@@ -71,9 +71,14 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidMount() {
-    const demoAttribution = `${process.env.REACT_APP_NAME} v-${process.env.REACT_APP_VERSION}`;
+    let demoAttribution =
+      "<a target='_blank' href='https://github.com/ibrahimawadhamid/geops-routing-demo'>Demo</a>";
+    demoAttribution +=
+      " | <a target='_blank' href='https://geops.ch/'>geOps</a>";
+    demoAttribution +=
+      " | <a target='_blank' href='https://www.openstreetmap.org/'>OSM</a>";
     const openStreetMap = new TileLayer({
-      source: new OSM()
+      source: new OSM({ attributions: [demoAttribution] })
     });
     this.map = new Map({
       target: "map",
@@ -85,20 +90,22 @@ class MapComponent extends Component {
       })
     });
     this.map.on("singleclick", evt => {
-      const {onSetClickLocation} = this.props;
+      const { onSetClickLocation } = this.props;
       onSetClickLocation(evt.coordinate);
     });
-    this.map.on('pointermove', evt => {
-      if(this.hoveredFeature) {
+    this.map.on("pointermove", evt => {
+      if (this.hoveredFeature) {
         this.hoveredFeature = null;
-        this.setState({hoveredStationOpen: false, hoveredStationName: ""});
+        this.setState({ hoveredStationOpen: false, hoveredStationName: "" });
       }
       this.map.forEachFeatureAtPixel(evt.pixel, feature => {
-        if(feature.getGeometry().getType() === "Point") {
+        if (feature.getGeometry().getType() === "Point") {
           this.hoveredFeature = feature;
           this.setState({
             hoveredStationOpen: true,
-            hoveredStationName: feature.get("name") + " - " + feature.get("country_code")
+            hoveredStationName: `${feature.get("name")} - ${feature.get(
+              "country_code"
+            )}`
           });
         }
         return true;
@@ -112,9 +119,11 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidUpdate(prevProps) {
-    const {currentStopsGeoJSON, currentMot} = this.props;
-    const currentMotChanged = (currentMot && currentMot !== prevProps.currentMot);
-    const currentStopsGeoJSONChanged = (currentStopsGeoJSON && currentStopsGeoJSON !== prevProps.currentStopsGeoJSON);
+    const { currentStopsGeoJSON, currentMot } = this.props;
+    const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
+    const currentStopsGeoJSONChanged =
+      currentStopsGeoJSON &&
+      currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
     if (currentMotChanged || currentStopsGeoJSONChanged) {
       // First remove layers
       this.map.getLayers().forEach(layer => {
@@ -227,15 +236,16 @@ class MapComponent extends Component {
    * @category Map
    */
   render() {
+    const { hoveredStationOpen, hoveredStationName } = this.state;
     return (
-      <div>
+      <>
         <Snackbar
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          open={this.state.hoveredStationOpen}
-          message={this.state.hoveredStationName}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          open={hoveredStationOpen}
+          message={hoveredStationName}
         />
-      <div id="map" className="MapComponent"/>
-      </div>
+        <div id="map" className="MapComponent" />
+      </>
     );
   }
 }

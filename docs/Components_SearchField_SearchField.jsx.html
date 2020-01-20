@@ -5,7 +5,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>JSDoc: constants.js</title>
+    <title>JSDoc: Components/SearchField/SearchField.jsx</title>
 
     <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -54,7 +54,7 @@
                 <div class="content" id="main-content-wrapper">
                     <header class="page-title">
                         <p>Source</p>
-                        <h1>constants.js</h1>
+                        <h1>Components/SearchField/SearchField.jsx</h1>
                     </header>
                     
                     
@@ -64,23 +64,131 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>/**
- * The valid supported mots by the application
- * @type {string[]}
- * @category Constants
- */
-const VALID_MOTS = [
-  "bus",
-  "ferry",
-  "gondola",
-  "tram",
-  "rail",
-  "funicular",
-  "cable_car",
-  "subway"
-];
+            <pre class="prettyprint source linenums"><code>import React from "react";
+import PropTypes from "prop-types";
+import Grid from "@material-ui/core/Grid";
+import TextField from "@material-ui/core/TextField";
+import IconButton from "@material-ui/core/IconButton";
+import Tooltip from "@material-ui/core/Tooltip";
 
-export default VALID_MOTS;
+import Adjust from "@material-ui/icons/Adjust";
+import Room from "@material-ui/icons/Room";
+import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
+import RemoveCircleOutlineIcon from "@material-ui/icons/RemoveCircleOutline";
+import RadioButtonCheckedIcon from "@material-ui/icons/RadioButtonChecked";
+
+/**
+ * The component that displays the search field(s)
+ * @category RoutingMenu
+ */
+function SearchField(props) {
+  const { index, addNewSearchFieldHandler, currentStops ,
+    removeSearchFieldHandler, searchStopsHandler, singleStop, processHighlightedResultSelectHandler,
+    onFieldFocusHandler
+  } = props;
+  let fieldLeftIcon = null;
+  let searchFieldSize = 10;
+  let searchFieldLabel = "";
+  let fieldRightIcon = null;
+  if (index === 0) {
+    // Start station field
+    fieldLeftIcon = (
+      &lt;RadioButtonCheckedIcon fontSize="small" color="primary" />
+    );
+    searchFieldLabel = "Start";
+    fieldRightIcon = (
+      &lt;Grid item xs={1}>
+        &lt;Tooltip title="Add Hop">
+          &lt;IconButton
+            onClick={() => addNewSearchFieldHandler(index + 1)}
+            color="primary"
+            aria-label="Add Hop"
+            size="small"
+          >
+            &lt;AddCircleOutlineIcon fontSize="small"/>
+          &lt;/IconButton>
+        &lt;/Tooltip>
+      &lt;/Grid>
+    );
+  } else if (index === currentStops.length - 1) {
+    fieldLeftIcon = &lt;Room color="primary" />;
+    searchFieldLabel = "End";
+  } else {
+    fieldLeftIcon = &lt;Adjust fontSize="small" color="primary" />;
+    searchFieldSize = 9;
+    searchFieldLabel = "Hop";
+    fieldRightIcon = (
+      &lt;>
+        &lt;Grid item xs={1}>
+          &lt;Tooltip title="Remove Hop">
+            &lt;IconButton
+              onClick={() => removeSearchFieldHandler(index)}
+              color="secondary"
+              aria-label="removeHop"
+              size="small"
+            >
+              &lt;RemoveCircleOutlineIcon fontSize="small" />
+            &lt;/IconButton>
+          &lt;/Tooltip>
+        &lt;/Grid>
+        &lt;Grid item xs={1}>
+          &lt;Tooltip title="Add Hop">
+            &lt;IconButton
+              onClick={() => addNewSearchFieldHandler(index + 1)}
+              color="primary"
+              aria-label="addHop"
+              size="small"
+            >
+              &lt;AddCircleOutlineIcon fontSize="small" />
+            &lt;/IconButton>
+          &lt;/Tooltip>
+        &lt;/Grid>
+      &lt;/>
+    );
+  }
+  return (
+    &lt;Grid
+      container
+      spacing={1}
+      alignItems="flex-end"
+      style={{ width: "100%" }}
+    >
+      &lt;Grid item xs={1}>
+        {fieldLeftIcon}
+      &lt;/Grid>
+      &lt;Grid item xs={searchFieldSize}>
+        &lt;TextField
+          style={{ width: "100%" }}
+          label={searchFieldLabel}
+          color="primary"
+          onChange={e => searchStopsHandler(e, index)}
+          value={singleStop}
+          onKeyDown={processHighlightedResultSelectHandler}
+          onFocus={() => onFieldFocusHandler(index)}
+        />
+      &lt;/Grid>
+      {fieldRightIcon}
+    &lt;/Grid>
+  );
+}
+
+SearchField.propTypes = {
+  index: PropTypes.number.isRequired,
+  addNewSearchFieldHandler: PropTypes.func.isRequired,
+  currentStops: PropTypes.arrayOf(PropTypes.string),
+  removeSearchFieldHandler: PropTypes.func.isRequired,
+  searchStopsHandler: PropTypes.func.isRequired,
+  singleStop: PropTypes.string,
+  processHighlightedResultSelectHandler: PropTypes.func.isRequired,
+  onFieldFocusHandler: PropTypes.func.isRequired,
+};
+
+SearchField.defaultProps = {
+  currentStops: [],
+  singleStop: ""
+};
+
+export default SearchField;
 </code></pre>
         </article>
     </section>
