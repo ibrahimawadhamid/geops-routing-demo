@@ -25,7 +25,6 @@ describe("Search Results", () => {
           currentSearchResults={props.currentSearchResults}
           processClickedResultHandler={props.processClickedResultHandler} 
         />);
-    );
     const navList = wrapper.find("WithStyles(ForwardRef(List))");
     const navItem = navList.find("WithStyles(ForwardRef(ListItemText))");
     expect(navItem.props().primary).toEqual(
