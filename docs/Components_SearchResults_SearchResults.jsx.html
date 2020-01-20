@@ -5,7 +5,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>JSDoc: constants.js</title>
+    <title>JSDoc: Components/SearchResults/SearchResults.jsx</title>
 
     <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -54,7 +54,7 @@
                 <div class="content" id="main-content-wrapper">
                     <header class="page-title">
                         <p>Source</p>
-                        <h1>constants.js</h1>
+                        <h1>Components/SearchResults/SearchResults.jsx</h1>
                     </header>
                     
                     
@@ -64,23 +64,81 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>/**
- * The valid supported mots by the application
- * @type {string[]}
- * @category Constants
- */
-const VALID_MOTS = [
-  "bus",
-  "ferry",
-  "gondola",
-  "tram",
-  "rail",
-  "funicular",
-  "cable_car",
-  "subway"
-];
+            <pre class="prettyprint source linenums"><code>import React from "react";
+import PropTypes from "prop-types";
+import nextId from "react-id-generator";
+import Paper from "@material-ui/core/Paper";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import MapMarkerIcon from "@material-ui/icons/LocationOn";
 
-export default VALID_MOTS;
+/**
+ * The component that displays the station search results
+ * @category RoutingMenu
+ */
+function SearchResults(props) {
+  const { currentSearchResults, processClickedResultHandler } = props;
+  if (currentSearchResults.length === 0) {
+    return null;
+  }
+  return (
+    &lt;Paper square elevation={3}>
+      &lt;List component="nav" aria-label="search results">
+        {currentSearchResults.map((searchResult, index) => {
+          if (index !== 0) {
+            return (
+              &lt;ListItem
+                onClick={() => {
+                  processClickedResultHandler(searchResult);
+                }}
+                button
+                key={nextId()}
+              >
+                &lt;ListItemIcon>
+                  &lt;MapMarkerIcon />
+                &lt;/ListItemIcon>
+                &lt;ListItemText
+                  primary={searchResult.properties.name}
+                  secondary={`${searchResult.properties.code} - ${searchResult.properties.country_code}`}
+                />
+              &lt;/ListItem>
+            );
+          }
+          // First item
+          return (
+            &lt;ListItem
+              onClick={() => processClickedResultHandler(searchResult)}
+              button
+              selected
+              key={`searchResult-${searchResult.properties.name}`}
+            >
+              &lt;ListItemIcon>
+                &lt;MapMarkerIcon />
+              &lt;/ListItemIcon>
+              &lt;ListItemText
+                primary={searchResult.properties.name}
+                secondary={`${searchResult.properties.code} - ${searchResult.properties.country_code}`}
+              />
+            &lt;/ListItem>
+          );
+        })}
+      &lt;/List>
+    &lt;/Paper>
+  );
+}
+
+SearchResults.propTypes = {
+  currentSearchResults: PropTypes.arrayOf(PropTypes.object),
+  processClickedResultHandler: PropTypes.func.isRequired
+};
+
+SearchResults.defaultProps = {
+  currentSearchResults: []
+};
+
+export default SearchResults;
 </code></pre>
         </article>
     </section>

@@ -46,7 +46,7 @@
             <div class="column is-3" id="sidebarNav">
                 <div class="sidebar">
                     <nav>
-                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#GeopsRoutingDemo">GeopsRoutingDemo</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#VALID_MOTS">VALID_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Classes</h3><ul><li><a href="RoutingMenu.html">RoutingMenu</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
+                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#GeopsRoutingDemo">GeopsRoutingDemo</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#VALID_MOTS">VALID_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Classes</h3><ul><li><a href="RoutingMenu.html">RoutingMenu</a></li></ul><h3>Global</h3><ul><li><a href="global.html#SearchField">SearchField</a></li><li><a href="global.html#SearchResults">SearchResults</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
                     </nav>
                 </div>
             </div>
@@ -70,25 +70,9 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
-import TextField from "@material-ui/core/TextField";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import axios from "axios";
 import { connect } from "react-redux";
-
-import Adjust from "@material-ui/icons/Adjust";
-import Room from "@material-ui/icons/Room";
-import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
-import RemoveCircleOutlineIcon from "@material-ui/icons/RemoveCircleOutline";
-import RadioButtonCheckedIcon from "@material-ui/icons/RadioButtonChecked";
-
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import MapMarkerIcon from "@material-ui/icons/LocationOn";
-import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
 import PropTypes from "prop-types";
 import nextId from "react-id-generator";
 
@@ -96,8 +80,10 @@ import * as actions from "../../store/actions";
 import "./RoutingMenu.css";
 import VALID_MOTS from "../../constants";
 import findMotIcon from "../../utils";
+import SearchResults from "../SearchResults";
+import SearchField from "../SearchField";
 
-const _ = require('lodash/core');
+const _ = require("lodash/core");
 
 function TabPanel(props) {
   const { children, value, index } = props;
@@ -134,11 +120,11 @@ function TabPanel(props) {
  * @category RoutingMenu
  */
 class RoutingMenu extends React.Component {
-    /**
-     * Default constructor, gets called automatically upon initialization.
-     * @param {...RoutingMenuProps} props Props received so that the component can function properly.
-     * @category RoutingMenu
-     */
+  /**
+   * Default constructor, gets called automatically upon initialization.
+   * @param {...RoutingMenuProps} props Props received so that the component can function properly.
+   * @category RoutingMenu
+   */
   constructor(props) {
     const { mots, onSetCurrentMot } = props;
     super(props);
@@ -147,7 +133,7 @@ class RoutingMenu extends React.Component {
       currentMots,
       currentMot: currentMots[0].name,
       currentSearchResults: [],
-      focusedFieldIndex: null,
+      focusedFieldIndex: 0,
       currentStops: ["", ""],
       currentStopsGeoJSON: {},
       showLoadingBar: false
@@ -158,15 +144,19 @@ class RoutingMenu extends React.Component {
     onSetCurrentMot(currentMots[0].name);
   }
 
-    /**
-     * If a location was received through the props (user click on map) act accordingly.
-     * @category RoutingMenu
-     */
+  /**
+   * If a location was received through the props (user click on map) act accordingly.
+   * @category RoutingMenu
+   */
   componentDidUpdate(prevProps) {
     const { clickLocation, onSetCurrentStopsGeoJSON } = this.props;
     const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
     if (clickLocation &amp;&amp; clickLocation !== prevProps.clickLocation) {
       const updatedCurrentStops = currentStops;
+      const updatedFocusedFieldIndex =
+        focusedFieldIndex + 1 &lt; currentStops.length
+          ? focusedFieldIndex + 1
+          : focusedFieldIndex;
       updatedCurrentStops[focusedFieldIndex] = clickLocation;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       // Create GeoJSON
@@ -187,30 +177,39 @@ class RoutingMenu extends React.Component {
         ]
       };
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
-      this.updateCurrentStops(updatedCurrentStops, updatedCurrentStopsGeoJSON);
+      this.updateCurrentStops(
+        updatedCurrentStops,
+        updatedCurrentStopsGeoJSON,
+        updatedFocusedFieldIndex
+      );
       onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
     }
   }
 
-    /**
-     * Update the current stops array (string array) and the GeoJSON array in the local state.
-     * @param updatedCurrentStops The updated stops.
-     * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
-     * @category RoutingMenu
-     */
-  updateCurrentStops = (updatedCurrentStops, updatedCurrentStopsGeoJSON) => {
+  /**
+   * Update the current stops array (string array) and the GeoJSON array in the local state.
+   * @param updatedCurrentStops The updated stops.
+   * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
+   * @category RoutingMenu
+   */
+  updateCurrentStops = (
+    updatedCurrentStops,
+    updatedCurrentStopsGeoJSON,
+    updatedFocusedFieldIndex
+  ) => {
     this.setState({
       currentStops: updatedCurrentStops,
-      currentStopsGeoJSON: updatedCurrentStopsGeoJSON
+      currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
+      focusedFieldIndex: updatedFocusedFieldIndex
     });
   };
 
-    /**
-     * Validate the mots provided from the props, then retrieve the icons for the valid ones.
-     * @param mots The provided mots
-     * @returns {Array} The valid mots with their icons
-     * @category RoutingMenu
-     */
+  /**
+   * Validate the mots provided from the props, then retrieve the icons for the valid ones.
+   * @param mots The provided mots
+   * @returns {Array} The valid mots with their icons
+   * @category RoutingMenu
+   */
   validateMots = mots => {
     const currentMots = [];
     mots.forEach(providedMot => {
@@ -231,46 +230,46 @@ class RoutingMenu extends React.Component {
     return currentMots;
   };
 
-    /**
-     * Process changing the current selected mot, save in local state and dispatch store action.
-     * @param event The change event
-     * @param newMot The new selected mot
-     * @category RoutingMenu
-     */
+  /**
+   * Process changing the current selected mot, save in local state and dispatch store action.
+   * @param event The change event
+   * @param newMot The new selected mot
+   * @category RoutingMenu
+   */
   handleMotChange = (event, newMot) => {
     const { onSetCurrentMot } = this.props;
     this.setState({ currentMot: newMot });
     onSetCurrentMot(newMot);
   };
 
-    /**
-     * Gets callled when a search field is in focus. Keep track of the last focused/selected field.
-     * @param fieldIndex The search field index(order)
-     * @category RoutingMenu
-     */
-  onFieldFocus = fieldIndex => {
+  /**
+   * Gets callled when a search field is in focus. Keep track of the last focused/selected field.
+   * @param fieldIndex The search field index(order)
+   * @category RoutingMenu
+   */
+  onFieldFocusHandler = fieldIndex => {
     this.setState({ focusedFieldIndex: fieldIndex });
   };
 
-    /**
-     * Create a new search field (hop) between already existing search fields
-     * @param indexToInsertAt The index to insert the new search field at.
-     * @category RoutingMenu
-     */
-  addNewSearchField = indexToInsertAt => {
+  /**
+   * Create a new search field (hop) between already existing search fields
+   * @param indexToInsertAt The index to insert the new search field at.
+   * @category RoutingMenu
+   */
+  addNewSearchFieldHandler = indexToInsertAt => {
     const { currentStops } = this.state;
     const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToInsertAt, 0, "");
     this.setState({ currentStops: updatedCurrentStops });
   };
 
-    /**
-     * Remove a search field (hop) from a defined index. Then dispatch an update to the stops,
-     * so that the route can be updated if exists.
-     * @param indexToRemoveFrom The index to remove the search field from.
-     * @category RoutingMenu
-     */
-  removeSearchField = indexToRemoveFrom => {
+  /**
+   * Remove a search field (hop) from a defined index. Then dispatch an update to the stops,
+   * so that the route can be updated if exists.
+   * @param indexToRemoveFrom The index to remove the search field from.
+   * @category RoutingMenu
+   */
+  removeSearchFieldHandler = indexToRemoveFrom => {
     const { currentStops, currentStopsGeoJSON } = this.state;
     const { onSetCurrentStopsGeoJSON } = this.props;
     const updatedCurrentStops = currentStops;
@@ -288,13 +287,13 @@ class RoutingMenu extends React.Component {
     onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
   };
 
-    /**
-     * Perform searching for stations through the station API
-     * @param event
-     * @param fieldIndex The search field(hop) index(order)
-     * @category RoutingMenu
-     */
-  searchStops = (event, fieldIndex) => {
+  /**
+   * Perform searching for stations through the station API
+   * @param event
+   * @param fieldIndex The search field(hop) index(order)
+   * @category RoutingMenu
+   */
+  searchStopsHandler = (event, fieldIndex) => {
     const { currentStops, currentMot } = this.state;
     const { stationSearchUrl, APIKey, onShowNotification } = this.props;
     // only search if text is available
@@ -317,7 +316,7 @@ class RoutingMenu extends React.Component {
 
     if (this.searchCancel) {
       // If a previous search request has been issues and not completed yet, cancel it.
-        this.searchCancel();
+      this.searchCancel();
     }
     axios
       .get(stationSearchUrl, {
@@ -356,13 +355,13 @@ class RoutingMenu extends React.Component {
       );
   };
 
-    /**
-     * The user makes changes to the current search. Either select the first result,
-     * or delete the text to make a new search.
-     * @param event
-     * @category RoutingMenu
-     */
-  processHighlightedResultSelect = event => {
+  /**
+   * The user makes changes to the current search. Either select the first result,
+   * or delete the text to make a new search.
+   * @param event
+   * @category RoutingMenu
+   */
+  processHighlightedResultSelectHandler = event => {
     const { onSetCurrentStopsGeoJSON } = this.props;
     const {
       currentSearchResults,
@@ -370,13 +369,13 @@ class RoutingMenu extends React.Component {
       focusedFieldIndex,
       currentStopsGeoJSON
     } = this.state;
-    const [ firstSearchResult ] = currentSearchResults;
+    const [firstSearchResult] = currentSearchResults;
     if (event.key === "Enter" &amp;&amp; firstSearchResult) {
       // The user has chosen the first result by pressing 'Enter' key on keyboard
       const updateCurrentStops = currentStops;
       updateCurrentStops[focusedFieldIndex] = firstSearchResult.properties.name;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-        updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
+      updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
       this.setState({
         currentStops: updateCurrentStops,
         currentSearchResults: [],
@@ -402,12 +401,12 @@ class RoutingMenu extends React.Component {
     }
   };
 
-    /**
-     * The user uses the mouse/touch to select one of the search results.
-     * @param searchResult The clicked search result.
-     * @category RoutingMenu
-     */
-  processClickedResult = searchResult => {
+  /**
+   * The user uses the mouse/touch to select one of the search results.
+   * @param searchResult The clicked search result.
+   * @category RoutingMenu
+   */
+  processClickedResultHandler = searchResult => {
     const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
     const { onSetCurrentStopsGeoJSON } = this.props;
     const updateCurrentStops = currentStops;
@@ -422,10 +421,10 @@ class RoutingMenu extends React.Component {
     onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
   };
 
-    /**
-     * Render the component to the dom.
-     * @category RoutingMenu
-     */
+  /**
+   * Render the component to the dom.
+   * @category RoutingMenu
+   */
   render() {
     const {
       currentStops,
@@ -444,7 +443,7 @@ class RoutingMenu extends React.Component {
             scrollButtons="auto"
             indicatorColor="primary"
             textColor="primary"
-            aria-label="icon tabs example"
+            aria-label="mots icons"
           >
             {currentMots.map(singleMot => {
               return (
@@ -459,146 +458,21 @@ class RoutingMenu extends React.Component {
           &lt;/Tabs>
           &lt;TabPanel>
             {currentStops.map((singleStop, index) => {
-              let fieldLeftIcon = null;
-              let searchFieldSize = 10;
-              let searchFieldLabel = "";
-              let fieldRightIcon = null;
-              if (index === 0) {
-                fieldLeftIcon = (
-                  &lt;RadioButtonCheckedIcon fontSize="small" color="secondary" />
-                );
-                searchFieldLabel = "Select start station, or click on the map";
-                fieldRightIcon = (
-                  &lt;Grid item xs={1}>
-                    &lt;Tooltip title="Add Hop">
-                      &lt;IconButton
-                        onClick={() => this.addNewSearchField(index + 1)}
-                        className="addHop"
-                        color="primary"
-                        aria-label="Add Hop"
-                        component="span"
-                      >
-                        &lt;AddCircleOutlineIcon />
-                      &lt;/IconButton>
-                    &lt;/Tooltip>
-                  &lt;/Grid>
-                );
-              } else if (index === currentStops.length - 1) {
-                fieldLeftIcon = &lt;Room color="secondary" />;
-                searchFieldLabel = "Select end station, or click on the map";
-              } else {
-                fieldLeftIcon = &lt;Adjust fontSize="small" color="secondary" />;
-                searchFieldSize = 9;
-                searchFieldLabel = "Select station, or click on the map";
-                fieldRightIcon = (
-                  &lt;>
-                    &lt;Grid item xs={1}>
-                      &lt;Tooltip title="Remove Hop">
-                        &lt;IconButton
-                          onClick={() => this.removeSearchField(index)}
-                          className="addHop"
-                          color="secondary"
-                          aria-label="removeHop"
-                          component="span"
-                        >
-                          &lt;RemoveCircleOutlineIcon />
-                        &lt;/IconButton>
-                      &lt;/Tooltip>
-                    &lt;/Grid>
-                    &lt;Grid item xs={1}>
-                      &lt;Tooltip title="Add Hop">
-                        &lt;IconButton
-                          onClick={() => this.addNewSearchField(index + 1)}
-                          className="addHop"
-                          color="primary"
-                          aria-label="addHop"
-                          component="span"
-                        >
-                          &lt;AddCircleOutlineIcon />
-                        &lt;/IconButton>
-                      &lt;/Tooltip>
-                    &lt;/Grid>
-                  &lt;/>
-                );
-              }
-              return (
-                &lt;Grid
-                  key={`searchField-${index}`}
-                  container
-                  spacing={1}
-                  alignItems="flex-end"
-                  style={{ width: "100%" }}
-                >
-                  &lt;Grid item xs={1}>
-                    {fieldLeftIcon}
-                  &lt;/Grid>
-                  &lt;Grid item xs={searchFieldSize}>
-                    &lt;TextField
-                      style={{ width: "100%" }}
-                      label={searchFieldLabel}
-                      color="secondary"
-                      onChange={e => this.searchStops(e, index)}
-                      value={singleStop}
-                      onKeyDown={this.processHighlightedResultSelect}
-                      onFocus={() => this.onFieldFocus(index)}
-                    />
-                  &lt;/Grid>
-                  {fieldRightIcon}
-                &lt;/Grid>
-              );
+              return(&lt;SearchField
+                key={`searchField-${index}`} index={index} addNewSearchFieldHandler={this.addNewSearchFieldHandler}
+                currentStops={currentStops} removeSearchFieldHandler={this.removeSearchFieldHandler}
+                searchStopsHandler={this.searchStopsHandler} singleStop={singleStop}
+                processHighlightedResultSelectHandler={this.processHighlightedResultSelectHandler}
+                onFieldFocusHandler={this.onFieldFocusHandler}
+              />);
             })}
           &lt;/TabPanel>
           {showLoadingBar ? &lt;LinearProgress /> : null}
         &lt;/Paper>
-        {currentSearchResults.length !== 0 ? (
-          &lt;div>
-            &lt;hr />
-            &lt;Paper square elevation={1}>
-              &lt;TabPanel>
-                &lt;List component="nav" aria-label="search results">
-                  {currentSearchResults.map((searchResult, index) => {
-                    if (index !== 0) {
-                      return (
-                        &lt;ListItem
-                          onClick={() => {
-                            this.processClickedResult(searchResult);
-                          }}
-                          button
-                          key={nextId()}
-                        >
-                          &lt;ListItemIcon>
-                            &lt;MapMarkerIcon />
-                          &lt;/ListItemIcon>
-                          &lt;ListItemText
-                            primary={searchResult.properties.name}
-                            secondary={`${searchResult.properties.code} - ${searchResult.properties.country_code}`}
-                          />
-                        &lt;/ListItem>
-                      );
-                    }
-                    // First item
-                    return (
-                      &lt;ListItem
-                        onClick={() => this.processClickedResult(searchResult)}
-                        button
-                        selected
-                        key={`searchResult-${searchResult.properties.name}`}
-                      >
-                        &lt;ListItemIcon>
-                          &lt;MapMarkerIcon />
-                        &lt;/ListItemIcon>
-                        &lt;ListItemText
-                          primary={searchResult.properties.name}
-                          secondary={`${searchResult.properties.code} - ${searchResult.properties.country_code}`}
-                        />
-                      &lt;/ListItem>
-                    );
-                  })}
-                &lt;/List>
-              &lt;/TabPanel>
-            &lt;/Paper>
-          &lt;/div>
-        ) : null}
+        &lt;SearchResults
+          currentSearchResults={currentSearchResults}
+          processClickedResultHandler={this.processClickedResultHandler}
+        />
       &lt;/div>
     );
   }
@@ -663,7 +537,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(RoutingMenu);
 
 <footer class="footer">
     <div class="content has-text-centered">
-        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Sun Jan 19 2020 15:45:21 GMT+0300 (Arabian Standard Time)</p>
+        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Mon Jan 20 2020 22:04:48 GMT+0300 (Arabian Standard Time)</p>
         <p class="sidebar-created-by">
             <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
             <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
