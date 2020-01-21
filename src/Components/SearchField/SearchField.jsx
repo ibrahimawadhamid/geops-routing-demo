@@ -108,10 +108,14 @@ function SearchField(props) {
 SearchField.propTypes = {
   index: PropTypes.number.isRequired,
   addNewSearchFieldHandler: PropTypes.func.isRequired,
-  currentStops: PropTypes.arrayOf(PropTypes.string),
+  currentStops: PropTypes.array,
   removeSearchFieldHandler: PropTypes.func.isRequired,
   searchStopsHandler: PropTypes.func.isRequired,
-  singleStop: PropTypes.string,
+  // singleStop: PropTypes.string,
+  singleStop: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.arrayOf(PropTypes.number)
+  ]),
   processHighlightedResultSelectHandler: PropTypes.func.isRequired,
   onFieldFocusHandler: PropTypes.func.isRequired
 };

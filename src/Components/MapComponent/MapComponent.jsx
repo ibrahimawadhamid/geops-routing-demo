@@ -101,11 +101,14 @@ class MapComponent extends Component {
       this.map.forEachFeatureAtPixel(evt.pixel, feature => {
         if (feature.getGeometry().getType() === "Point") {
           this.hoveredFeature = feature;
+          let name = "";
+          if(feature.get("name"))
+            name = `${feature.get("name")} - ${feature.get("country_code")}`
+          else
+            name = `${feature.get("id")[0]}, ${feature.get("id")[1]}`
           this.setState({
             hoveredStationOpen: true,
-            hoveredStationName: `${feature.get("name")} - ${feature.get(
-              "country_code"
-            )}`
+            hoveredStationName: name
           });
         }
         return true;
