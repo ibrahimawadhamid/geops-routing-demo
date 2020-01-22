@@ -6,7 +6,7 @@ import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import axios from "axios";
-import { connect } from "react-redux";
+import {connect} from "react-redux";
 import PropTypes from "prop-types";
 import nextId from "react-id-generator";
 import _ from "lodash/core";
@@ -19,7 +19,7 @@ import SearchResults from "../SearchResults";
 import SearchField from "../SearchField";
 
 function TabPanel(props) {
-  const { children, value, index } = props;
+  const {children, value, index} = props;
 
   return (
     <Typography
@@ -59,7 +59,7 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   constructor(props) {
-    const { mots, onSetCurrentMot } = props;
+    const {mots, onSetCurrentMot} = props;
     super(props);
     const currentMots = this.validateMots(mots);
     this.state = {
@@ -82,40 +82,44 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   componentDidUpdate(prevProps) {
-    const { clickLocation, onSetCurrentStopsGeoJSON } = this.props;
-    const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
+    const {clickLocation, onSetCurrentStopsGeoJSON} = this.props;
+    const {currentStops, focusedFieldIndex, currentStopsGeoJSON} = this.state;
     if (clickLocation && clickLocation !== prevProps.clickLocation) {
-      const updatedCurrentStops = currentStops;
-      const updatedFocusedFieldIndex =
-        focusedFieldIndex + 1 < currentStops.length
-          ? focusedFieldIndex + 1
-          : focusedFieldIndex;
-      updatedCurrentStops[focusedFieldIndex] = clickLocation;
-      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-      // Create GeoJSON
-      const tempGeoJSON = {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            properties: {
-              id: clickLocation.slice().reverse(),
-              type: "coordinates"
-            },
-            geometry: {
-              type: "Point",
-              coordinates: clickLocation
+      // A click occurred on the map
+      if (currentStops[focusedFieldIndex] === "") {
+        // Only perform when there's an empty field.
+        const updatedCurrentStops = currentStops;
+        const updatedFocusedFieldIndex =
+          focusedFieldIndex + 1 < currentStops.length
+            ? focusedFieldIndex + 1
+            : focusedFieldIndex;
+        updatedCurrentStops[focusedFieldIndex] = clickLocation;
+        const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+        // Create GeoJSON
+        const tempGeoJSON = {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {
+                id: clickLocation.slice().reverse(),
+                type: "coordinates"
+              },
+              geometry: {
+                type: "Point",
+                coordinates: clickLocation
+              }
             }
-          }
-        ]
-      };
-      updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
-      this.updateCurrentStops(
-        updatedCurrentStops,
-        updatedCurrentStopsGeoJSON,
-        updatedFocusedFieldIndex
-      );
-      onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+          ]
+        };
+        updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
+        this.updateCurrentStops(
+          updatedCurrentStops,
+          updatedCurrentStopsGeoJSON,
+          updatedFocusedFieldIndex
+        );
+        onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      }
     }
   }
 
@@ -170,8 +174,8 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   handleMotChange = (event, newMot) => {
-    const { onSetCurrentMot } = this.props;
-    this.setState({ currentMot: newMot });
+    const {onSetCurrentMot} = this.props;
+    this.setState({currentMot: newMot});
     onSetCurrentMot(newMot);
   };
 
@@ -181,7 +185,7 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   onFieldFocusHandler = fieldIndex => {
-    this.setState({ focusedFieldIndex: fieldIndex });
+    this.setState({focusedFieldIndex: fieldIndex});
   };
 
   /**
@@ -190,10 +194,10 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   addNewSearchFieldHandler = indexToInsertAt => {
-    const { currentStops } = this.state;
+    const {currentStops} = this.state;
     const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToInsertAt, 0, "");
-    this.setState({ currentStops: updatedCurrentStops });
+    this.setState({currentStops: updatedCurrentStops});
   };
 
   /**
@@ -203,8 +207,8 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   removeSearchFieldHandler = indexToRemoveFrom => {
-    const { currentStops, currentStopsGeoJSON } = this.state;
-    const { onSetCurrentStopsGeoJSON } = this.props;
+    const {currentStops, currentStopsGeoJSON} = this.state;
+    const {onSetCurrentStopsGeoJSON} = this.props;
     const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToRemoveFrom, 1);
     const updatedCurrentStopsGeoJSON = {};
@@ -227,8 +231,8 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   searchStopsHandler = (event, fieldIndex) => {
-    const { currentStops, currentMot } = this.state;
-    const { stationSearchUrl, APIKey, onShowNotification } = this.props;
+    const {currentStops, currentMot} = this.state;
+    const {stationSearchUrl, APIKey, onShowNotification} = this.props;
     // only search if text is available
     if (!event.target.value) {
       const updateCurrentStops = currentStops;
@@ -295,7 +299,7 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   processHighlightedResultSelectHandler = event => {
-    const { onSetCurrentStopsGeoJSON } = this.props;
+    const {onSetCurrentStopsGeoJSON} = this.props;
     const {
       currentSearchResults,
       currentStops,
@@ -340,8 +344,8 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   processClickedResultHandler = searchResult => {
-    const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
-    const { onSetCurrentStopsGeoJSON } = this.props;
+    const {currentStops, focusedFieldIndex, currentStopsGeoJSON} = this.state;
+    const {onSetCurrentStopsGeoJSON} = this.props;
     const updateCurrentStops = currentStops;
     updateCurrentStops[focusedFieldIndex] = searchResult.properties.name;
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
@@ -408,7 +412,7 @@ class RoutingMenu extends React.Component {
               );
             })}
           </TabPanel>
-          {showLoadingBar ? <LinearProgress /> : null}
+          {showLoadingBar ? <LinearProgress/> : null}
         </Paper>
         <SearchResults
           currentSearchResults={currentSearchResults}
