@@ -286,7 +286,7 @@ class RoutingMenu extends React.Component {
           this.setState({
             showLoadingBar: false
           });
-          if (!axios.isCancel(error) || error)
+          if (!axios.isCancel(error))
             onShowNotification("Error while searching for stations", "error");
         }
       );
