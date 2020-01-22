@@ -212,7 +212,8 @@ class MapComponent extends Component {
           this.map.addLayer(vectorLayer);
           this.map.getView().fit(vectorSource.getExtent(), {
             size: this.map.getSize(),
-            duration: 500
+            duration: 500,
+            padding: [50, 50, 50, 50]
           });
         },
         error => {
