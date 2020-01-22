@@ -4,33 +4,22 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
-import TextField from "@material-ui/core/TextField";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import axios from "axios";
-import { connect } from "react-redux";
-
-import Adjust from "@material-ui/icons/Adjust";
-import Room from "@material-ui/icons/Room";
-import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
-import RemoveCircleOutlineIcon from "@material-ui/icons/RemoveCircleOutline";
-import RadioButtonCheckedIcon from "@material-ui/icons/RadioButtonChecked";
-
-import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
+import {connect} from "react-redux";
 import PropTypes from "prop-types";
 import nextId from "react-id-generator";
+import _ from "lodash/core";
 
 import * as actions from "../../store/actions";
 import "./RoutingMenu.css";
 import VALID_MOTS from "../../constants";
 import findMotIcon from "../../utils";
 import SearchResults from "../SearchResults";
-
-const _ = require("lodash/core");
+import SearchField from "../SearchField";
 
 function TabPanel(props) {
-  const { children, value, index } = props;
+  const {children, value, index} = props;
 
   return (
     <Typography
@@ -70,7 +59,7 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   constructor(props) {
-    const { mots, onSetCurrentMot } = props;
+    const {mots, onSetCurrentMot} = props;
     super(props);
     const currentMots = this.validateMots(mots);
     this.state = {
@@ -93,40 +82,44 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   componentDidUpdate(prevProps) {
-    const { clickLocation, onSetCurrentStopsGeoJSON } = this.props;
-    const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
+    const {clickLocation, onSetCurrentStopsGeoJSON} = this.props;
+    const {currentStops, focusedFieldIndex, currentStopsGeoJSON} = this.state;
     if (clickLocation && clickLocation !== prevProps.clickLocation) {
-      const updatedCurrentStops = currentStops;
-      const updatedFocusedFieldIndex =
-        focusedFieldIndex + 1 < currentStops.length
-          ? focusedFieldIndex + 1
-          : focusedFieldIndex;
-      updatedCurrentStops[focusedFieldIndex] = clickLocation;
-      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-      // Create GeoJSON
-      const tempGeoJSON = {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            properties: {
-              id: clickLocation.slice().reverse(),
-              type: "coordinates"
-            },
-            geometry: {
-              type: "Point",
-              coordinates: clickLocation
+      // A click occurred on the map
+      if (currentStops[focusedFieldIndex] === "") {
+        // Only perform when there's an empty field.
+        const updatedCurrentStops = currentStops;
+        const updatedFocusedFieldIndex =
+          focusedFieldIndex + 1 < currentStops.length
+            ? focusedFieldIndex + 1
+            : focusedFieldIndex;
+        updatedCurrentStops[focusedFieldIndex] = clickLocation;
+        const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+        // Create GeoJSON
+        const tempGeoJSON = {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {
+                id: clickLocation.slice().reverse(),
+                type: "coordinates"
+              },
+              geometry: {
+                type: "Point",
+                coordinates: clickLocation
+              }
             }
-          }
-        ]
-      };
-      updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
-      this.updateCurrentStops(
-        updatedCurrentStops,
-        updatedCurrentStopsGeoJSON,
-        updatedFocusedFieldIndex
-      );
-      onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+          ]
+        };
+        updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
+        this.updateCurrentStops(
+          updatedCurrentStops,
+          updatedCurrentStopsGeoJSON,
+          updatedFocusedFieldIndex
+        );
+        onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      }
     }
   }
 
@@ -181,8 +174,8 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   handleMotChange = (event, newMot) => {
-    const { onSetCurrentMot } = this.props;
-    this.setState({ currentMot: newMot });
+    const {onSetCurrentMot} = this.props;
+    this.setState({currentMot: newMot});
     onSetCurrentMot(newMot);
   };
 
@@ -191,8 +184,8 @@ class RoutingMenu extends React.Component {
    * @param fieldIndex The search field index(order)
    * @category RoutingMenu
    */
-  onFieldFocus = fieldIndex => {
-    this.setState({ focusedFieldIndex: fieldIndex });
+  onFieldFocusHandler = fieldIndex => {
+    this.setState({focusedFieldIndex: fieldIndex});
   };
 
   /**
@@ -200,11 +193,11 @@ class RoutingMenu extends React.Component {
    * @param indexToInsertAt The index to insert the new search field at.
    * @category RoutingMenu
    */
-  addNewSearchField = indexToInsertAt => {
-    const { currentStops } = this.state;
+  addNewSearchFieldHandler = indexToInsertAt => {
+    const {currentStops} = this.state;
     const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToInsertAt, 0, "");
-    this.setState({ currentStops: updatedCurrentStops });
+    this.setState({currentStops: updatedCurrentStops});
   };
 
   /**
@@ -213,9 +206,9 @@ class RoutingMenu extends React.Component {
    * @param indexToRemoveFrom The index to remove the search field from.
    * @category RoutingMenu
    */
-  removeSearchField = indexToRemoveFrom => {
-    const { currentStops, currentStopsGeoJSON } = this.state;
-    const { onSetCurrentStopsGeoJSON } = this.props;
+  removeSearchFieldHandler = indexToRemoveFrom => {
+    const {currentStops, currentStopsGeoJSON} = this.state;
+    const {onSetCurrentStopsGeoJSON} = this.props;
     const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToRemoveFrom, 1);
     const updatedCurrentStopsGeoJSON = {};
@@ -237,9 +230,9 @@ class RoutingMenu extends React.Component {
    * @param fieldIndex The search field(hop) index(order)
    * @category RoutingMenu
    */
-  searchStops = (event, fieldIndex) => {
-    const { currentStops, currentMot } = this.state;
-    const { stationSearchUrl, APIKey, onShowNotification } = this.props;
+  searchStopsHandler = (event, fieldIndex) => {
+    const {currentStops, currentMot} = this.state;
+    const {stationSearchUrl, APIKey, onShowNotification} = this.props;
     // only search if text is available
     if (!event.target.value) {
       const updateCurrentStops = currentStops;
@@ -293,7 +286,7 @@ class RoutingMenu extends React.Component {
           this.setState({
             showLoadingBar: false
           });
-          if (!axios.isCancel(error) || error)
+          if (!axios.isCancel(error))
             onShowNotification("Error while searching for stations", "error");
         }
       );
@@ -305,8 +298,8 @@ class RoutingMenu extends React.Component {
    * @param event
    * @category RoutingMenu
    */
-  processHighlightedResultSelect = event => {
-    const { onSetCurrentStopsGeoJSON } = this.props;
+  processHighlightedResultSelectHandler = event => {
+    const {onSetCurrentStopsGeoJSON} = this.props;
     const {
       currentSearchResults,
       currentStops,
@@ -351,8 +344,8 @@ class RoutingMenu extends React.Component {
    * @category RoutingMenu
    */
   processClickedResultHandler = searchResult => {
-    const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
-    const { onSetCurrentStopsGeoJSON } = this.props;
+    const {currentStops, focusedFieldIndex, currentStopsGeoJSON} = this.state;
+    const {onSetCurrentStopsGeoJSON} = this.props;
     const updateCurrentStops = currentStops;
     updateCurrentStops[focusedFieldIndex] = searchResult.properties.name;
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
@@ -402,96 +395,24 @@ class RoutingMenu extends React.Component {
           </Tabs>
           <TabPanel>
             {currentStops.map((singleStop, index) => {
-              let fieldLeftIcon = null;
-              let searchFieldSize = 10;
-              let searchFieldLabel = "";
-              let fieldRightIcon = null;
-              if (index === 0) {
-                fieldLeftIcon = (
-                  <RadioButtonCheckedIcon fontSize="small" color="secondary" />
-                );
-                searchFieldLabel = "Start";
-                fieldRightIcon = (
-                  <Grid item xs={1}>
-                    <Tooltip title="Add Hop">
-                      <IconButton
-                        onClick={() => this.addNewSearchField(index + 1)}
-                        className="addHop"
-                        color="primary"
-                        aria-label="Add Hop"
-                        component="span"
-                      >
-                        <AddCircleOutlineIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Grid>
-                );
-              } else if (index === currentStops.length - 1) {
-                fieldLeftIcon = <Room color="secondary" />;
-                searchFieldLabel = "End";
-              } else {
-                fieldLeftIcon = <Adjust fontSize="small" color="secondary" />;
-                searchFieldSize = 9;
-                searchFieldLabel = "Hop";
-                fieldRightIcon = (
-                  <>
-                    <Grid item xs={1}>
-                      <Tooltip title="Remove Hop">
-                        <IconButton
-                          onClick={() => this.removeSearchField(index)}
-                          className="addHop"
-                          color="secondary"
-                          aria-label="removeHop"
-                          component="span"
-                        >
-                          <RemoveCircleOutlineIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Grid>
-                    <Grid item xs={1}>
-                      <Tooltip title="Add Hop">
-                        <IconButton
-                          onClick={() => this.addNewSearchField(index + 1)}
-                          className="addHop"
-                          color="primary"
-                          aria-label="addHop"
-                          component="span"
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Grid>
-                  </>
-                );
-              }
               return (
-                <Grid
+                <SearchField
                   key={`searchField-${index}`}
-                  container
-                  spacing={1}
-                  alignItems="flex-end"
-                  style={{ width: "100%" }}
-                >
-                  <Grid item xs={1}>
-                    {fieldLeftIcon}
-                  </Grid>
-                  <Grid item xs={searchFieldSize}>
-                    <TextField
-                      style={{ width: "100%" }}
-                      label={searchFieldLabel}
-                      color="secondary"
-                      onChange={e => this.searchStops(e, index)}
-                      value={singleStop}
-                      onKeyDown={this.processHighlightedResultSelect}
-                      onFocus={() => this.onFieldFocus(index)}
-                    />
-                  </Grid>
-                  {fieldRightIcon}
-                </Grid>
+                  index={index}
+                  addNewSearchFieldHandler={this.addNewSearchFieldHandler}
+                  currentStops={currentStops}
+                  removeSearchFieldHandler={this.removeSearchFieldHandler}
+                  searchStopsHandler={this.searchStopsHandler}
+                  singleStop={singleStop}
+                  processHighlightedResultSelectHandler={
+                    this.processHighlightedResultSelectHandler
+                  }
+                  onFieldFocusHandler={this.onFieldFocusHandler}
+                />
               );
             })}
           </TabPanel>
-          {showLoadingBar ? <LinearProgress /> : null}
+          {showLoadingBar ? <LinearProgress/> : null}
         </Paper>
         <SearchResults
           currentSearchResults={currentSearchResults}
