@@ -98,6 +98,7 @@ function SearchField(props) {
           value={singleStop}
           onKeyDown={processHighlightedResultSelectHandler}
           onFocus={() => onFieldFocusHandler(index)}
+          onClick={event => {event.target.select()}}
         />
       </Grid>
       {fieldRightIcon}
