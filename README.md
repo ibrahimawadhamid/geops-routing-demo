@@ -6,6 +6,7 @@ Sample component that uses geOps Routing API.
 
 ## Check [Demo](https://ibrahimawadhamid.github.io/geops-routing-demo/)
 
+![geops-routing-demo](https://user-images.githubusercontent.com/44545113/74161255-b6119180-4c2f-11ea-98ca-10103ade48a4.gif)
 
 ## Installation
 ```javascript
