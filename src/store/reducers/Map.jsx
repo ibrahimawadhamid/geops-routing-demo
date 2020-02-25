@@ -1,51 +1,51 @@
-import * as actionTypes from "../actions/actionTypes";
+import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
-  currentMot: "bus",
+  currentMot: 'bus',
   currentStopsGeoJSON: {},
   clickLocation: null,
-  notificationMessage: "",
-  notificationType: "info"
+  notificationMessage: '',
+  notificationType: 'info',
 };
 
 const setCurrentStopsGeoJSON = (state, action) => {
   const updatedState = {
-    currentStopsGeoJSON: action.currentStopsGeoJSON
+    currentStopsGeoJSON: action.currentStopsGeoJSON,
   };
   return {
     ...state,
-    ...updatedState
+    ...updatedState,
   };
 };
 
 const setCurrentMot = (state, action) => {
   const updatedState = {
-    currentMot: action.currentMot
+    currentMot: action.currentMot,
   };
   return {
     ...state,
-    ...updatedState
+    ...updatedState,
   };
 };
 
 const setClickLocation = (state, action) => {
   const updatedState = {
-    clickLocation: action.clickLocation
+    clickLocation: action.clickLocation,
   };
   return {
     ...state,
-    ...updatedState
+    ...updatedState,
   };
 };
 
 const showNotification = (state, action) => {
   const updatedState = {
     notificationMessage: action.notificationMessage,
-    notificationType: action.notificationType
+    notificationType: action.notificationType,
   };
   return {
     ...state,
-    ...updatedState
+    ...updatedState,
   };
 };
 

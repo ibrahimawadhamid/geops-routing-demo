@@ -1,16 +1,16 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { Map, View } from "ol";
-import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import OSM from "ol/source/OSM";
-import GeoJSON from "ol/format/GeoJSON";
-import { Vector as VectorSource } from "ol/source";
-import axios from "axios";
-import PropTypes from "prop-types";
-import Snackbar from "@material-ui/core/Snackbar";
-import { Stroke, Style, Fill, Circle as CircleStyle } from "ol/style";
-import "./MapComponent.css";
-import * as actions from "../../store/actions";
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { Map, View } from 'ol';
+import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
+import OSM from 'ol/source/OSM';
+import GeoJSON from 'ol/format/GeoJSON';
+import { Vector as VectorSource } from 'ol/source';
+import axios from 'axios';
+import PropTypes from 'prop-types';
+import Snackbar from '@material-ui/core/Snackbar';
+import { Stroke, Style, Fill, Circle as CircleStyle } from 'ol/style';
+import './MapComponent.css';
+import * as actions from '../../store/actions';
 
 /**
  * The map props
@@ -41,27 +41,27 @@ class MapComponent extends Component {
     this.findRouteCancel = null;
     this.routeStyleInner = new Style({
       stroke: new Stroke({
-        color: "orange",
-        width: 3
-      })
+        color: 'orange',
+        width: 3,
+      }),
     });
     this.routeStyleOuter = new Style({
       stroke: new Stroke({
-        color: "black",
-        width: 5
-      })
+        color: 'black',
+        width: 5,
+      }),
     });
     this.pointStyle = new Style({
       image: new CircleStyle({
         radius: 7,
-        fill: new Fill({ color: "orange" }),
-        stroke: new Stroke({ color: "black", width: 2 })
-      })
+        fill: new Fill({ color: 'orange' }),
+        stroke: new Stroke({ color: 'black', width: 2 }),
+      }),
     });
     this.hoveredFeature = null;
     this.state = {
       hoveredStationOpen: false,
-      hoveredStationName: ""
+      hoveredStationName: '',
     };
   }
 
@@ -78,37 +78,36 @@ class MapComponent extends Component {
     demoAttribution +=
       " | <a target='_blank' href='https://www.openstreetmap.org/'>OSM</a>";
     const openStreetMap = new TileLayer({
-      source: new OSM({ attributions: [demoAttribution] })
+      source: new OSM({ attributions: [demoAttribution] }),
     });
     this.map = new Map({
-      target: "map",
+      target: 'map',
       layers: [openStreetMap],
       view: new View({
-        projection: "EPSG:4326",
+        projection: 'EPSG:4326',
         center: [10, 50],
-        zoom: 6
-      })
+        zoom: 6,
+      }),
     });
-    this.map.on("singleclick", evt => {
+    this.map.on('singleclick', evt => {
       const { onSetClickLocation } = this.props;
       onSetClickLocation(evt.coordinate);
     });
-    this.map.on("pointermove", evt => {
+    this.map.on('pointermove', evt => {
       if (this.hoveredFeature) {
         this.hoveredFeature = null;
-        this.setState({ hoveredStationOpen: false, hoveredStationName: "" });
+        this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
       }
       this.map.forEachFeatureAtPixel(evt.pixel, feature => {
-        if (feature.getGeometry().getType() === "Point") {
+        if (feature.getGeometry().getType() === 'Point') {
           this.hoveredFeature = feature;
-          let name = "";
-          if(feature.get("name"))
-            name = `${feature.get("name")} - ${feature.get("country_code")}`
-          else
-            name = `${feature.get("id")[0]}, ${feature.get("id")[1]}`
+          let name = '';
+          if (feature.get('name'))
+            name = `${feature.get('name')} - ${feature.get('country_code')}`;
+          else name = `${feature.get('id')[0]}, ${feature.get('id')[1]}`;
           this.setState({
             hoveredStationOpen: true,
-            hoveredStationName: name
+            hoveredStationName: name,
           });
         }
         return true;
@@ -130,20 +129,20 @@ class MapComponent extends Component {
     if (currentMotChanged || currentStopsGeoJSONChanged) {
       // First remove layers
       this.map.getLayers().forEach(layer => {
-        if (layer && layer.get("type") === "markers") {
+        if (layer && layer.get('type') === 'markers') {
           this.map.removeLayer(layer);
         }
       });
       // Then add new ones
       Object.keys(currentStopsGeoJSON).forEach(key => {
         const vectorSource = new VectorSource({
-          features: new GeoJSON().readFeatures(currentStopsGeoJSON[key])
+          features: new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
         });
         const vectorLayer = new VectorLayer({
           source: vectorSource,
-          style: this.pointStyle
+          style: this.pointStyle,
         });
-        vectorLayer.set("type", "markers");
+        vectorLayer.set('type', 'markers');
         this.map.addLayer(vectorLayer);
         const coordinate = vectorSource
           .getFeatures()[0]
@@ -151,7 +150,7 @@ class MapComponent extends Component {
           .getCoordinates();
         this.map.getView().animate({
           center: coordinate,
-          duration: 500
+          duration: 500,
         });
       });
       // Remove the old route if exists
@@ -176,7 +175,7 @@ class MapComponent extends Component {
       routingUrl,
       currentMot,
       APIKey,
-      onShowNotification
+      onShowNotification,
     } = this.props;
     Object.keys(currentStopsGeoJSON).forEach(key => {
       if (currentStopsGeoJSON[key].features) {
@@ -190,36 +189,36 @@ class MapComponent extends Component {
     axios
       .get(routingUrl, {
         params: {
-          via: hops.join("|"),
+          via: hops.join('|'),
           mot: currentMot,
-          key: APIKey
+          key: APIKey,
         },
         cancelToken: new this.FindRouteCancelToken(cancel => {
           this.findRouteCancel = cancel;
-        })
+        }),
       })
       .then(
         response => {
           // A route was found, prepare to draw it.
           const vectorSource = new VectorSource({
-            features: new GeoJSON().readFeatures(response.data)
+            features: new GeoJSON().readFeatures(response.data),
           });
           const vectorLayer = new VectorLayer({
             source: vectorSource,
-            style: [this.routeStyleOuter, this.routeStyleInner]
+            style: [this.routeStyleOuter, this.routeStyleInner],
           });
-          vectorLayer.set("type", "route");
+          vectorLayer.set('type', 'route');
           this.map.addLayer(vectorLayer);
           this.map.getView().fit(vectorSource.getExtent(), {
             size: this.map.getSize(),
             duration: 500,
-            padding: [50, 50, 50, 50]
+            padding: [50, 50, 50, 50],
           });
         },
         error => {
           // No route was found.
-          if (error) onShowNotification("Couldn't find route", "error");
-        }
+          if (error) onShowNotification("Couldn't find route", 'error');
+        },
       );
   };
 
@@ -229,7 +228,7 @@ class MapComponent extends Component {
    */
   removeCurrentRoute = () => {
     this.map.getLayers().forEach(layer => {
-      if (layer && layer.get("type") === "route") {
+      if (layer && layer.get('type') === 'route') {
         this.map.removeLayer(layer);
       }
     });
@@ -244,7 +243,7 @@ class MapComponent extends Component {
     return (
       <>
         <Snackbar
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           open={hoveredStationOpen}
           message={hoveredStationName}
         />
@@ -257,7 +256,7 @@ class MapComponent extends Component {
 const mapStateToProps = state => {
   return {
     currentMot: state.MapReducer.currentMot,
-    currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON
+    currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
   };
 };
 
@@ -266,7 +265,7 @@ const mapDispatchToProps = dispatch => {
     onSetClickLocation: clickLocation =>
       dispatch(actions.setClickLocation(clickLocation)),
     onShowNotification: (notificationMessage, notificationType) =>
-      dispatch(actions.showNotification(notificationMessage, notificationType))
+      dispatch(actions.showNotification(notificationMessage, notificationType)),
   };
 };
 
@@ -276,7 +275,7 @@ MapComponent.propTypes = {
   currentStopsGeoJSON: PropTypes.object.isRequired,
   APIKey: PropTypes.string.isRequired,
   routingUrl: PropTypes.string.isRequired,
-  currentMot: PropTypes.string.isRequired
+  currentMot: PropTypes.string.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

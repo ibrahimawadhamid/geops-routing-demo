@@ -1,15 +1,15 @@
-import React from "react";
-import PropTypes from "prop-types";
-import Grid from "@material-ui/core/Grid";
-import TextField from "@material-ui/core/TextField";
-import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
+import React from 'react';
+import PropTypes from 'prop-types';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 
-import Adjust from "@material-ui/icons/Adjust";
-import Room from "@material-ui/icons/Room";
-import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
-import RemoveCircleOutlineIcon from "@material-ui/icons/RemoveCircleOutline";
-import RadioButtonCheckedIcon from "@material-ui/icons/RadioButtonChecked";
+import Adjust from '@material-ui/icons/Adjust';
+import Room from '@material-ui/icons/Room';
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
+import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
 
 /**
  * The component that displays the search field(s)
@@ -24,16 +24,16 @@ function SearchField(props) {
     searchStopsHandler,
     singleStop,
     processHighlightedResultSelectHandler,
-    onFieldFocusHandler
+    onFieldFocusHandler,
   } = props;
   let fieldLeftIcon = null;
   let searchFieldSize = 10;
-  let searchFieldLabel = "";
+  let searchFieldLabel = '';
   let fieldRightIcon = null;
   if (index === 0) {
     // Start station field
     fieldLeftIcon = <RadioButtonCheckedIcon fontSize="small" color="primary" />;
-    searchFieldLabel = "Start";
+    searchFieldLabel = 'Start';
     fieldRightIcon = (
       <Grid item xs={1}>
         <Tooltip title="Add Hop">
@@ -50,11 +50,11 @@ function SearchField(props) {
     );
   } else if (index === currentStops.length - 1) {
     fieldLeftIcon = <Room color="primary" />;
-    searchFieldLabel = "End";
+    searchFieldLabel = 'End';
   } else {
     fieldLeftIcon = <Adjust fontSize="small" color="primary" />;
     searchFieldSize = 9;
-    searchFieldLabel = "Hop";
+    searchFieldLabel = 'Hop';
     fieldRightIcon = (
       <>
         <Grid item xs={1}>
@@ -85,20 +85,22 @@ function SearchField(props) {
     );
   }
   return (
-    <Grid container spacing={1} alignItems="flex-end" style={{ width: "100%" }}>
+    <Grid container spacing={1} alignItems="flex-end" style={{ width: '100%' }}>
       <Grid item xs={1}>
         {fieldLeftIcon}
       </Grid>
       <Grid item xs={searchFieldSize}>
         <TextField
-          style={{ width: "100%" }}
+          style={{ width: '100%' }}
           label={searchFieldLabel}
           color="primary"
           onChange={e => searchStopsHandler(e, index)}
           value={singleStop}
           onKeyDown={processHighlightedResultSelectHandler}
           onFocus={() => onFieldFocusHandler(index)}
-          onClick={event => {event.target.select()}}
+          onClick={event => {
+            event.target.select();
+          }}
         />
       </Grid>
       {fieldRightIcon}
@@ -115,15 +117,15 @@ SearchField.propTypes = {
   // singleStop: PropTypes.string,
   singleStop: PropTypes.oneOfType([
     PropTypes.string,
-    PropTypes.arrayOf(PropTypes.number)
+    PropTypes.arrayOf(PropTypes.number),
   ]),
   processHighlightedResultSelectHandler: PropTypes.func.isRequired,
-  onFieldFocusHandler: PropTypes.func.isRequired
+  onFieldFocusHandler: PropTypes.func.isRequired,
 };
 
 SearchField.defaultProps = {
   currentStops: [],
-  singleStop: ""
+  singleStop: '',
 };
 
 export default SearchField;
