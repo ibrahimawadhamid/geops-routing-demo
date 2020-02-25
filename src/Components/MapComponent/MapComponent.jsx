@@ -8,7 +8,11 @@ import { Vector as VectorSource } from 'ol/source';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
-import { Stroke, Style, Fill, Circle as CircleStyle } from 'ol/style';
+import { Stroke, Style } from 'ol/style';
+import {
+  lineStyleFunction,
+  pointStyleFunction,
+} from '../../config/styleConfig';
 import './MapComponent.css';
 import * as actions from '../../store/actions';
 
@@ -39,25 +43,6 @@ class MapComponent extends Component {
     super(props);
     this.FindRouteCancelToken = axios.CancelToken;
     this.findRouteCancel = null;
-    this.routeStyleInner = new Style({
-      stroke: new Stroke({
-        color: 'orange',
-        width: 3,
-      }),
-    });
-    this.routeStyleOuter = new Style({
-      stroke: new Stroke({
-        color: 'black',
-        width: 5,
-      }),
-    });
-    this.pointStyle = new Style({
-      image: new CircleStyle({
-        radius: 7,
-        fill: new Fill({ color: 'orange' }),
-        stroke: new Stroke({ color: 'black', width: 2 }),
-      }),
-    });
     this.hoveredFeature = null;
     this.state = {
       hoveredStationOpen: false,
@@ -139,8 +124,9 @@ class MapComponent extends Component {
           features: new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
         });
         const vectorLayer = new VectorLayer({
+          zIndex: 1,
           source: vectorSource,
-          style: this.pointStyle,
+          style: pointStyleFunction(currentMot),
         });
         vectorLayer.set('type', 'markers');
         this.map.addLayer(vectorLayer);
@@ -204,8 +190,9 @@ class MapComponent extends Component {
             features: new GeoJSON().readFeatures(response.data),
           });
           const vectorLayer = new VectorLayer({
+            zIndex: 0,
             source: vectorSource,
-            style: [this.routeStyleOuter, this.routeStyleInner],
+            style: lineStyleFunction(currentMot),
           });
           vectorLayer.set('type', 'route');
           this.map.addLayer(vectorLayer);
