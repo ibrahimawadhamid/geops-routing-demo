@@ -278,6 +278,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
         params: {
           q: event.target.value,
           key: APIKey,
+          mots: currentMot,
         },
         cancelToken: new SearchCancelToken(cancel => {
           searchCancel = cancel;
