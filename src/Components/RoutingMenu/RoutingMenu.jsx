@@ -1,19 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import axios from 'axios';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
 import _ from 'lodash/core';
-
-import * as actions from '../../store/actions';
+import {
+  setCurrentStopsGeoJSON,
+  setCurrentMot,
+  showNotification,
+} from '../../store/actions/Map';
 import './RoutingMenu.css';
-import VALID_MOTS from '../../constants';
+import constants from '../../constants';
 import findMotIcon from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
@@ -42,49 +50,112 @@ function TabPanel(props) {
  * @property {string} APIKey key obtained from geOps that enables you to used the previous API services.
  * @property {string[]} mots List of mots to be available (ex: ['bus', 'train'])
  * @property {LongLat} clickLocation The location clicked by the user in the form of [long,lat].
- * @property {function} onShowNotification A store action that can be dispatched, takes the notification message and type as arguments.
- * @property {function} onSetCurrentStopsGeoJSON A store action that can be dispatched, sets the current stops in the store in the form of GeoJSON format.
- * @property {function} onSetCurrentMot TA store action that can be dispatched, sets the current selected mot by the user inside the store.
  * @category Props
  */
+
+const useStyles = makeStyles(() => ({
+  tabs: {
+    width: '75%',
+  },
+  tab: {
+    minWidth: '25%',
+    width: '25%',
+  },
+  dropDown: {
+    width: '25%',
+    backgroundColor: 'white',
+  },
+  dropDownSelected: {
+    width: '25%',
+    backgroundColor: 'lightgrey',
+  },
+}));
 
 /**
  * The routing menu that controls station search
  * @category RoutingMenu
  */
-class RoutingMenu extends React.Component {
+function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
+  const classes = useStyles();
+  const dispatch = useDispatch();
+  const { DEFAULT_MOTS, OTHER_MOTS } = constants;
+
   /**
-   * Default constructor, gets called automatically upon initialization.
-   * @param {...RoutingMenuProps} props Props received so that the component can function properly.
+   * Validate the mots provided from the props, then retrieve the icons for the valid ones.
+   * @param mots The provided mots
+   * @returns {Array} The valid mots with their icons
    * @category RoutingMenu
    */
-  constructor(props) {
-    const { mots, onSetCurrentMot } = props;
-    super(props);
-    const currentMots = this.validateMots(mots);
-    this.state = {
-      currentMots,
-      currentMot: currentMots[0].name,
-      currentSearchResults: [],
-      focusedFieldIndex: 0,
-      currentStops: ['', ''],
-      currentStopsGeoJSON: {},
-      showLoadingBar: false,
-    };
+  const validateMots = (motsArray, validationMots) => {
+    const { VALID_MOTS } = constants;
+    const currentMotsArray = [];
 
-    this.SearchCancelToken = axios.CancelToken;
-    this.searchCancel = null;
-    onSetCurrentMot(currentMots[0].name);
-  }
+    motsArray
+      .filter(mot => {
+        return validationMots.includes(mot);
+      })
+      .forEach(providedMot => {
+        const requestedMot = validationMots.find(mot => mot === providedMot);
+        if (requestedMot) {
+          currentMotsArray.push({
+            name: requestedMot,
+            icon: findMotIcon(requestedMot),
+          });
+        }
+      });
+    if (currentMotsArray.length === 0) {
+      currentMotsArray.push({
+        name: VALID_MOTS[0],
+        icon: findMotIcon(VALID_MOTS[0]),
+      });
+    }
+    return currentMotsArray;
+  };
+
+  const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
+  const otherMotsVal = validateMots(mots, OTHER_MOTS);
+
+  const [currentMots] = useState(currentMotsVal);
+  const [currentMot, setCurrentMotState] = useState(currentMotsVal[0].name);
+  const [otherMots] = useState(otherMotsVal);
+  const [currentSearchResults, setCurrentSearchResults] = useState([]);
+
+  const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
+  const [currentStops, setCurrentStops] = useState(['', '']);
+  const [currentStopsGeoJSON, setCurrentStopsGeoJSONState] = useState({});
+  const [showLoadingBar, setShowLoadingBar] = useState(false);
+  const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
+  const clickLocation = useSelector(state => state.MapReducer.clickLocation);
+
+  const SearchCancelToken = axios.CancelToken;
+  let searchCancel = null;
+  useEffect(() => {
+    dispatch(setCurrentMot(currentMots[0].name));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * Update the current stops array (string array) and the GeoJSON array in the local state.
+   * @param updatedCurrentStops The updated stops.
+   * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
+   * @category RoutingMenu
+   */
+  const updateCurrentStops = (
+    updatedCurrentStops,
+    updatedCurrentStopsGeoJSON,
+    updatedFocusedFieldIndex,
+  ) => {
+    setCurrentStops(updatedCurrentStops);
+    setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
+    setFocusedFieldIndex(updatedFocusedFieldIndex);
+  };
 
   /**
    * If a location was received through the props (user click on map) act accordingly.
    * @category RoutingMenu
    */
-  componentDidUpdate(prevProps) {
-    const { clickLocation, onSetCurrentStopsGeoJSON } = this.props;
-    const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
-    if (clickLocation && clickLocation !== prevProps.clickLocation) {
+  useEffect(() => {
+    if (clickLocation) {
       // A click occurred on the map
       if (currentStops[focusedFieldIndex] === '') {
         // Only perform when there's an empty field.
@@ -113,59 +184,16 @@ class RoutingMenu extends React.Component {
           ],
         };
         updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
-        this.updateCurrentStops(
+        updateCurrentStops(
           updatedCurrentStops,
           updatedCurrentStopsGeoJSON,
           updatedFocusedFieldIndex,
         );
-        onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+        dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
       }
     }
-  }
-
-  /**
-   * Update the current stops array (string array) and the GeoJSON array in the local state.
-   * @param updatedCurrentStops The updated stops.
-   * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
-   * @category RoutingMenu
-   */
-  updateCurrentStops = (
-    updatedCurrentStops,
-    updatedCurrentStopsGeoJSON,
-    updatedFocusedFieldIndex,
-  ) => {
-    this.setState({
-      currentStops: updatedCurrentStops,
-      currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
-      focusedFieldIndex: updatedFocusedFieldIndex,
-    });
-  };
-
-  /**
-   * Validate the mots provided from the props, then retrieve the icons for the valid ones.
-   * @param mots The provided mots
-   * @returns {Array} The valid mots with their icons
-   * @category RoutingMenu
-   */
-  validateMots = mots => {
-    const currentMots = [];
-    mots.forEach(providedMot => {
-      const requestedMot = VALID_MOTS.find(mot => mot === providedMot);
-      if (requestedMot) {
-        currentMots.push({
-          name: requestedMot,
-          icon: findMotIcon(requestedMot),
-        });
-      }
-    });
-    if (currentMots.length === 0) {
-      currentMots.push({
-        name: VALID_MOTS[0],
-        icon: findMotIcon(VALID_MOTS[0]),
-      });
-    }
-    return currentMots;
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clickLocation]);
 
   /**
    * Process changing the current selected mot, save in local state and dispatch store action.
@@ -173,10 +201,10 @@ class RoutingMenu extends React.Component {
    * @param newMot The new selected mot
    * @category RoutingMenu
    */
-  handleMotChange = (event, newMot) => {
-    const { onSetCurrentMot } = this.props;
-    this.setState({ currentMot: newMot });
-    onSetCurrentMot(newMot);
+  const handleMotChange = (event, newMot) => {
+    setCurrentMotState(newMot);
+    debugger;
+    dispatch(setCurrentMot(newMot));
   };
 
   /**
@@ -184,8 +212,8 @@ class RoutingMenu extends React.Component {
    * @param fieldIndex The search field index(order)
    * @category RoutingMenu
    */
-  onFieldFocusHandler = fieldIndex => {
-    this.setState({ focusedFieldIndex: fieldIndex });
+  const onFieldFocusHandler = fieldIndex => {
+    setFocusedFieldIndex(fieldIndex);
   };
 
   /**
@@ -193,11 +221,10 @@ class RoutingMenu extends React.Component {
    * @param indexToInsertAt The index to insert the new search field at.
    * @category RoutingMenu
    */
-  addNewSearchFieldHandler = indexToInsertAt => {
-    const { currentStops } = this.state;
+  const addNewSearchFieldHandler = indexToInsertAt => {
     const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToInsertAt, 0, '');
-    this.setState({ currentStops: updatedCurrentStops });
+    setCurrentStops(updatedCurrentStops);
   };
 
   /**
@@ -206,9 +233,7 @@ class RoutingMenu extends React.Component {
    * @param indexToRemoveFrom The index to remove the search field from.
    * @category RoutingMenu
    */
-  removeSearchFieldHandler = indexToRemoveFrom => {
-    const { currentStops, currentStopsGeoJSON } = this.state;
-    const { onSetCurrentStopsGeoJSON } = this.props;
+  const removeSearchFieldHandler = indexToRemoveFrom => {
     const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToRemoveFrom, 1);
     const updatedCurrentStopsGeoJSON = {};
@@ -217,11 +242,11 @@ class RoutingMenu extends React.Component {
         updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
       }
     });
-    this.setState({
-      currentStops: updatedCurrentStops,
-      currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
-    });
-    onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+
+    setCurrentStops(updatedCurrentStops);
+    setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
   /**
@@ -230,30 +255,24 @@ class RoutingMenu extends React.Component {
    * @param fieldIndex The search field(hop) index(order)
    * @category RoutingMenu
    */
-  searchStopsHandler = (event, fieldIndex) => {
-    const { currentStops, currentMot } = this.state;
-    const { stationSearchUrl, APIKey, onShowNotification } = this.props;
+  const searchStopsHandler = (event, fieldIndex) => {
     // only search if text is available
     if (!event.target.value) {
-      const updateCurrentStops = currentStops;
-      updateCurrentStops[fieldIndex] = '';
-      this.setState({
-        currentSearchResults: [],
-        currentStops: updateCurrentStops,
-        showLoadingBar: false,
-      });
+      const updatedCurrentStops = currentStops;
+      updatedCurrentStops[fieldIndex] = '';
+      setCurrentSearchResults([]);
+      setCurrentStops(updatedCurrentStops);
+      setShowLoadingBar(false);
       return;
     }
-    const updateCurrentStops = currentStops;
-    updateCurrentStops[fieldIndex] = event.target.value;
-    this.setState({
-      currentStops: updateCurrentStops,
-      showLoadingBar: true,
-    });
+    const updatedCurrentStops = currentStops;
+    updatedCurrentStops[fieldIndex] = event.target.value;
+    setCurrentStops(updatedCurrentStops);
+    setShowLoadingBar(true);
 
-    if (this.searchCancel) {
+    if (searchCancel) {
       // If a previous search request has been issues and not completed yet, cancel it.
-      this.searchCancel();
+      searchCancel();
     }
     axios
       .get(stationSearchUrl, {
@@ -261,33 +280,35 @@ class RoutingMenu extends React.Component {
           q: event.target.value,
           key: APIKey,
         },
-        cancelToken: new this.SearchCancelToken(cancel => {
-          this.searchCancel = cancel;
+        cancelToken: new SearchCancelToken(cancel => {
+          searchCancel = cancel;
         }),
       })
       .then(
         response => {
-          if (response.data.features.length === 0) {
-            // No results for the given query
-            onShowNotification("Couldn't find stations", 'warning');
-          }
           const searchResults = [];
           response.data.features.forEach(singleResult => {
             // Search results from the API
             if (singleResult.properties.mot[currentMot])
               searchResults.push(singleResult);
           });
-          this.setState({
-            currentSearchResults: searchResults,
-            showLoadingBar: false,
-          });
+          if (
+            response.data.features.length === 0 ||
+            searchResults.length === 0
+          ) {
+            // No results for the given query
+            // onShowNotification("Couldn't find stations", 'warning');
+            dispatch(showNotification("Couldn't find stations", 'warning'));
+          }
+          setCurrentSearchResults(searchResults);
+          setShowLoadingBar(false);
         },
         error => {
-          this.setState({
-            showLoadingBar: false,
-          });
+          setShowLoadingBar(false);
           if (!axios.isCancel(error))
-            onShowNotification('Error while searching for stations', 'error');
+            dispatch(
+              showNotification('Error while searching for stations', 'error'),
+            );
         },
       );
   };
@@ -298,27 +319,17 @@ class RoutingMenu extends React.Component {
    * @param event
    * @category RoutingMenu
    */
-  processHighlightedResultSelectHandler = event => {
-    const { onSetCurrentStopsGeoJSON } = this.props;
-    const {
-      currentSearchResults,
-      currentStops,
-      focusedFieldIndex,
-      currentStopsGeoJSON,
-    } = this.state;
+  const processHighlightedResultSelectHandler = event => {
     const [firstSearchResult] = currentSearchResults;
     if (event.key === 'Enter' && firstSearchResult) {
       // The user has chosen the first result by pressing 'Enter' key on keyboard
-      const updateCurrentStops = currentStops;
+      const updatedCurrentStops = currentStops;
       updateCurrentStops[focusedFieldIndex] = firstSearchResult.properties.name;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
-      this.setState({
-        currentStops: updateCurrentStops,
-        currentSearchResults: [],
-        currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
-      });
-      onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      setCurrentStops(updatedCurrentStops);
+      setCurrentSearchResults([]);
+      dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     }
     if (event.key === 'Backspace') {
       // The user has erased some of the search query. Reset everything and start all over.
@@ -330,11 +341,8 @@ class RoutingMenu extends React.Component {
           updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
         }
       });
-      this.setState({
-        currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
-        currentSearchResults: updateCurrentSearchResults,
-      });
-      onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      setCurrentSearchResults(updateCurrentSearchResults);
     }
   };
 
@@ -343,41 +351,43 @@ class RoutingMenu extends React.Component {
    * @param searchResult The clicked search result.
    * @category RoutingMenu
    */
-  processClickedResultHandler = searchResult => {
-    const { currentStops, focusedFieldIndex, currentStopsGeoJSON } = this.state;
-    const { onSetCurrentStopsGeoJSON } = this.props;
-    const updateCurrentStops = currentStops;
+  const processClickedResultHandler = searchResult => {
+    const updatedCurrentStops = currentStops;
     updateCurrentStops[focusedFieldIndex] = searchResult.properties.name;
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
-    this.setState({
-      currentStops: updateCurrentStops,
-      currentSearchResults: [],
-      currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
-    });
-    onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+    setCurrentStops(updatedCurrentStops);
+    setCurrentSearchResults([]);
+    setShowLoadingBar(false);
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+  };
+
+  const changeCurrentOtherMot = evt => {
+    if (!evt) {
+      setCurrentOtherMot(undefined);
+    } else {
+      const { value } = evt.target;
+      handleMotChange({}, value);
+      setCurrentOtherMot(value);
+    }
   };
 
   /**
    * Render the component to the dom.
    * @category RoutingMenu
    */
-  render() {
-    const {
-      currentStops,
-      currentMots,
-      currentMot,
-      showLoadingBar,
-      currentSearchResults,
-    } = this.state;
-    return (
-      <div className="RoutingMenu">
-        <Paper square elevation={3}>
+
+  return (
+    <div className="rd-routing-menu">
+      <Paper square elevation={3}>
+        <div className="rd-routing-menu-header">
           <Tabs
-            value={currentMot}
-            onChange={this.handleMotChange}
-            variant="scrollable"
-            scrollButtons="auto"
+            value={DEFAULT_MOTS.includes(currentMot) ? currentMot : false}
+            className={classes.tabs}
+            onChange={(e, mot) => {
+              handleMotChange(e, mot);
+              // this.changeCurrentOtherMot(undefined);
+            }}
             indicatorColor="primary"
             textColor="primary"
             aria-label="mots icons"
@@ -385,6 +395,7 @@ class RoutingMenu extends React.Component {
             {currentMots.map(singleMot => {
               return (
                 <Tab
+                  className={classes.tab}
                   key={`mot-${singleMot.name}`}
                   value={singleMot.name}
                   icon={singleMot.icon}
@@ -393,53 +404,58 @@ class RoutingMenu extends React.Component {
               );
             })}
           </Tabs>
-          <TabPanel>
-            {currentStops.map((singleStop, index) => {
-              return (
-                <SearchField
-                  key={`searchField-${index}`}
-                  index={index}
-                  addNewSearchFieldHandler={this.addNewSearchFieldHandler}
-                  currentStops={currentStops}
-                  removeSearchFieldHandler={this.removeSearchFieldHandler}
-                  searchStopsHandler={this.searchStopsHandler}
-                  singleStop={singleStop}
-                  processHighlightedResultSelectHandler={
-                    this.processHighlightedResultSelectHandler
-                  }
-                  onFieldFocusHandler={this.onFieldFocusHandler}
-                />
-              );
-            })}
-          </TabPanel>
-          {showLoadingBar ? <LinearProgress /> : null}
-        </Paper>
-        <SearchResults
-          currentSearchResults={currentSearchResults}
-          processClickedResultHandler={this.processClickedResultHandler}
-        />
-      </div>
-    );
-  }
+          <FormControl
+            className={
+              currentMot === currentOtherMot
+                ? classes.dropDownSelected
+                : classes.dropDown
+            }
+          >
+            <InputLabel id="rd-other-mot-label">Other MOTs</InputLabel>
+            <Select
+              labelId="rd-other-mot-label"
+              value={currentOtherMot}
+              onChange={changeCurrentOtherMot}
+            >
+              {otherMots.map(mot => {
+                return (
+                  <MenuItem value={mot.name} key={`other-mot-${mot.name}`}>
+                    {mot.name}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </FormControl>
+        </div>
+        <TabPanel>
+          {currentStops.map((singleStop, index) => {
+            return (
+              <SearchField
+                // eslint-disable-next-line react/no-array-index-key
+                key={`searchField-${index}`}
+                index={index}
+                addNewSearchFieldHandler={addNewSearchFieldHandler}
+                currentStops={currentStops}
+                removeSearchFieldHandler={removeSearchFieldHandler}
+                searchStopsHandler={searchStopsHandler}
+                singleStop={singleStop}
+                processHighlightedResultSelectHandler={
+                  processHighlightedResultSelectHandler
+                }
+                onFieldFocusHandler={onFieldFocusHandler}
+              />
+            );
+          })}
+        </TabPanel>
+        {showLoadingBar ? <LinearProgress /> : null}
+      </Paper>
+      <SearchResults
+        currentSearchResults={currentSearchResults}
+        processClickedResultHandler={processClickedResultHandler}
+      />
+    </div>
+  );
 }
-
-const mapStateToProps = state => {
-  return {
-    clickLocation: state.MapReducer.clickLocation,
-  };
-};
-
-const mapDispatchToProps = dispatch => {
-  return {
-    onSetCurrentMot: currentMot => dispatch(actions.setCurrentMot(currentMot)),
-    onSetCurrentStopsGeoJSON: currentStopsGeoJSON =>
-      dispatch(actions.setCurrentStopsGeoJSON(currentStopsGeoJSON)),
-    onSetClickLocation: clickLocation =>
-      dispatch(actions.setClickLocation(clickLocation)),
-    onShowNotification: (notificationMessage, notificationType) =>
-      dispatch(actions.showNotification(notificationMessage, notificationType)),
-  };
-};
 
 TabPanel.propTypes = {
   children: PropTypes.node.isRequired,
@@ -453,17 +469,9 @@ TabPanel.defaultProps = {
 };
 
 RoutingMenu.propTypes = {
-  onSetCurrentMot: PropTypes.func.isRequired,
-  onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
-  onShowNotification: PropTypes.func.isRequired,
-  clickLocation: PropTypes.arrayOf(PropTypes.number),
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
   stationSearchUrl: PropTypes.string.isRequired,
 };
 
-RoutingMenu.defaultProps = {
-  clickLocation: null,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(RoutingMenu);
+export default RoutingMenu;

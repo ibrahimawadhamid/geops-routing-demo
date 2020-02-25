@@ -154,7 +154,7 @@
       "fixpack --sortToTop name --sortToTop version --sortToTop private --sortToTop dependencies --sortToTop peerDependencies --sortToTop devDependencies --sortToTop scripts",
       "git add"
     ],
-    "src/**/*.{scss}": [
+    "src/**/*.{css}": [
       "stylelint --fix",
       "git add"
     ]

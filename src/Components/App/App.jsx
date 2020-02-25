@@ -5,6 +5,7 @@ import store from '../../store/store';
 import MapComponent from '../MapComponent';
 import RoutingMenu from '../RoutingMenu';
 import NotificationHandler from '../NotificationHandler';
+import constants from '../../constants';
 
 const propTypes = {
   routingUrl: PropTypes.string,
@@ -14,7 +15,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-  mots: ['rail', 'bus', 'tram'],
+  mots: constants.VALID_MOTS,
   routingUrl: 'https://api.geops.io/routing/v1/',
   stationSearchUrl: 'https://api.geops.io/stops/v1/',
   APIKey: '5cc87b12d7c5370001c1d655d0a18192eba64838a5fa1ad7d482ab82',
