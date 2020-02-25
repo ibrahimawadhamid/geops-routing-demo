@@ -203,6 +203,10 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    */
   const handleMotChange = (event, newMot) => {
     setCurrentMotState(newMot);
+    setCurrentSearchResults([]);
+    setCurrentStopsGeoJSONState({});
+
+    dispatch(setCurrentStopsGeoJSON({}));
     dispatch(setCurrentMot(newMot));
   };
 
@@ -278,6 +282,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
         params: {
           q: event.target.value,
           key: APIKey,
+          // limit: 99,
           mots: currentMot,
         },
         cancelToken: new SearchCancelToken(cancel => {
@@ -329,7 +334,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
       setCurrentStops(updatedCurrentStops);
       setCurrentSearchResults([]);
-      setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON)
+      setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
       dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     }
     if (event.key === 'Backspace') {
