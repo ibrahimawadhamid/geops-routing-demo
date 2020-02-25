@@ -85,7 +85,15 @@ function SearchField(props) {
     );
   }
   return (
-    <Grid container spacing={1} alignItems="flex-end" style={{ width: '100%' }}>
+    <Grid
+      container
+      spacing={1}
+      alignItems="flex-end"
+      style={{
+        width: '100%',
+        padding: '0 20px',
+      }}
+    >
       <Grid item xs={1}>
         {fieldLeftIcon}
       </Grid>

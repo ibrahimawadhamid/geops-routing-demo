@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
+import Checkbox from '@material-ui/core/Checkbox';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -9,7 +10,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
-import Box from '@material-ui/core/Box';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import axios from 'axios';
 import PropTypes from 'prop-types';
@@ -37,7 +37,7 @@ function TabPanel(props) {
       id={nextId()}
       aria-labelledby={`simple-tab-${index}`}
     >
-      {value === index && <Box p={3}>{children}</Box>}
+      {value === index && children}
     </Typography>
   );
 }
@@ -68,6 +68,9 @@ const useStyles = makeStyles(() => ({
   dropDownSelected: {
     width: '25%',
     backgroundColor: 'lightgrey',
+  },
+  checkbox: {
+    padding: '20px',
   },
 }));
 
@@ -119,7 +122,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
   const [currentMot, setCurrentMotState] = useState(currentMotsVal[0].name);
   const [otherMots] = useState(otherMotsVal);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
-
+  const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
   const [currentStops, setCurrentStops] = useState(['', '']);
   const [currentStopsGeoJSON, setCurrentStopsGeoJSONState] = useState({});
@@ -282,8 +285,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
         params: {
           q: event.target.value,
           key: APIKey,
-          // limit: 99,
-          mots: currentMot,
+          mots: searchMotOnly ? currentMot : '',
         },
         cancelToken: new SearchCancelToken(cancel => {
           searchCancel = cancel;
@@ -453,6 +455,16 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
               />
             );
           })}
+          <div className="rd-mot-checkbox">
+            <Checkbox
+              className={classes.checkbox}
+              checked={searchMotOnly}
+              onChange={() => setSearchMotOnly(!searchMotOnly)}
+              color="primary"
+              inputProps={{ 'aria-label': 'use only mot' }}
+            />
+            <span>Search only selected Mode of transports</span>
+          </div>
         </TabPanel>
         {showLoadingBar ? <LinearProgress /> : null}
       </Paper>
