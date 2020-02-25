@@ -8,7 +8,6 @@ import { Vector as VectorSource } from 'ol/source';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
-import { Stroke, Style } from 'ol/style';
 import {
   lineStyleFunction,
   pointStyleFunction,

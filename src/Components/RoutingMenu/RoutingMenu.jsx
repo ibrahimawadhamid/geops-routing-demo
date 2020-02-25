@@ -203,7 +203,6 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    */
   const handleMotChange = (event, newMot) => {
     setCurrentMotState(newMot);
-    debugger;
     dispatch(setCurrentMot(newMot));
   };
 
@@ -244,7 +243,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     });
 
     setCurrentStops(updatedCurrentStops);
-    setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+    setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
 
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
@@ -329,6 +328,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
       setCurrentStops(updatedCurrentStops);
       setCurrentSearchResults([]);
+      setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON)
       dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     }
     if (event.key === 'Backspace') {
@@ -341,8 +341,9 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
           updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
         }
       });
-      setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
       setCurrentSearchResults(updateCurrentSearchResults);
+      dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     }
   };
 
@@ -353,12 +354,12 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    */
   const processClickedResultHandler = searchResult => {
     const updatedCurrentStops = currentStops;
-    updateCurrentStops[focusedFieldIndex] = searchResult.properties.name;
+    updatedCurrentStops[focusedFieldIndex] = searchResult.properties.name;
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
     setCurrentStops(updatedCurrentStops);
     setCurrentSearchResults([]);
-    setShowLoadingBar(false);
+    setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
