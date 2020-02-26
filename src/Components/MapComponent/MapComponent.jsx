@@ -73,6 +73,16 @@ class MapComponent extends Component {
         zoom: 6,
       }),
     });
+
+    // Define stop vectorLayer.
+    this.vectorSource = new VectorSource({});
+    this.vectorLayer = new VectorLayer({
+      zIndex: 1,
+      source: this.vectorSource,
+    });
+    this.vectorLayer.set('type', 'markers');
+
+    this.map.addLayer(this.vectorLayer);
     this.map.on('singleclick', evt => {
       const { onSetClickLocation } = this.props;
       onSetClickLocation(evt.coordinate);
@@ -111,25 +121,16 @@ class MapComponent extends Component {
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
     if (currentMotChanged || currentStopsGeoJSONChanged) {
-      // First remove layers
-      this.map.getLayers().forEach(layer => {
-        if (layer && layer.get('type') === 'markers') {
-          this.map.removeLayer(layer);
-        }
-      });
-      // Then add new ones
+      this.vectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
-        const vectorSource = new VectorSource({
-          features: new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
-        });
-        const vectorLayer = new VectorLayer({
-          zIndex: 1,
-          source: vectorSource,
-          style: pointStyleFunction(currentMot),
-        });
-        vectorLayer.set('type', 'markers');
-        this.map.addLayer(vectorLayer);
-        const coordinate = vectorSource
+        this.vectorSource.addFeatures(
+          new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
+        );
+        this.vectorSource
+          .getFeatures()
+          .forEach(f => f.setStyle(pointStyleFunction(currentMot)));
+
+        const coordinate = this.vectorSource
           .getFeatures()[0]
           .getGeometry()
           .getCoordinates();

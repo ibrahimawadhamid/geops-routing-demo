@@ -153,6 +153,37 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     setFocusedFieldIndex(updatedFocusedFieldIndex);
   };
 
+  const updateFieldOnMapClick = (
+    updatedCurrentStops,
+    updatedFocusedFieldIndex,
+  ) => {
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+    // Create GeoJSON
+    const tempGeoJSON = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {
+            id: clickLocation.slice().reverse(),
+            type: 'coordinates',
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: clickLocation,
+          },
+        },
+      ],
+    };
+    updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
+    updateCurrentStops(
+      updatedCurrentStops,
+      updatedCurrentStopsGeoJSON,
+      updatedFocusedFieldIndex,
+    );
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+  };
+
   /**
    * If a location was received through the props (user click on map) act accordingly.
    * @category RoutingMenu
@@ -161,13 +192,21 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     if (clickLocation) {
       // A click occurred on the map
       if (currentStops[focusedFieldIndex] === '') {
-        // Only perform when there's an empty field.
+        // Performs when there's an empty field.
         const updatedCurrentStops = currentStops;
-        const updatedFocusedFieldIndex =
+        updatedCurrentStops[focusedFieldIndex] = clickLocation;
+        updateFieldOnMapClick(
+          currentStops,
           focusedFieldIndex + 1 < currentStops.length
             ? focusedFieldIndex + 1
-            : focusedFieldIndex;
+            : focusedFieldIndex,
+        );
+      } else {
+        const updatedCurrentStops = currentStops;
+        const updatedFocusedFieldIndex = focusedFieldIndex;
         updatedCurrentStops[focusedFieldIndex] = clickLocation;
+        updateFieldOnMapClick(updatedCurrentStops, focusedFieldIndex);
+
         const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
         // Create GeoJSON
         const tempGeoJSON = {
