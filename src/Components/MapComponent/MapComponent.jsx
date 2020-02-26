@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Map, View } from 'ol';
-import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
-import OSM from 'ol/source/OSM';
+import { toLonLat } from 'ol/proj';
+import { Layer, Vector as VectorLayer } from 'ol/layer';
+import mapboxgl from 'mapbox-gl';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
 import axios from 'axios';
@@ -55,24 +56,70 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidMount() {
-    let demoAttribution =
-      "<a target='_blank' href='https://github.com/ibrahimawadhamid/geops-routing-demo'>Demo</a>";
-    demoAttribution +=
-      " | <a target='_blank' href='https://geops.ch/'>geOps</a>";
-    demoAttribution +=
-      " | <a target='_blank' href='https://www.openstreetmap.org/'>OSM</a>";
-    const openStreetMap = new TileLayer({
-      source: new OSM({ attributions: [demoAttribution] }),
-    });
+    const { APIKey } = this.props;
+    const center = [949042.143189, 5899715.591163];
+
     this.map = new Map({
       target: 'map',
-      layers: [openStreetMap],
       view: new View({
-        projection: 'EPSG:4326',
-        center: [10, 50],
+        projection: 'EPSG:3857',
+        center,
         zoom: 6,
       }),
     });
+
+    const mbMap = new mapboxgl.Map({
+      style: `https://maps.style-dev.geops.io/styles/travic/style.json?key=${APIKey}`,
+      attributionControl: false,
+      boxZoom: false,
+      center: toLonLat(center),
+      // center,
+      container: this.map.getTargetElement(),
+      doubleClickZoom: false,
+      dragPan: false,
+      dragRotate: false,
+      interactive: false,
+      keyboard: false,
+      pitchWithRotate: false,
+      scrollZoom: false,
+      touchZoomRotate: false,
+    });
+
+    /* eslint-disable no-underscore-dangle */
+    const mbLayer = new Layer({
+      render: frameState => {
+        const canvas = mbMap.getCanvas();
+        const { viewState } = frameState;
+
+        const visible = mbLayer.getVisible();
+        canvas.style.display = visible ? 'block' : 'none';
+
+        const opacity = mbLayer.getOpacity();
+        canvas.style.opacity = opacity;
+
+        // adjust view parameters in mapbox
+        const { rotation } = viewState;
+        if (rotation) {
+          mbMap.rotateTo((-rotation * 180) / Math.PI, {
+            animate: false,
+          });
+        }
+        mbMap.jumpTo({
+          center: toLonLat(viewState.center),
+          zoom: viewState.zoom - 1,
+          animate: false,
+        });
+
+        if (mbMap._frame) {
+          mbMap._frame.cancel();
+          mbMap._frame = null;
+        }
+        mbMap._render();
+
+        return canvas;
+      },
+    });
+    this.map.addLayer(mbLayer);
 
     // Define stop vectorLayer.
     this.vectorSource = new VectorSource({});
@@ -81,8 +128,8 @@ class MapComponent extends Component {
       source: this.vectorSource,
     });
     this.vectorLayer.set('type', 'markers');
-
     this.map.addLayer(this.vectorLayer);
+
     this.map.on('singleclick', evt => {
       const { onSetClickLocation } = this.props;
       onSetClickLocation(evt.coordinate);
