@@ -69,7 +69,7 @@ class MapComponent extends Component {
     });
 
     const mbMap = new mapboxgl.Map({
-      style: `https://maps.geops.io/.io/styles/travic/style.json?key=${APIKey}`,
+      style: `https://maps.geops.io/styles/travic/style.json?key=${APIKey}`,
       attributionControl: false,
       boxZoom: false,
       center: toLonLat(center),
