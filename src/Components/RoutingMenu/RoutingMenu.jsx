@@ -502,7 +502,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
               color="primary"
               inputProps={{ 'aria-label': 'use only mot' }}
             />
-            <span>Search only selected Mode of transports</span>
+            <span>Search only selected mode of transport</span>
           </div>
         </TabPanel>
         {showLoadingBar ? <LinearProgress /> : null}
