@@ -11,12 +11,13 @@ import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import { transform } from 'ol/proj';
+
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
 import _ from 'lodash/core';
 import {
+  setCurrentStops,
   setCurrentStopsGeoJSON,
   setCurrentMot,
   showNotification,
@@ -24,7 +25,7 @@ import {
 } from '../../store/actions/Map';
 import './RoutingMenu.css';
 import constants from '../../constants';
-import findMotIcon from '../../utils';
+import { to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 
@@ -120,17 +121,20 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
+  const clickLocation = useSelector(state => state.MapReducer.clickLocation);
+  const currentStops = useSelector(state => state.MapReducer.currentStops);
+  const currentStopsGeoJSON = useSelector(
+    state => state.MapReducer.currentStopsGeoJSON,
+  );
+
   const [currentMots] = useState(currentMotsVal);
   const [currentMot, setCurrentMotState] = useState(currentMotsVal[0].name);
   const [otherMots] = useState(otherMotsVal);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
   const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
-  const [currentStops, setCurrentStops] = useState(['', '']);
-  const [currentStopsGeoJSON, setCurrentStopsGeoJSONState] = useState({});
   const [showLoadingBar, setShowLoadingBar] = useState(false);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
-  const clickLocation = useSelector(state => state.MapReducer.clickLocation);
 
   const SearchCancelToken = axios.CancelToken;
   let searchCancel = null;
@@ -150,8 +154,8 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     updatedCurrentStopsGeoJSON,
     updatedFocusedFieldIndex,
   ) => {
-    setCurrentStops(updatedCurrentStops);
-    setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
+    dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     setFocusedFieldIndex(updatedFocusedFieldIndex);
   };
 
@@ -248,7 +252,6 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
   const handleMotChange = (event, newMot) => {
     setCurrentMotState(newMot);
     setCurrentSearchResults([]);
-    setCurrentStopsGeoJSONState({});
 
     dispatch(setCurrentStopsGeoJSON({}));
     dispatch(setCurrentMot(newMot));
@@ -272,7 +275,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
   const addNewSearchFieldHandler = indexToInsertAt => {
     const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToInsertAt, 0, '');
-    setCurrentStops(updatedCurrentStops);
+    dispatch(setCurrentStops(updatedCurrentStops));
   };
 
   /**
@@ -290,9 +293,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
         updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
       }
     });
-
-    setCurrentStops(updatedCurrentStops);
-    setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
+    dispatch(setCurrentStops(updatedCurrentStops));
 
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
@@ -309,13 +310,13 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
       const updatedCurrentStops = currentStops;
       updatedCurrentStops[fieldIndex] = '';
       setCurrentSearchResults([]);
-      setCurrentStops(updatedCurrentStops);
+      dispatch(setCurrentStops(updatedCurrentStops));
       setShowLoadingBar(false);
       return;
     }
     const updatedCurrentStops = currentStops;
     updatedCurrentStops[fieldIndex] = event.target.value;
-    setCurrentStops(updatedCurrentStops);
+    dispatch(setCurrentStops(updatedCurrentStops));
     setShowLoadingBar(true);
 
     if (searchCancel) {
@@ -376,9 +377,8 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
       updateCurrentStops[focusedFieldIndex] = firstSearchResult.properties.name;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
-      setCurrentStops(updatedCurrentStops);
+      dispatch(setCurrentStops(updatedCurrentStops));
       setCurrentSearchResults([]);
-      setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
       dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     }
     if (event.key === 'Backspace') {
@@ -391,7 +391,6 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
           updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
         }
       });
-      setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
       setCurrentSearchResults(updateCurrentSearchResults);
       dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     }
@@ -407,19 +406,16 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     updatedCurrentStops[focusedFieldIndex] = searchResult.properties.name;
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
-    setCurrentStops(updatedCurrentStops);
+    dispatch(setCurrentStops(updatedCurrentStops));
     setCurrentSearchResults([]);
 
     Object.keys(updatedCurrentStopsGeoJSON).forEach(key => {
       if (key === focusedFieldIndex.toString()) {
-        updatedCurrentStopsGeoJSON[key].geometry.coordinates = transform(
+        updatedCurrentStopsGeoJSON[key].geometry.coordinates = to3857(
           updatedCurrentStopsGeoJSON[key].geometry.coordinates,
-          'EPSG:4326',
-          'EPSG:3857',
         );
       }
     });
-    setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
@@ -447,7 +443,6 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
             className={classes.tabs}
             onChange={(e, mot) => {
               handleMotChange(e, mot);
-              // this.changeCurrentOtherMot(undefined);
             }}
             indicatorColor="primary"
             textColor="primary"

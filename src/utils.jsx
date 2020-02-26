@@ -2,6 +2,7 @@ import DirectionsBusIcon from '@material-ui/icons/DirectionsBus';
 import DirectionsRailwayIcon from '@material-ui/icons/DirectionsRailway';
 import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
 import React from 'react';
+import { transform } from 'ol/proj';
 
 /**
  * Map each mot to an icon
@@ -9,7 +10,7 @@ import React from 'react';
  * @returns {Icon} MotIcon
  * @category Utils
  */
-const findMotIcon = name => {
+export const findMotIcon = name => {
   let result = null;
   const capitalName = name.charAt(0).toUpperCase() + name.slice(1);
   switch (name) {
@@ -26,4 +27,10 @@ const findMotIcon = name => {
   return <span title={capitalName}>{result}</span>;
 };
 
-export default findMotIcon;
+export const to4326 = coord => {
+  return transform(coord, 'EPSG:3857', 'EPSG:4326');
+};
+
+export const to3857 = coord => {
+  return transform(coord, 'EPSG:4326', 'EPSG:3857');
+};

@@ -4,8 +4,10 @@ import { Map, View } from 'ol';
 import { toLonLat } from 'ol/proj';
 import { Layer, Vector as VectorLayer } from 'ol/layer';
 import mapboxgl from 'mapbox-gl';
+import _ from 'lodash/core';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
+import { defaults as defaultInteractions, Translate } from 'ol/interaction';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
@@ -13,6 +15,7 @@ import {
   lineStyleFunction,
   pointStyleFunction,
 } from '../../config/styleConfig';
+import { to4326 } from '../../utils';
 import './MapComponent.css';
 import * as actions from '../../store/actions';
 
@@ -72,8 +75,60 @@ class MapComponent extends Component {
       source: this.routeVectorSource,
     });
 
+    const translate = new Translate({
+      layers: [this.markerVectorLayer],
+    });
+
+    const isItemInArray = (array, item) => {
+      for (let i = 0; i < array.length; i += 1) {
+        if (array[i][0] === item[0] && array[i][1] === item[1]) {
+          return i;
+        }
+      }
+      return -1;
+    };
+
+    translate.on('translateend', evt => {
+      const {
+        currentStops,
+        currentStopsGeoJSON,
+        onSetCurrentStops,
+        onSetCurrentStopsGeoJSON,
+      } = this.props;
+      const newCurrentStops = _.clone(currentStops);
+      const newCurentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+
+      const { name, id } = evt.features.getArray()[0].getProperties();
+      let featureIndex;
+      if (name) {
+        featureIndex = currentStops.indexOf(name);
+      } else {
+        featureIndex = isItemInArray(currentStops, id.slice().reverse());
+      }
+      newCurrentStops[featureIndex] = evt.coordinate;
+      newCurentStopsGeoJSON[featureIndex] = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {
+              id: evt.coordinate.slice().reverse(),
+              type: 'coordinates',
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: evt.coordinate,
+            },
+          },
+        ],
+      };
+      onSetCurrentStops(newCurrentStops);
+      onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
+    });
+
     this.map = new Map({
       target: 'map',
+      interactions: defaultInteractions().extend([translate]),
       view: new View({
         projection: 'EPSG:3857',
         center,
@@ -180,6 +235,7 @@ class MapComponent extends Component {
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
+
     if (currentMotChanged || currentStopsGeoJSONChanged) {
       this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
@@ -226,10 +282,12 @@ class MapComponent extends Component {
     Object.keys(currentStopsGeoJSON).forEach(key => {
       if (currentStopsGeoJSON[key].features) {
         // If the current item is a point selected on the map, not a station.
-        hops.push(`@${currentStopsGeoJSON[key].features[0].properties.id}`);
+        hops.push(
+          `@${to4326(currentStopsGeoJSON[key].features[0].properties.id)}`,
+        );
       } else {
         // The item selected is a station from the stations API.
-        hops.push(`!${currentStopsGeoJSON[key].properties.id}`);
+        hops.push(`!${to4326(currentStopsGeoJSON[key].properties.id)}`);
       }
     });
     axios
@@ -290,6 +348,7 @@ class MapComponent extends Component {
 const mapStateToProps = state => {
   return {
     currentMot: state.MapReducer.currentMot,
+    currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
     isFieldFocused: state.MapReducer.isFieldFocused,
   };
@@ -297,6 +356,10 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
+    onSetCurrentStops: currentStops =>
+      dispatch(actions.setCurrentStops(currentStops)),
+    onSetCurrentStopsGeoJSON: currentStopsGeoJSON =>
+      dispatch(actions.setCurrentStopsGeoJSON(currentStopsGeoJSON)),
     onSetClickLocation: clickLocation =>
       dispatch(actions.setClickLocation(clickLocation)),
     onShowNotification: (notificationMessage, notificationType) =>
@@ -307,6 +370,9 @@ const mapDispatchToProps = dispatch => {
 MapComponent.propTypes = {
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
+  onSetCurrentStops: PropTypes.func.isRequired,
+  onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
+  currentStops: PropTypes.array.isRequired,
   currentStopsGeoJSON: PropTypes.object.isRequired,
   isFieldFocused: PropTypes.bool.isRequired,
   APIKey: PropTypes.string.isRequired,

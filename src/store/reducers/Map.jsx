@@ -2,11 +2,22 @@ import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
   currentMot: 'bus',
+  currentStops: ['', ''],
   currentStopsGeoJSON: {},
   clickLocation: null,
   notificationMessage: '',
   notificationType: 'info',
   isFieldFocused: false,
+};
+
+const setCurrentStops = (state, action) => {
+  const updatedState = {
+    currentStops: action.currentStops,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
 };
 
 const setCurrentStopsGeoJSON = (state, action) => {
@@ -62,6 +73,8 @@ const setIsFieldFocused = (state, action) => {
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
+    case actionTypes.SET_CURRENT_STOPS:
+      return setCurrentStops(state, action);
     case actionTypes.SET_CURRENT_STOPS_GEOJSON:
       return setCurrentStopsGeoJSON(state, action);
     case actionTypes.SET_CURRENT_MOT:

@@ -1,5 +1,12 @@
 import * as actionTypes from './actionTypes';
 
+export const setCurrentStops = currentStops => {
+  return {
+    type: actionTypes.SET_CURRENT_STOPS,
+    currentStops,
+  };
+};
+
 export const setCurrentStopsGeoJSON = currentStopsGeoJSON => {
   return {
     type: actionTypes.SET_CURRENT_STOPS_GEOJSON,

@@ -6,6 +6,7 @@ describe('map reducer', () => {
   it('should return the initial state', () => {
     expect(mapReducer(undefined, {})).toEqual({
       currentMot: 'bus',
+      currentStops: ['', ''],
       currentStopsGeoJSON: {},
       clickLocation: null,
       notificationMessage: '',
