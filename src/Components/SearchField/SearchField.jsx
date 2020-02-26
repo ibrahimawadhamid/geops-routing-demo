@@ -11,6 +11,7 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
+import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
 
 /**
@@ -33,6 +34,9 @@ function SearchField(props) {
   let searchFieldSize = 10;
   let searchFieldLabel = '';
   let fieldRightIcon = null;
+
+  const formatSingleStop = val => (Array.isArray(val) ? to4326(val) : val);
+
   if (index === 0) {
     // Start station field
     fieldLeftIcon = <RadioButtonCheckedIcon fontSize="small" color="primary" />;
@@ -106,7 +110,7 @@ function SearchField(props) {
           label={searchFieldLabel}
           color="primary"
           onChange={e => searchStopsHandler(e, index)}
-          value={singleStop}
+          value={formatSingleStop(singleStop)}
           onKeyDown={processHighlightedResultSelectHandler}
           onFocus={() => {
             dispatch(setIsFieldFocused(true));
