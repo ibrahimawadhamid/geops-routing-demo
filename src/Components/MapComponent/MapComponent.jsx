@@ -121,13 +121,20 @@ class MapComponent extends Component {
     this.map.addLayer(mbLayer);
 
     // Define stop vectorLayer.
-    this.vectorSource = new VectorSource({});
-    this.vectorLayer = new VectorLayer({
+    this.markerVectorSource = new VectorSource({});
+    this.markerVectorLayer = new VectorLayer({
       zIndex: 1,
-      source: this.vectorSource,
+      source: this.markerVectorSource,
     });
-    this.vectorLayer.set('type', 'markers');
-    this.map.addLayer(this.vectorLayer);
+    this.map.addLayer(this.markerVectorLayer);
+
+    // Define route vectorLayer.
+    this.routeVectorSource = new VectorSource({});
+    this.routeVectorLayer = new VectorLayer({
+      zIndex: 0,
+      source: this.routeVectorSource,
+    });
+    this.map.addLayer(this.routeVectorLayer);
 
     this.map.on('singleclick', evt => {
       const { onSetClickLocation } = this.props;
@@ -167,16 +174,16 @@ class MapComponent extends Component {
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
     if (currentMotChanged || currentStopsGeoJSONChanged) {
-      this.vectorSource.clear();
+      this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
-        this.vectorSource.addFeatures(
+        this.markerVectorSource.addFeatures(
           new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
         );
-        this.vectorSource
+        this.markerVectorSource
           .getFeatures()
           .forEach(f => f.setStyle(pointStyleFunction(currentMot)));
 
-        const coordinate = this.vectorSource
+        const coordinate = this.markerVectorSource
           .getFeatures()[0]
           .getGeometry()
           .getCoordinates();
@@ -224,6 +231,7 @@ class MapComponent extends Component {
           via: hops.join('|'),
           mot: currentMot,
           key: APIKey,
+          srs: '3857',
         },
         cancelToken: new this.FindRouteCancelToken(cancel => {
           this.findRouteCancel = cancel;
@@ -232,17 +240,15 @@ class MapComponent extends Component {
       .then(
         response => {
           // A route was found, prepare to draw it.
-          const vectorSource = new VectorSource({
-            features: new GeoJSON().readFeatures(response.data),
-          });
-          const vectorLayer = new VectorLayer({
-            zIndex: 0,
-            source: vectorSource,
-            style: lineStyleFunction(currentMot),
-          });
-          vectorLayer.set('type', 'route');
-          this.map.addLayer(vectorLayer);
-          this.map.getView().fit(vectorSource.getExtent(), {
+          this.routeVectorSource.clear();
+          this.routeVectorSource.addFeatures(
+            new GeoJSON().readFeatures(response.data),
+          );
+          this.routeVectorSource
+            .getFeatures()
+            .forEach(f => f.setStyle(lineStyleFunction(currentMot)));
+
+          this.map.getView().fit(this.routeVectorSource.getExtent(), {
             size: this.map.getSize(),
             duration: 500,
             padding: [50, 50, 50, 50],
