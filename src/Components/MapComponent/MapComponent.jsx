@@ -137,8 +137,19 @@ class MapComponent extends Component {
     this.map.addLayer(this.routeVectorLayer);
 
     this.map.on('singleclick', evt => {
-      const { onSetClickLocation } = this.props;
-      onSetClickLocation(evt.coordinate);
+      const {
+        onSetClickLocation,
+        isFieldFocused,
+        currentStopsGeoJSON,
+      } = this.props;
+      // if one field empty or if a field is focused
+      if (
+        !currentStopsGeoJSON['0'] ||
+        !currentStopsGeoJSON['1'] ||
+        isFieldFocused
+      ) {
+        onSetClickLocation(evt.coordinate);
+      }
     });
     this.map.on('pointermove', evt => {
       if (this.hoveredFeature) {
@@ -296,6 +307,7 @@ const mapStateToProps = state => {
   return {
     currentMot: state.MapReducer.currentMot,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
+    isFieldFocused: state.MapReducer.isFieldFocused,
   };
 };
 
@@ -312,6 +324,7 @@ MapComponent.propTypes = {
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
   currentStopsGeoJSON: PropTypes.object.isRequired,
+  isFieldFocused: PropTypes.bool.isRequired,
   APIKey: PropTypes.string.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,

@@ -3,4 +3,5 @@ export {
   setCurrentMot,
   setClickLocation,
   showNotification,
+  setIsFieldFocused,
 } from './Map';

@@ -10,6 +10,7 @@ describe('map reducer', () => {
       clickLocation: null,
       notificationMessage: '',
       notificationType: 'info',
+      isFieldFocused: false,
     });
   });
 

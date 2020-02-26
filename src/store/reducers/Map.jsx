@@ -6,6 +6,7 @@ const initialState = {
   clickLocation: null,
   notificationMessage: '',
   notificationType: 'info',
+  isFieldFocused: false,
 };
 
 const setCurrentStopsGeoJSON = (state, action) => {
@@ -49,6 +50,16 @@ const showNotification = (state, action) => {
   };
 };
 
+const setIsFieldFocused = (state, action) => {
+  const updatedState = {
+    isFieldFocused: action.isFieldFocused,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CURRENT_STOPS_GEOJSON:
@@ -59,6 +70,8 @@ const reducer = (state = initialState, action) => {
       return setClickLocation(state, action);
     case actionTypes.SHOW_NOTIFICATION:
       return showNotification(state, action);
+    case actionTypes.SET_IS_FIELD_FOCUSED:
+      return setIsFieldFocused(state, action);
     default:
       return state;
   }

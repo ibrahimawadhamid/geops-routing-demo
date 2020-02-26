@@ -1,4 +1,5 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
@@ -10,12 +11,14 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
+import { setIsFieldFocused } from '../../store/actions/Map';
 
 /**
  * The component that displays the search field(s)
  * @category RoutingMenu
  */
 function SearchField(props) {
+  const dispatch = useDispatch();
   const {
     index,
     addNewSearchFieldHandler,
@@ -105,7 +108,15 @@ function SearchField(props) {
           onChange={e => searchStopsHandler(e, index)}
           value={singleStop}
           onKeyDown={processHighlightedResultSelectHandler}
-          onFocus={() => onFieldFocusHandler(index)}
+          onFocus={() => {
+            dispatch(setIsFieldFocused(true));
+            onFieldFocusHandler(index);
+          }}
+          onBlur={() =>
+            setTimeout(() => {
+              dispatch(setIsFieldFocused(false));
+            }, 500)
+          }
           onClick={event => {
             event.target.select();
           }}

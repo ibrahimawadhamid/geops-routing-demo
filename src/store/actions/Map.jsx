@@ -28,3 +28,10 @@ export const showNotification = (notificationMessage, notificationType) => {
     notificationType,
   };
 };
+
+export const setIsFieldFocused = isFieldFocused => {
+  return {
+    type: actionTypes.SET_IS_FIELD_FOCUSED,
+    isFieldFocused,
+  };
+};
