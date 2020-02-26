@@ -11,6 +11,7 @@ import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import { transform } from 'ol/proj';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
@@ -19,6 +20,7 @@ import {
   setCurrentStopsGeoJSON,
   setCurrentMot,
   showNotification,
+  setIsFieldFocused,
 } from '../../store/actions/Map';
 import './RoutingMenu.css';
 import constants from '../../constants';
@@ -259,6 +261,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    */
   const onFieldFocusHandler = fieldIndex => {
     setFocusedFieldIndex(fieldIndex);
+    dispatch(setIsFieldFocused(true));
   };
 
   /**
@@ -406,6 +409,13 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
     setCurrentStops(updatedCurrentStops);
     setCurrentSearchResults([]);
+    Object.keys(updatedCurrentStopsGeoJSON).forEach(key => {
+      updatedCurrentStopsGeoJSON[key].geometry.coordinates = transform(
+        updatedCurrentStopsGeoJSON[key].geometry.coordinates,
+        'EPSG:4326',
+        'EPSG:3857',
+      );
+    });
     setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
