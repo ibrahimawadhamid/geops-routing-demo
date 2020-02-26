@@ -409,12 +409,15 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
     setCurrentStops(updatedCurrentStops);
     setCurrentSearchResults([]);
+
     Object.keys(updatedCurrentStopsGeoJSON).forEach(key => {
-      updatedCurrentStopsGeoJSON[key].geometry.coordinates = transform(
-        updatedCurrentStopsGeoJSON[key].geometry.coordinates,
-        'EPSG:4326',
-        'EPSG:3857',
-      );
+      if (key === focusedFieldIndex.toString()) {
+        updatedCurrentStopsGeoJSON[key].geometry.coordinates = transform(
+          updatedCurrentStopsGeoJSON[key].geometry.coordinates,
+          'EPSG:4326',
+          'EPSG:3857',
+        );
+      }
     });
     setCurrentStopsGeoJSONState(updatedCurrentStopsGeoJSON);
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));

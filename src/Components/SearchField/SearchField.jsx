@@ -118,7 +118,9 @@ function SearchField(props) {
             }, 500)
           }
           onClick={event => {
-            event.target.select();
+            if (event.target.select) {
+              event.target.select();
+            }
           }}
         />
       </Grid>

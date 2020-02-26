@@ -56,8 +56,21 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidMount() {
-    const { APIKey } = this.props;
+    const { APIKey, onSetClickLocation } = this.props;
     const center = [949042.143189, 5899715.591163];
+
+    // Define stop vectorLayer.
+    this.markerVectorSource = new VectorSource({});
+    this.markerVectorLayer = new VectorLayer({
+      zIndex: 1,
+      source: this.markerVectorSource,
+    });
+    // Define route vectorLayer.
+    this.routeVectorSource = new VectorSource({});
+    this.routeVectorLayer = new VectorLayer({
+      zIndex: 0,
+      source: this.routeVectorSource,
+    });
 
     this.map = new Map({
       target: 'map',
@@ -118,30 +131,13 @@ class MapComponent extends Component {
         return canvas;
       },
     });
-    this.map.addLayer(mbLayer);
 
-    // Define stop vectorLayer.
-    this.markerVectorSource = new VectorSource({});
-    this.markerVectorLayer = new VectorLayer({
-      zIndex: 1,
-      source: this.markerVectorSource,
-    });
-    this.map.addLayer(this.markerVectorLayer);
-
-    // Define route vectorLayer.
-    this.routeVectorSource = new VectorSource({});
-    this.routeVectorLayer = new VectorLayer({
-      zIndex: 0,
-      source: this.routeVectorSource,
-    });
-    this.map.addLayer(this.routeVectorLayer);
+    [mbLayer, this.markerVectorLayer, this.routeVectorLayer].forEach(l =>
+      this.map.addLayer(l),
+    );
 
     this.map.on('singleclick', evt => {
-      const {
-        onSetClickLocation,
-        isFieldFocused,
-        currentStopsGeoJSON,
-      } = this.props;
+      const { isFieldFocused, currentStopsGeoJSON } = this.props;
       // if one field empty or if a field is focused
       if (
         !currentStopsGeoJSON['0'] ||
@@ -204,7 +200,7 @@ class MapComponent extends Component {
         });
       });
       // Remove the old route if exists
-      this.removeCurrentRoute();
+      this.routeVectorSource.clear();
       // Draw a new route if more than 1 stop is defined
       if (Object.keys(currentStopsGeoJSON).length > 1) {
         this.drawNewRoute();
@@ -270,18 +266,6 @@ class MapComponent extends Component {
           if (error) onShowNotification("Couldn't find route", 'error');
         },
       );
-  };
-
-  /**
-   * Remove the current route drawn on the map
-   * @category Map
-   */
-  removeCurrentRoute = () => {
-    this.map.getLayers().forEach(layer => {
-      if (layer && layer.get('type') === 'route') {
-        this.map.removeLayer(layer);
-      }
-    });
   };
 
   /**
