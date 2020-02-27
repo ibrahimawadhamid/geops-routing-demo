@@ -46,7 +46,7 @@
             <div class="column is-3" id="sidebarNav">
                 <div class="sidebar">
                     <nav>
-                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#App">App</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#VALID_MOTS">VALID_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Classes</h3><ul><li><a href="RoutingMenu.html">RoutingMenu</a></li></ul><h3>Global</h3><ul><li><a href="global.html#SearchField">SearchField</a></li><li><a href="global.html#SearchResults">SearchResults</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
+                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#App">App</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#DEFAULT_MOTS">DEFAULT_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Global</h3><ul><li><a href="global.html#RoutingMenu">RoutingMenu</a></li><li><a href="global.html#SearchField">SearchField</a></li><li><a href="global.html#SearchResults">SearchResults</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
                     </nav>
                 </div>
             </div>
@@ -65,6 +65,7 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>import React from 'react';
+import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
@@ -76,12 +77,16 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
+import { propTypeCurrentStops } from '../../store/prop-types';
+import { to4326 } from '../../utils';
+import { setIsFieldFocused } from '../../store/actions/Map';
 
 /**
  * The component that displays the search field(s)
  * @category RoutingMenu
  */
 function SearchField(props) {
+  const dispatch = useDispatch();
   const {
     index,
     addNewSearchFieldHandler,
@@ -96,6 +101,9 @@ function SearchField(props) {
   let searchFieldSize = 10;
   let searchFieldLabel = '';
   let fieldRightIcon = null;
+
+  const formatSingleStop = val => (Array.isArray(val) ? to4326(val) : val);
+
   if (index === 0) {
     // Start station field
     fieldLeftIcon = &lt;RadioButtonCheckedIcon fontSize="small" color="primary" />;
@@ -151,7 +159,15 @@ function SearchField(props) {
     );
   }
   return (
-    &lt;Grid container spacing={1} alignItems="flex-end" style={{ width: '100%' }}>
+    &lt;Grid
+      container
+      spacing={1}
+      alignItems="flex-end"
+      style={{
+        width: '100%',
+        padding: '0 20px',
+      }}
+    >
       &lt;Grid item xs={1}>
         {fieldLeftIcon}
       &lt;/Grid>
@@ -161,11 +177,21 @@ function SearchField(props) {
           label={searchFieldLabel}
           color="primary"
           onChange={e => searchStopsHandler(e, index)}
-          value={singleStop}
+          value={formatSingleStop(singleStop)}
           onKeyDown={processHighlightedResultSelectHandler}
-          onFocus={() => onFieldFocusHandler(index)}
+          onFocus={() => {
+            dispatch(setIsFieldFocused(true));
+            onFieldFocusHandler(index);
+          }}
+          onBlur={() =>
+            setTimeout(() => {
+              dispatch(setIsFieldFocused(false));
+            }, 500)
+          }
           onClick={event => {
-            event.target.select();
+            if (event.target.select) {
+              event.target.select();
+            }
           }}
         />
       &lt;/Grid>
@@ -177,10 +203,9 @@ function SearchField(props) {
 SearchField.propTypes = {
   index: PropTypes.number.isRequired,
   addNewSearchFieldHandler: PropTypes.func.isRequired,
-  currentStops: PropTypes.array,
+  currentStops: propTypeCurrentStops,
   removeSearchFieldHandler: PropTypes.func.isRequired,
   searchStopsHandler: PropTypes.func.isRequired,
-  // singleStop: PropTypes.string,
   singleStop: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.arrayOf(PropTypes.number),
@@ -210,7 +235,7 @@ export default SearchField;
 
 <footer class="footer">
     <div class="content has-text-centered">
-        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Tue Feb 25 2020 09:09:30 GMT+0100 (Central European Standard Time)</p>
+        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Thu Feb 27 2020 11:58:39 GMT+0100 (Central European Standard Time)</p>
         <p class="sidebar-created-by">
             <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
             <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
