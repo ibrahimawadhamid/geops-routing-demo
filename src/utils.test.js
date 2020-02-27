@@ -3,7 +3,7 @@ import React from 'react';
 import DirectionsBusIcon from '@material-ui/icons/DirectionsBus';
 import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
 import DirectionsRailwayIcon from '@material-ui/icons/DirectionsRailway';
-import findMotIcon from './utils';
+import { findMotIcon } from './utils';
 
 describe('utils', () => {
   it('should return the correct icon', () => {
@@ -19,9 +19,9 @@ describe('utils', () => {
         <DirectionsBusIcon />
       </span>,
     );
-    icon = findMotIcon('pedestrian');
+    icon = findMotIcon('foot');
     expect(icon).toEqual(
-      <span title="Pedestrian">
+      <span title="Foot">
         <DirectionsWalkIcon />
       </span>,
     );

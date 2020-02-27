@@ -3,7 +3,7 @@
  * @type {string[]}
  * @category Constants
  */
-const DEFAULT_MOTS = ['rail', 'bus', 'coach', 'pedestrian'];
+const DEFAULT_MOTS = ['rail', 'bus', 'coach', 'foot'];
 
 const OTHER_MOTS = [
   'tram',
@@ -14,8 +14,6 @@ const OTHER_MOTS = [
   'car',
   'truck',
 ];
-
-// car, truck, pedestrian
 
 const VALID_MOTS = [...DEFAULT_MOTS, ...OTHER_MOTS];
 

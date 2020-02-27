@@ -103,7 +103,7 @@ const pointStyleFunction = mot => {
   if (mot === 'bus') {
     return busPointStyle;
   }
-  if (mot === 'pedestrian') {
+  if (mot === 'foot') {
     return undefined;
   }
   if (mot === 'car' || mot === 'truck') {
@@ -119,7 +119,7 @@ const lineStyleFunction = mot => {
   if (mot === 'bus') {
     return busLineStyle;
   }
-  if (mot === 'pedestrian') {
+  if (mot === 'foot') {
     return pedestrianLineStyle;
   }
   if (mot === 'car' || mot === 'truck') {
