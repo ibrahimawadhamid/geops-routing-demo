@@ -1,6 +1,8 @@
 export {
+  setCurrentStops,
   setCurrentStopsGeoJSON,
   setCurrentMot,
   setClickLocation,
-  showNotification
-} from "./Map";
+  showNotification,
+  setIsFieldFocused,
+} from './Map';
