@@ -149,6 +149,7 @@
     "openlayers",
     "routing"
   ],
+  "license": "MIT",
   "lint-staged": {
     "src/lang/*.json": [
       "yarn sort",
