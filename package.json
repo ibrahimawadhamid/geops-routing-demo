@@ -132,6 +132,7 @@
       }
     }
   },
+  "homepage": "http://geops.github.io/geops-routing-demo",
   "husky": {
     "hooks": {
       "post-checkout": "yarn install --frozen-lockfile",
@@ -140,6 +141,13 @@
       "pre-commit": "CI=true lint-staged   "
     }
   },
+  "keywords": [
+    "demo",
+    "geops",
+    "gis",
+    "openlayers",
+    "routing"
+  ],
   "lint-staged": {
     "src/lang/*.json": [
       "yarn sort",
@@ -163,6 +171,10 @@
   "prettier": {
     "trailingComma": "all",
     "singleQuote": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geops/geops-routing-demo.git"
   },
   "stylelint": {
     "plugins": [
