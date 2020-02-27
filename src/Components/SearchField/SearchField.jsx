@@ -11,6 +11,7 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
+import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
 
@@ -136,10 +137,9 @@ function SearchField(props) {
 SearchField.propTypes = {
   index: PropTypes.number.isRequired,
   addNewSearchFieldHandler: PropTypes.func.isRequired,
-  currentStops: PropTypes.array,
+  currentStops: propTypeCurrentStops,
   removeSearchFieldHandler: PropTypes.func.isRequired,
   searchStopsHandler: PropTypes.func.isRequired,
-  // singleStop: PropTypes.string,
   singleStop: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.arrayOf(PropTypes.number),

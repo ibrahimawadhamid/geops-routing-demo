@@ -15,6 +15,10 @@ import {
   lineStyleFunction,
   pointStyleFunction,
 } from '../../config/styleConfig';
+import {
+  propTypeCurrentStops,
+  propTypeCurrentStopsGeoJSON,
+} from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import './MapComponent.css';
 import * as actions from '../../store/actions';
@@ -287,7 +291,7 @@ class MapComponent extends Component {
         );
       } else {
         // The item selected is a station from the stations API.
-        hops.push(`!${to4326(currentStopsGeoJSON[key].properties.id)}`);
+        hops.push(`!${currentStopsGeoJSON[key].properties.id}`);
       }
     });
     axios
@@ -372,8 +376,8 @@ MapComponent.propTypes = {
   onShowNotification: PropTypes.func.isRequired,
   onSetCurrentStops: PropTypes.func.isRequired,
   onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
-  currentStops: PropTypes.array.isRequired,
-  currentStopsGeoJSON: PropTypes.object.isRequired,
+  currentStops: propTypeCurrentStops.isRequired,
+  currentStopsGeoJSON: propTypeCurrentStopsGeoJSON.isRequired,
   isFieldFocused: PropTypes.bool.isRequired,
   APIKey: PropTypes.string.isRequired,
   routingUrl: PropTypes.string.isRequired,
