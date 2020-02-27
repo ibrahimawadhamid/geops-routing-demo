@@ -27,8 +27,10 @@ export const findMotIcon = name => {
   return <span title={capitalName}>{result}</span>;
 };
 
-export const to4326 = coord => {
-  return transform(coord, 'EPSG:3857', 'EPSG:4326');
+export const to4326 = (coord, decimal = 8) => {
+  return transform(coord, 'EPSG:3857', 'EPSG:4326').map(c =>
+    c.toFixed(decimal),
+  );
 };
 
 export const to3857 = coord => {
