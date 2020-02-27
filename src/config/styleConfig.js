@@ -35,12 +35,6 @@ const busLineStyle = [
 const pedestrianLineStyle = [
   new Style({
     stroke: new Stroke({
-      color: 'black',
-      width: 5,
-    }),
-  }),
-  new Style({
-    stroke: new Stroke({
       color: 'rgb(173, 216, 230)',
       width: 3,
     }),
@@ -80,6 +74,13 @@ const railPointStyle = new Style({
   }),
 });
 
+const pedestrianPointStyle = new Style({
+  image: new Circle({
+    radius: 7,
+    fill: new Fill({ color: 'rgb(173, 216, 230)' }),
+  }),
+});
+
 const busPointStyle = new Style({
   image: new Circle({
     radius: 7,
@@ -104,7 +105,7 @@ const pointStyleFunction = mot => {
     return busPointStyle;
   }
   if (mot === 'foot') {
-    return undefined;
+    return pedestrianPointStyle;
   }
   if (mot === 'car' || mot === 'truck') {
     return undefined;
