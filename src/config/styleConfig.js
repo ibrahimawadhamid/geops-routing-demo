@@ -81,6 +81,13 @@ const pedestrianPointStyle = new Style({
   }),
 });
 
+const carPointStyle = new Style({
+  image: new Circle({
+    radius: 7,
+    fill: new Fill({ color: 'black' }),
+  }),
+});
+
 const busPointStyle = new Style({
   image: new Circle({
     radius: 7,
@@ -108,7 +115,7 @@ const pointStyleFunction = mot => {
     return pedestrianPointStyle;
   }
   if (mot === 'car' || mot === 'truck') {
-    return undefined;
+    return carPointStyle;
   }
   return othersPointStyle;
 };

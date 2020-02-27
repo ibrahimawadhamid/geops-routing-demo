@@ -19,6 +19,7 @@ import {
   propTypeCurrentStops,
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
+import { WGS84_MOTS } from '../../constants';
 import { to4326 } from '../../utils';
 import './MapComponent.css';
 import * as actions from '../../store/actions';
@@ -312,8 +313,14 @@ class MapComponent extends Component {
         response => {
           // A route was found, prepare to draw it.
           this.routeVectorSource.clear();
+          const format = WGS84_MOTS.includes(currentMot)
+            ? new GeoJSON({
+                dataProjection: 'EPSG:4326',
+                featureProjection: 'EPSG:3857',
+              })
+            : new GeoJSON();
           this.routeVectorSource.addFeatures(
-            new GeoJSON().readFeatures(response.data),
+            format.readFeatures(response.data),
           );
           this.routeVectorSource
             .getFeatures()

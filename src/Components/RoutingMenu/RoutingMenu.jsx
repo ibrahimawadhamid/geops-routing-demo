@@ -24,7 +24,7 @@ import {
   setIsFieldFocused,
 } from '../../store/actions/Map';
 import './RoutingMenu.css';
-import constants from '../../constants';
+import { VALID_MOTS, DEFAULT_MOTS, OTHER_MOTS } from '../../constants';
 import { to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
@@ -84,7 +84,6 @@ const useStyles = makeStyles(() => ({
 function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const { DEFAULT_MOTS, OTHER_MOTS } = constants;
 
   /**
    * Validate the mots provided from the props, then retrieve the icons for the valid ones.
@@ -93,7 +92,6 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const validateMots = (motsArray, validationMots) => {
-    const { VALID_MOTS } = constants;
     const currentMotsArray = [];
 
     motsArray

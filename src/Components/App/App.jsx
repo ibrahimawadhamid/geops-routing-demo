@@ -5,7 +5,7 @@ import store from '../../store/store';
 import MapComponent from '../MapComponent';
 import RoutingMenu from '../RoutingMenu';
 import NotificationHandler from '../NotificationHandler';
-import constants from '../../constants';
+import { VALID_MOTS } from '../../constants';
 
 const propTypes = {
   routingUrl: PropTypes.string,
@@ -14,7 +14,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-  mots: constants.VALID_MOTS,
+  mots: VALID_MOTS,
   routingUrl: 'https://api.geops.io/routing/v1/',
   stationSearchUrl: 'https://api.geops.io/stops/v1/',
 };
