@@ -249,10 +249,6 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    */
   const handleMotChange = (event, newMot) => {
     setCurrentMotState(newMot);
-    setCurrentSearchResults([]);
-    setFocusedFieldIndex(0);
-    dispatch(setCurrentStops(['', '']));
-    dispatch(setCurrentStopsGeoJSON({}));
     dispatch(setCurrentMot(newMot));
   };
 
