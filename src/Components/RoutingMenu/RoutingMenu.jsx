@@ -11,8 +11,6 @@ import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
-
-import axios from 'axios';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
 import _ from 'lodash/core';
@@ -77,6 +75,8 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+let abortController = new AbortController();
+
 /**
  * The routing menu that controls station search
  * @category RoutingMenu
@@ -134,8 +134,6 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
   const [showLoadingBar, setShowLoadingBar] = useState(false);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
-  const SearchCancelToken = axios.CancelToken;
-  let searchCancel = null;
   useEffect(() => {
     dispatch(setCurrentMot(currentMots[0].name));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -197,7 +195,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
       // A click occurred on the map
       if (currentStops[focusedFieldIndex] === '') {
         // Performs when there's an empty field.
-        const updatedCurrentStops = currentStops;
+        const updatedCurrentStops = _.clone(currentStops);
         updatedCurrentStops[focusedFieldIndex] = clickLocation;
         updateFieldOnMapClick(
           currentStops,
@@ -206,7 +204,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
             : focusedFieldIndex,
         );
       } else {
-        const updatedCurrentStops = currentStops;
+        const updatedCurrentStops = _.clone(currentStops);
         const updatedFocusedFieldIndex = focusedFieldIndex;
         updatedCurrentStops[focusedFieldIndex] = clickLocation;
         updateFieldOnMapClick(updatedCurrentStops, focusedFieldIndex);
@@ -268,7 +266,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const addNewSearchFieldHandler = indexToInsertAt => {
-    const updatedCurrentStops = currentStops;
+    const updatedCurrentStops = _.clone(currentStops);
     updatedCurrentStops.splice(indexToInsertAt, 0, '');
     dispatch(setCurrentStops(updatedCurrentStops));
   };
@@ -280,7 +278,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const removeSearchFieldHandler = indexToRemoveFrom => {
-    const updatedCurrentStops = currentStops;
+    const updatedCurrentStops = _.clone(currentStops);
     updatedCurrentStops.splice(indexToRemoveFrom, 1);
     const updatedCurrentStopsGeoJSON = {};
     Object.keys(currentStopsGeoJSON).forEach(key => {
@@ -302,60 +300,53 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
   const searchStopsHandler = (event, fieldIndex) => {
     // only search if text is available
     if (!event.target.value) {
-      const updatedCurrentStops = currentStops;
+      const updatedCurrentStops = _.clone(currentStops);
       updatedCurrentStops[fieldIndex] = '';
       setCurrentSearchResults([]);
       dispatch(setCurrentStops(updatedCurrentStops));
       setShowLoadingBar(false);
       return;
     }
-    const updatedCurrentStops = currentStops;
+    const updatedCurrentStops = _.clone(currentStops);
     updatedCurrentStops[fieldIndex] = event.target.value;
     dispatch(setCurrentStops(updatedCurrentStops));
     setShowLoadingBar(true);
 
-    if (searchCancel) {
-      // If a previous search request has been issues and not completed yet, cancel it.
-      searchCancel();
-    }
-    axios
-      .get(stationSearchUrl, {
-        params: {
-          q: event.target.value,
-          key: APIKey,
-          mots: searchMotOnly ? currentMot : '',
-        },
-        cancelToken: new SearchCancelToken(cancel => {
-          searchCancel = cancel;
-        }),
+    abortController.abort();
+    abortController = new AbortController();
+    const { signal } = abortController;
+
+    const reqUrl = `${stationSearchUrl}?q=${
+      event.target.value
+    }&key=${APIKey}&mots=${searchMotOnly ? currentMot : ''}`;
+
+    fetch(reqUrl, { signal })
+      .then(response => response.json())
+      .then(response => {
+        const searchResults = [];
+        response.features.forEach(singleResult => {
+          // Search results from the API
+          if (singleResult.properties.mot[currentMot])
+            searchResults.push(singleResult);
+        });
+        if (response.features.length === 0 || searchResults.length === 0) {
+          // No results for the given query
+          // onShowNotification("Couldn't find stations", 'warning');
+          dispatch(showNotification("Couldn't find stations", 'warning'));
+        }
+        setCurrentSearchResults(searchResults);
+        setShowLoadingBar(false);
       })
-      .then(
-        response => {
-          const searchResults = [];
-          response.data.features.forEach(singleResult => {
-            // Search results from the API
-            if (singleResult.properties.mot[currentMot])
-              searchResults.push(singleResult);
-          });
-          if (
-            response.data.features.length === 0 ||
-            searchResults.length === 0
-          ) {
-            // No results for the given query
-            // onShowNotification("Couldn't find stations", 'warning');
-            dispatch(showNotification("Couldn't find stations", 'warning'));
-          }
-          setCurrentSearchResults(searchResults);
-          setShowLoadingBar(false);
-        },
-        error => {
-          setShowLoadingBar(false);
-          if (!axios.isCancel(error))
-            dispatch(
-              showNotification('Error while searching for stations', 'error'),
-            );
-        },
-      );
+      .catch(err => {
+        if (err.name === 'AbortError') {
+          // eslint-disable-next-line no-console
+          console.warn(`Abort ${reqUrl}`);
+          return;
+        }
+        // It's important to rethrow all other errors so you don't silence them!
+        // For example, any error thrown by setState(), will pass through here.
+        throw err;
+      });
   };
 
   /**
@@ -368,7 +359,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     const [firstSearchResult] = currentSearchResults;
     if (event.key === 'Enter' && firstSearchResult) {
       // The user has chosen the first result by pressing 'Enter' key on keyboard
-      const updatedCurrentStops = currentStops;
+      const updatedCurrentStops = _.clone(currentStops);
       updateCurrentStops[focusedFieldIndex] = firstSearchResult.properties.name;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
@@ -397,7 +388,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const processClickedResultHandler = searchResult => {
-    const updatedCurrentStops = currentStops;
+    const updatedCurrentStops = _.clone(currentStops);
     updatedCurrentStops[focusedFieldIndex] = searchResult.properties.name;
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
