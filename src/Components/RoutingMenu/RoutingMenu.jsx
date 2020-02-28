@@ -59,8 +59,8 @@ const useStyles = makeStyles(() => ({
     width: '75%',
   },
   tab: {
-    minWidth: '25%',
-    width: '25%',
+    minWidth: '33%',
+    width: '33%',
   },
   dropDown: {
     width: '25%',

@@ -3,7 +3,7 @@
  * @type {string[]}
  * @category Constants
  */
-export const DEFAULT_MOTS = ['rail', 'bus', 'coach', 'foot'];
+export const DEFAULT_MOTS = ['rail', 'bus', 'foot'];
 
 export const OTHER_MOTS = [
   'tram',
@@ -12,9 +12,8 @@ export const OTHER_MOTS = [
   'funicular',
   'ferry',
   'car',
-  'truck',
 ];
 
 export const VALID_MOTS = [...DEFAULT_MOTS, ...OTHER_MOTS];
 
-export const WGS84_MOTS = ['foot', 'car', 'truck'];
+export const WGS84_MOTS = ['foot', 'car'];

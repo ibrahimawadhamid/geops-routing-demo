@@ -13,12 +13,6 @@ describe('utils', () => {
         <DirectionsBusIcon />
       </span>,
     );
-    icon = findMotIcon('coach');
-    expect(icon).toEqual(
-      <span title="Coach">
-        <DirectionsBusIcon />
-      </span>,
-    );
     icon = findMotIcon('foot');
     expect(icon).toEqual(
       <span title="Foot">
