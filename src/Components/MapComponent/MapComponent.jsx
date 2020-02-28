@@ -288,7 +288,7 @@ class MapComponent extends Component {
       if (currentStopsGeoJSON[key].features) {
         // If the current item is a point selected on the map, not a station.
         hops.push(
-          `@${to4326(currentStopsGeoJSON[key].features[0].geometry.coordinates)
+          `${to4326(currentStopsGeoJSON[key].features[0].geometry.coordinates)
             .slice()
             .reverse()}`,
         );
