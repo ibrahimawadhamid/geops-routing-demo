@@ -195,7 +195,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
       // A click occurred on the map
       if (currentStops[focusedFieldIndex] === '') {
         // Performs when there's an empty field.
-        const updatedCurrentStops = _.clone(currentStops);
+        const updatedCurrentStops = currentStops;
         updatedCurrentStops[focusedFieldIndex] = clickLocation;
         updateFieldOnMapClick(
           currentStops,
@@ -204,7 +204,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
             : focusedFieldIndex,
         );
       } else {
-        const updatedCurrentStops = _.clone(currentStops);
+        const updatedCurrentStops = currentStops;
         const updatedFocusedFieldIndex = focusedFieldIndex;
         updatedCurrentStops[focusedFieldIndex] = clickLocation;
         updateFieldOnMapClick(updatedCurrentStops, focusedFieldIndex);
@@ -266,7 +266,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const addNewSearchFieldHandler = indexToInsertAt => {
-    const updatedCurrentStops = _.clone(currentStops);
+    const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToInsertAt, 0, '');
     dispatch(setCurrentStops(updatedCurrentStops));
   };
@@ -278,7 +278,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const removeSearchFieldHandler = indexToRemoveFrom => {
-    const updatedCurrentStops = _.clone(currentStops);
+    const updatedCurrentStops = currentStops;
     updatedCurrentStops.splice(indexToRemoveFrom, 1);
     const updatedCurrentStopsGeoJSON = {};
     Object.keys(currentStopsGeoJSON).forEach(key => {
@@ -300,7 +300,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
   const searchStopsHandler = (event, fieldIndex) => {
     // only search if text is available
     if (!event.target.value) {
-      const updatedCurrentStops = _.clone(currentStops);
+      const updatedCurrentStops = currentStops;
       updatedCurrentStops[fieldIndex] = '';
       setCurrentSearchResults([]);
       dispatch(setCurrentStops(updatedCurrentStops));
@@ -359,7 +359,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     const [firstSearchResult] = currentSearchResults;
     if (event.key === 'Enter' && firstSearchResult) {
       // The user has chosen the first result by pressing 'Enter' key on keyboard
-      const updatedCurrentStops = _.clone(currentStops);
+      const updatedCurrentStops = currentStops;
       updateCurrentStops[focusedFieldIndex] = firstSearchResult.properties.name;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
@@ -388,7 +388,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const processClickedResultHandler = searchResult => {
-    const updatedCurrentStops = _.clone(currentStops);
+    const updatedCurrentStops = currentStops;
     updatedCurrentStops[focusedFieldIndex] = searchResult.properties.name;
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
