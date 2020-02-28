@@ -294,7 +294,7 @@ class MapComponent extends Component {
         );
       } else {
         // The item selected is a station from the stations API.
-        hops.push(`!${currentStopsGeoJSON[key].properties.id}`);
+        hops.push(`!${currentStopsGeoJSON[key].properties.name}`);
       }
     });
     axios
