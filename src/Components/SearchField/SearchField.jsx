@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
+import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
@@ -15,11 +16,29 @@ import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
 
+const useStyles = makeStyles(() => ({
+  gridContainer: {
+    width: '100%',
+    padding: '0px 0px 0px 20px',
+    boxSizing: 'unset',
+  },
+  button: {
+    color: 'black',
+  },
+  fieldWrapper: {
+    maxWidth: '75%',
+  },
+  buttonWrapper: {
+    maxWidth: '26px',
+  },
+}));
+
 /**
  * The component that displays the search field(s)
  * @category RoutingMenu
  */
 function SearchField(props) {
+  const classes = useStyles();
   const dispatch = useDispatch();
   const {
     index,
@@ -43,11 +62,11 @@ function SearchField(props) {
     fieldLeftIcon = <RadioButtonCheckedIcon fontSize="small" color="primary" />;
     searchFieldLabel = 'Start';
     fieldRightIcon = (
-      <Grid item xs={1}>
+      <Grid item xs={1} className={classes.buttonWrapper}>
         <Tooltip title="Add Hop">
           <IconButton
             onClick={() => addNewSearchFieldHandler(index + 1)}
-            color="primary"
+            className={classes.button}
             aria-label="Add Hop"
             size="small"
           >
@@ -65,27 +84,27 @@ function SearchField(props) {
     searchFieldLabel = 'Hop';
     fieldRightIcon = (
       <>
-        <Grid item xs={1}>
-          <Tooltip title="Remove Hop">
-            <IconButton
-              onClick={() => removeSearchFieldHandler(index)}
-              color="secondary"
-              aria-label="removeHop"
-              size="small"
-            >
-              <RemoveCircleOutlineIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Grid>
-        <Grid item xs={1}>
+        <Grid item xs={1} className={classes.buttonWrapper}>
           <Tooltip title="Add Hop">
             <IconButton
               onClick={() => addNewSearchFieldHandler(index + 1)}
-              color="primary"
+              className={classes.button}
               aria-label="addHop"
               size="small"
             >
               <AddCircleOutlineIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Grid>
+        <Grid item xs={1} className={classes.buttonWrapper}>
+          <Tooltip title="Remove Hop">
+            <IconButton
+              onClick={() => removeSearchFieldHandler(index)}
+              className={classes.button}
+              aria-label="removeHop"
+              size="small"
+            >
+              <RemoveCircleOutlineIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </Grid>
@@ -96,18 +115,17 @@ function SearchField(props) {
     <Grid
       container
       spacing={1}
+      className={classes.gridContainer}
       alignItems="flex-end"
-      style={{
-        width: '100%',
-        padding: '0 20px',
-      }}
     >
       <Grid item xs={1}>
         {fieldLeftIcon}
       </Grid>
-      <Grid item xs={searchFieldSize}>
+      <Grid item xs={searchFieldSize} className={classes.fieldWrapper}>
         <TextField
-          style={{ width: '100%' }}
+          style={{
+            width: '100%',
+          }}
           label={searchFieldLabel}
           color="primary"
           onChange={e => searchStopsHandler(e, index)}
