@@ -71,7 +71,7 @@ const useStyles = makeStyles(() => ({
     backgroundColor: 'lightgrey',
   },
   checkbox: {
-    padding: '20px',
+    padding: '20px 23px',
   },
 }));
 
@@ -81,7 +81,14 @@ let abortController = new AbortController();
  * The routing menu that controls station search
  * @category RoutingMenu
  */
-function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
+function RoutingMenu({
+  mots,
+  stationSearchUrl,
+  APIKey,
+  isActiveRoute,
+  onZoomRouteClick,
+  onPanViaClick,
+}) {
   const classes = useStyles();
   const dispatch = useDispatch();
 
@@ -420,6 +427,9 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
 
+  if (!onZoomRouteClick || !onPanViaClick) {
+    return null;
+  }
   return (
     <div className="rd-routing-menu">
       <Paper square elevation={3}>
@@ -485,6 +495,9 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
                   processHighlightedResultSelectHandler
                 }
                 onFieldFocusHandler={onFieldFocusHandler}
+                onZoomRouteClick={onZoomRouteClick}
+                onPanViaClick={onPanViaClick}
+                isActiveRoute={isActiveRoute}
               />
             );
           })}
@@ -524,6 +537,14 @@ RoutingMenu.propTypes = {
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
   stationSearchUrl: PropTypes.string.isRequired,
+  isActiveRoute: PropTypes.bool.isRequired,
+  onZoomRouteClick: PropTypes.func,
+  onPanViaClick: PropTypes.func,
+};
+
+RoutingMenu.defaultProps = {
+  onZoomRouteClick: undefined,
+  onPanViaClick: undefined,
 };
 
 export default RoutingMenu;

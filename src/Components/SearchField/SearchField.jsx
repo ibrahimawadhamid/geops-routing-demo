@@ -12,6 +12,7 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
+import SearchIcon from '@material-ui/icons/Search';
 import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
@@ -49,6 +50,9 @@ function SearchField(props) {
     singleStop,
     processHighlightedResultSelectHandler,
     onFieldFocusHandler,
+    onZoomRouteClick,
+    isActiveRoute,
+    onPanViaClick,
   } = props;
   let fieldLeftIcon = null;
   let searchFieldSize = 10;
@@ -59,7 +63,18 @@ function SearchField(props) {
 
   if (index === 0) {
     // Start station field
-    fieldLeftIcon = <RadioButtonCheckedIcon fontSize="small" color="primary" />;
+    fieldLeftIcon = (
+      <Tooltip title="Pan to the feature">
+        <IconButton
+          onClick={() => onPanViaClick(singleStop, index)}
+          className={classes.button}
+          aria-label="Pan to the feature"
+          size="small"
+        >
+          <RadioButtonCheckedIcon fontSize="small" color="primary" />
+        </IconButton>
+      </Tooltip>
+    );
     searchFieldLabel = 'Start';
     fieldRightIcon = (
       <Grid item xs={1} className={classes.buttonWrapper}>
@@ -76,8 +91,34 @@ function SearchField(props) {
       </Grid>
     );
   } else if (index === currentStops.length - 1) {
-    fieldLeftIcon = <Room color="primary" />;
+    fieldLeftIcon = (
+      <Tooltip title="Pan to the feature">
+        <IconButton
+          onClick={() => onPanViaClick(singleStop, index)}
+          className={classes.button}
+          aria-label="Pan to the feature"
+          size="small"
+        >
+          <Room color="primary" />
+        </IconButton>
+      </Tooltip>
+    );
     searchFieldLabel = 'End';
+    fieldRightIcon = (
+      <Grid item xs={1} className={classes.buttonWrapper}>
+        <Tooltip title="Zoom the feature">
+          <IconButton
+            onClick={() => onZoomRouteClick()}
+            disabled={!isActiveRoute}
+            className={classes.button}
+            aria-label="Zoom the feature"
+            size="small"
+          >
+            <SearchIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Grid>
+    );
   } else {
     fieldLeftIcon = <Adjust fontSize="small" color="primary" />;
     searchFieldSize = 9;
@@ -164,6 +205,9 @@ SearchField.propTypes = {
   ]),
   processHighlightedResultSelectHandler: PropTypes.func.isRequired,
   onFieldFocusHandler: PropTypes.func.isRequired,
+  onZoomRouteClick: PropTypes.func.isRequired,
+  onPanViaClick: PropTypes.func.isRequired,
+  isActiveRoute: PropTypes.bool.isRequired,
 };
 
 SearchField.defaultProps = {

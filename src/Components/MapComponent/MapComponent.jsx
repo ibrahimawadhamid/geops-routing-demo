@@ -11,6 +11,7 @@ import { defaults as defaultInteractions, Translate } from 'ol/interaction';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
+import RoutingMenu from '../RoutingMenu';
 import {
   lineStyleFunction,
   pointStyleFunction,
@@ -42,6 +43,12 @@ import * as actions from '../../store/actions';
  * @category Map
  */
 class MapComponent extends Component {
+  static getExtentCenter = extent => {
+    const X = extent[0] + (extent[2] - extent[0]) / 2;
+    const Y = extent[1] + (extent[3] - extent[1]) / 2;
+    return [X, Y];
+  };
+
   /**
    * Default constructor, gets called automatically upon initialization.
    * @param {...MapComponentProps} props Props received so that the component can function properly.
@@ -55,6 +62,7 @@ class MapComponent extends Component {
     this.state = {
       hoveredStationOpen: false,
       hoveredStationName: '',
+      isActiveRoute: false,
     };
   }
 
@@ -196,6 +204,36 @@ class MapComponent extends Component {
       this.map.addLayer(l),
     );
 
+    this.onZoomRouteClick = () => {
+      let featExtent;
+      if (this.routeVectorSource.getFeatures().length) {
+        featExtent = this.routeVectorSource.getExtent();
+      }
+
+      if (featExtent.filter(f => Number.isFinite(f)).length === 4) {
+        this.map.getView().fit(this.routeVectorSource.getExtent(), {
+          size: this.map.getSize(),
+          duration: 500,
+          padding: [200, 200, 200, 200],
+        });
+      }
+    };
+
+    this.onPanViaClick = (item, idx) => {
+      const { currentStopsGeoJSON } = this.props;
+      if (currentStopsGeoJSON && currentStopsGeoJSON[idx]) {
+        const featureCoord = currentStopsGeoJSON[idx].features
+          ? currentStopsGeoJSON[idx].features[0].geometry.coordinates
+          : currentStopsGeoJSON[idx].geometry.coordinates;
+
+        this.map.getView().animate({
+          center: featureCoord,
+          duration: 500,
+          padding: [100, 100, 100, 100],
+        });
+      }
+    };
+
     this.map.on('singleclick', evt => {
       const { isFieldFocused, currentStopsGeoJSON } = this.props;
       // if one field empty or if a field is focused
@@ -262,11 +300,17 @@ class MapComponent extends Component {
       });
       // Remove the old route if exists
       this.routeVectorSource.clear();
+      this.setIsActiveRoute(false);
+
       // Draw a new route if more than 1 stop is defined
       if (Object.keys(currentStopsGeoJSON).length > 1) {
         this.drawNewRoute();
       }
     }
+  }
+
+  setIsActiveRoute(isActiveRoute) {
+    this.setState({ isActiveRoute });
   }
 
   /**
@@ -322,15 +366,11 @@ class MapComponent extends Component {
           this.routeVectorSource.addFeatures(
             format.readFeatures(response.data),
           );
+          this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
+
           this.routeVectorSource
             .getFeatures()
             .forEach(f => f.setStyle(lineStyleFunction(currentMot)));
-
-          this.map.getView().fit(this.routeVectorSource.getExtent(), {
-            size: this.map.getSize(),
-            duration: 500,
-            padding: [50, 50, 50, 50],
-          });
         },
         error => {
           // No route was found.
@@ -344,9 +384,22 @@ class MapComponent extends Component {
    * @category Map
    */
   render() {
-    const { hoveredStationOpen, hoveredStationName } = this.state;
+    const { mots, APIKey, stationSearchUrl } = this.props;
+    const {
+      isActiveRoute,
+      hoveredStationOpen,
+      hoveredStationName,
+    } = this.state;
     return (
       <>
+        <RoutingMenu
+          mots={mots}
+          stationSearchUrl={stationSearchUrl}
+          isActiveRoute={isActiveRoute}
+          onZoomRouteClick={this.onZoomRouteClick}
+          onPanViaClick={this.onPanViaClick}
+          APIKey={APIKey}
+        />
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           open={hoveredStationOpen}
@@ -381,6 +434,9 @@ const mapDispatchToProps = dispatch => {
 };
 
 MapComponent.propTypes = {
+  mots: PropTypes.arrayOf(PropTypes.string).isRequired,
+  APIKey: PropTypes.string.isRequired,
+  stationSearchUrl: PropTypes.string.isRequired,
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
   onSetCurrentStops: PropTypes.func.isRequired,
@@ -388,7 +444,6 @@ MapComponent.propTypes = {
   currentStops: propTypeCurrentStops.isRequired,
   currentStopsGeoJSON: propTypeCurrentStopsGeoJSON.isRequired,
   isFieldFocused: PropTypes.bool.isRequired,
-  APIKey: PropTypes.string.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
 };
