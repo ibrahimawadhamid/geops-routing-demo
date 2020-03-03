@@ -1,12 +1,8 @@
-import DirectionsBusIcon from "@material-ui/icons/DirectionsBus";
-import DirectionsBoatIcon from "@material-ui/icons/DirectionsBoat";
-import RowingIcon from "@material-ui/icons/Rowing";
-import TramIcon from "@material-ui/icons/Tram";
-import DirectionsRailwayIcon from "@material-ui/icons/DirectionsRailway";
-import DirectionsSubwayIcon from "@material-ui/icons/DirectionsSubway";
-import CallMergeIcon from "@material-ui/icons/CallMerge";
-import SubwayIcon from "@material-ui/icons/Subway";
-import React from "react";
+import DirectionsBusIcon from '@material-ui/icons/DirectionsBus';
+import DirectionsRailwayIcon from '@material-ui/icons/DirectionsRailway';
+import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
+import React from 'react';
+import { transform } from 'ol/proj';
 
 /**
  * Map each mot to an icon
@@ -14,38 +10,29 @@ import React from "react";
  * @returns {Icon} MotIcon
  * @category Utils
  */
-const findMotIcon = name => {
+export const findMotIcon = name => {
   let result = null;
+  const capitalName = name.charAt(0).toUpperCase() + name.slice(1);
   switch (name) {
-    case "bus":
-      result = <DirectionsBusIcon />;
-      break;
-    case "ferry":
-      result = <DirectionsBoatIcon />;
-      break;
-    case "gondola":
-      result = <RowingIcon />;
-      break;
-    case "tram":
-      result = <TramIcon />;
-      break;
-    case "rail":
+    case 'rail':
       result = <DirectionsRailwayIcon />;
       break;
-    case "funicular":
-      result = <DirectionsSubwayIcon />;
-      break;
-    case "cable_car":
-      result = <CallMergeIcon />;
-      break;
-    case "subway":
-      result = <SubwayIcon />;
+    case 'foot':
+      result = <DirectionsWalkIcon />;
       break;
     default:
       result = <DirectionsBusIcon />;
       break;
   }
-  return result;
+  return <span title={capitalName}>{result}</span>;
 };
 
-export default findMotIcon;
+export const to4326 = (coord, decimal = 4) => {
+  return transform(coord, 'EPSG:3857', 'EPSG:4326').map(c =>
+    c.toFixed(decimal),
+  );
+};
+
+export const to3857 = coord => {
+  return transform(coord, 'EPSG:4326', 'EPSG:3857');
+};

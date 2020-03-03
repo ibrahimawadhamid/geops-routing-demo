@@ -18,7 +18,7 @@ npm i geops-routing-demo
 ```javascript
 import GeopsRoutingDemo from 'geops-routing-demo';
 ```
-### Render  
+### Render
 ```javascript
 <GeopsRoutingDemo
         mots={['rail','bus','tram']}

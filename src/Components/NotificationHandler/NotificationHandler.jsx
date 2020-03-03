@@ -1,8 +1,8 @@
-import React from "react";
-import Snackbar from "@material-ui/core/Snackbar";
-import { connect } from "react-redux";
-import Alert from "@material-ui/lab/Alert";
-import PropTypes from "prop-types";
+import React from 'react';
+import Snackbar from '@material-ui/core/Snackbar';
+import { connect } from 'react-redux';
+import Alert from '@material-ui/lab/Alert';
+import PropTypes from 'prop-types';
 
 /**
  * The notification handler props
@@ -18,22 +18,22 @@ import PropTypes from "prop-types";
  * @category NotificationHandler
  */
 class NotificationHandler extends React.Component {
-    /**
-     * Default constructor. visibility is set to false by default. Controlled through state property "open"
-     * @param {...NotificationHandlerProps} props Props received so that the component can function properly.
-     * @category NotificationHandler
-     */
+  /**
+   * Default constructor. visibility is set to false by default. Controlled through state property "open"
+   * @param {...NotificationHandlerProps} props Props received so that the component can function properly.
+   * @category NotificationHandler
+   */
   constructor(props) {
     super(props);
     this.state = {
-      open: false
+      open: false,
     };
   }
 
-    /**
-     * If a new notification message is received, show it accordingly.
-     * @category NotificationHandler
-     */
+  /**
+   * If a new notification message is received, show it accordingly.
+   * @category NotificationHandler
+   */
   componentDidUpdate(prevProps) {
     const { notificationMessage } = this.props;
     if (
@@ -44,38 +44,38 @@ class NotificationHandler extends React.Component {
     }
   }
 
-    /**
-     * Show the notification to the view.
-     * @category NotificationHandler
-     */
+  /**
+   * Show the notification to the view.
+   * @category NotificationHandler
+   */
   handleOpen = () => {
     this.setState({
-      open: true
+      open: true,
     });
   };
 
-    /**
-     * Hide the notification from the view.
-     * @category NotificationHandler
-     */
+  /**
+   * Hide the notification from the view.
+   * @category NotificationHandler
+   */
   handleClose = () => {
     this.setState({
-      open: false
+      open: false,
     });
   };
 
-    /**
-     * Render the notification to the dom.
-     * @category NotificationHandler
-     */
+  /**
+   * Render the notification to the dom.
+   * @category NotificationHandler
+   */
   render() {
     const { notificationMessage, notificationType } = this.props;
     const { open } = this.state;
     return (
       <Snackbar
         anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left"
+          vertical: 'bottom',
+          horizontal: 'left',
         }}
         open={open}
         autoHideDuration={6000}
@@ -97,13 +97,13 @@ class NotificationHandler extends React.Component {
 const mapStateToProps = state => {
   return {
     notificationMessage: state.MapReducer.notificationMessage,
-    notificationType: state.MapReducer.notificationType
+    notificationType: state.MapReducer.notificationType,
   };
 };
 
 NotificationHandler.propTypes = {
   notificationMessage: PropTypes.string.isRequired,
-  notificationType: PropTypes.string.isRequired
+  notificationType: PropTypes.string.isRequired,
 };
 
 export default connect(mapStateToProps)(NotificationHandler);

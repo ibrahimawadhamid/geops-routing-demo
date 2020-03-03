@@ -1,16 +1,29 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { Map, View } from "ol";
-import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import OSM from "ol/source/OSM";
-import GeoJSON from "ol/format/GeoJSON";
-import { Vector as VectorSource } from "ol/source";
-import axios from "axios";
-import PropTypes from "prop-types";
-import Snackbar from "@material-ui/core/Snackbar";
-import { Stroke, Style, Fill, Circle as CircleStyle } from "ol/style";
-import "./MapComponent.css";
-import * as actions from "../../store/actions";
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { Map, View } from 'ol';
+import { toLonLat } from 'ol/proj';
+import { Layer, Vector as VectorLayer } from 'ol/layer';
+import mapboxgl from 'mapbox-gl';
+import _ from 'lodash/core';
+import GeoJSON from 'ol/format/GeoJSON';
+import { Vector as VectorSource } from 'ol/source';
+import { defaults as defaultInteractions, Translate } from 'ol/interaction';
+import axios from 'axios';
+import PropTypes from 'prop-types';
+import Snackbar from '@material-ui/core/Snackbar';
+import RoutingMenu from '../RoutingMenu';
+import {
+  lineStyleFunction,
+  pointStyleFunction,
+} from '../../config/styleConfig';
+import {
+  propTypeCurrentStops,
+  propTypeCurrentStopsGeoJSON,
+} from '../../store/prop-types';
+import { WGS84_MOTS } from '../../constants';
+import { to4326 } from '../../utils';
+import './MapComponent.css';
+import * as actions from '../../store/actions';
 
 /**
  * The map props
@@ -30,6 +43,12 @@ import * as actions from "../../store/actions";
  * @category Map
  */
 class MapComponent extends Component {
+  static getExtentCenter = extent => {
+    const X = extent[0] + (extent[2] - extent[0]) / 2;
+    const Y = extent[1] + (extent[3] - extent[1]) / 2;
+    return [X, Y];
+  };
+
   /**
    * Default constructor, gets called automatically upon initialization.
    * @param {...MapComponentProps} props Props received so that the component can function properly.
@@ -39,29 +58,11 @@ class MapComponent extends Component {
     super(props);
     this.FindRouteCancelToken = axios.CancelToken;
     this.findRouteCancel = null;
-    this.routeStyleInner = new Style({
-      stroke: new Stroke({
-        color: "orange",
-        width: 3
-      })
-    });
-    this.routeStyleOuter = new Style({
-      stroke: new Stroke({
-        color: "black",
-        width: 5
-      })
-    });
-    this.pointStyle = new Style({
-      image: new CircleStyle({
-        radius: 7,
-        fill: new Fill({ color: "orange" }),
-        stroke: new Stroke({ color: "black", width: 2 })
-      })
-    });
     this.hoveredFeature = null;
     this.state = {
       hoveredStationOpen: false,
-      hoveredStationName: ""
+      hoveredStationName: '',
+      isActiveRoute: false,
     };
   }
 
@@ -71,44 +72,194 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidMount() {
-    let demoAttribution =
-      "<a target='_blank' href='https://github.com/ibrahimawadhamid/geops-routing-demo'>Demo</a>";
-    demoAttribution +=
-      " | <a target='_blank' href='https://geops.ch/'>geOps</a>";
-    demoAttribution +=
-      " | <a target='_blank' href='https://www.openstreetmap.org/'>OSM</a>";
-    const openStreetMap = new TileLayer({
-      source: new OSM({ attributions: [demoAttribution] })
+    const { APIKey, onSetClickLocation } = this.props;
+    const center = [949042.143189, 5899715.591163];
+
+    // Define stop vectorLayer.
+    this.markerVectorSource = new VectorSource({});
+    this.markerVectorLayer = new VectorLayer({
+      zIndex: 1,
+      source: this.markerVectorSource,
     });
+    // Define route vectorLayer.
+    this.routeVectorSource = new VectorSource({});
+    this.routeVectorLayer = new VectorLayer({
+      zIndex: 0,
+      source: this.routeVectorSource,
+    });
+
+    const translate = new Translate({
+      layers: [this.markerVectorLayer],
+    });
+
+    const isItemInArray = (array, item) => {
+      for (let i = 0; i < array.length; i += 1) {
+        if (array[i][0] === item[0] && array[i][1] === item[1]) {
+          return i;
+        }
+      }
+      return -1;
+    };
+
+    translate.on('translateend', evt => {
+      const {
+        currentStops,
+        currentStopsGeoJSON,
+        onSetCurrentStops,
+        onSetCurrentStopsGeoJSON,
+      } = this.props;
+      const newCurrentStops = _.clone(currentStops);
+      const newCurentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+
+      const { name, id } = evt.features.getArray()[0].getProperties();
+      let featureIndex;
+      if (name) {
+        featureIndex = currentStops.indexOf(name);
+      } else {
+        featureIndex = isItemInArray(currentStops, id.slice().reverse());
+      }
+      newCurrentStops[featureIndex] = evt.coordinate;
+      newCurentStopsGeoJSON[featureIndex] = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {
+              id: evt.coordinate.slice().reverse(),
+              type: 'coordinates',
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: evt.coordinate,
+            },
+          },
+        ],
+      };
+      onSetCurrentStops(newCurrentStops);
+      onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
+    });
+
     this.map = new Map({
-      target: "map",
-      layers: [openStreetMap],
+      target: 'map',
+      interactions: defaultInteractions().extend([translate]),
       view: new View({
-        projection: "EPSG:4326",
-        center: [10, 50],
-        zoom: 6
-      })
+        projection: 'EPSG:3857',
+        center,
+        zoom: 6,
+      }),
     });
-    this.map.on("singleclick", evt => {
-      const { onSetClickLocation } = this.props;
-      onSetClickLocation(evt.coordinate);
+
+    const mbMap = new mapboxgl.Map({
+      style: `https://maps.geops.io/styles/travic/style.json?key=${APIKey}`,
+      attributionControl: false,
+      boxZoom: false,
+      center: toLonLat(center),
+      container: this.map.getTargetElement(),
+      doubleClickZoom: false,
+      dragPan: false,
+      dragRotate: false,
+      interactive: false,
+      keyboard: false,
+      pitchWithRotate: false,
+      scrollZoom: false,
+      touchZoomRotate: false,
     });
-    this.map.on("pointermove", evt => {
+
+    /* eslint-disable no-underscore-dangle */
+    const mbLayer = new Layer({
+      render: frameState => {
+        const canvas = mbMap.getCanvas();
+        const { viewState } = frameState;
+
+        const visible = mbLayer.getVisible();
+        canvas.style.display = visible ? 'block' : 'none';
+
+        const opacity = mbLayer.getOpacity();
+        canvas.style.opacity = opacity;
+
+        // adjust view parameters in mapbox
+        const { rotation } = viewState;
+        if (rotation) {
+          mbMap.rotateTo((-rotation * 180) / Math.PI, {
+            animate: false,
+          });
+        }
+        mbMap.jumpTo({
+          center: toLonLat(viewState.center),
+          zoom: viewState.zoom - 1,
+          animate: false,
+        });
+
+        if (mbMap._frame) {
+          mbMap._frame.cancel();
+          mbMap._frame = null;
+        }
+        mbMap._render();
+
+        return canvas;
+      },
+    });
+
+    [mbLayer, this.markerVectorLayer, this.routeVectorLayer].forEach(l =>
+      this.map.addLayer(l),
+    );
+
+    this.onZoomRouteClick = () => {
+      let featExtent;
+      if (this.routeVectorSource.getFeatures().length) {
+        featExtent = this.routeVectorSource.getExtent();
+      }
+
+      if (featExtent.filter(f => Number.isFinite(f)).length === 4) {
+        this.map.getView().fit(this.routeVectorSource.getExtent(), {
+          size: this.map.getSize(),
+          duration: 500,
+          padding: [200, 200, 200, 200],
+        });
+      }
+    };
+
+    this.onPanViaClick = (item, idx) => {
+      const { currentStopsGeoJSON } = this.props;
+      if (currentStopsGeoJSON && currentStopsGeoJSON[idx]) {
+        const featureCoord = currentStopsGeoJSON[idx].features
+          ? currentStopsGeoJSON[idx].features[0].geometry.coordinates
+          : currentStopsGeoJSON[idx].geometry.coordinates;
+
+        this.map.getView().animate({
+          center: featureCoord,
+          duration: 500,
+          padding: [100, 100, 100, 100],
+        });
+      }
+    };
+
+    this.map.on('singleclick', evt => {
+      const { isFieldFocused, currentStopsGeoJSON } = this.props;
+      // if one field empty or if a field is focused
+      if (
+        !currentStopsGeoJSON['0'] ||
+        !currentStopsGeoJSON['1'] ||
+        isFieldFocused
+      ) {
+        onSetClickLocation(evt.coordinate);
+      }
+    });
+    this.map.on('pointermove', evt => {
       if (this.hoveredFeature) {
         this.hoveredFeature = null;
-        this.setState({ hoveredStationOpen: false, hoveredStationName: "" });
+        this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
       }
       this.map.forEachFeatureAtPixel(evt.pixel, feature => {
-        if (feature.getGeometry().getType() === "Point") {
+        if (feature.getGeometry().getType() === 'Point') {
           this.hoveredFeature = feature;
-          let name = "";
-          if(feature.get("name"))
-            name = `${feature.get("name")} - ${feature.get("country_code")}`
-          else
-            name = `${feature.get("id")[0]}, ${feature.get("id")[1]}`
+          let name = '';
+          if (feature.get('name'))
+            name = `${feature.get('name')} - ${feature.get('country_code')}`;
+          else name = `${feature.get('id')[0]}, ${feature.get('id')[1]}`;
           this.setState({
             hoveredStationOpen: true,
-            hoveredStationName: name
+            hoveredStationName: name,
           });
         }
         return true;
@@ -127,40 +278,39 @@ class MapComponent extends Component {
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
+
     if (currentMotChanged || currentStopsGeoJSONChanged) {
-      // First remove layers
-      this.map.getLayers().forEach(layer => {
-        if (layer && layer.get("type") === "markers") {
-          this.map.removeLayer(layer);
-        }
-      });
-      // Then add new ones
+      this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
-        const vectorSource = new VectorSource({
-          features: new GeoJSON().readFeatures(currentStopsGeoJSON[key])
-        });
-        const vectorLayer = new VectorLayer({
-          source: vectorSource,
-          style: this.pointStyle
-        });
-        vectorLayer.set("type", "markers");
-        this.map.addLayer(vectorLayer);
-        const coordinate = vectorSource
+        this.markerVectorSource.addFeatures(
+          new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
+        );
+        this.markerVectorSource
+          .getFeatures()
+          .forEach(f => f.setStyle(pointStyleFunction(currentMot)));
+
+        const coordinate = this.markerVectorSource
           .getFeatures()[0]
           .getGeometry()
           .getCoordinates();
         this.map.getView().animate({
           center: coordinate,
-          duration: 500
+          duration: 500,
         });
       });
       // Remove the old route if exists
-      this.removeCurrentRoute();
+      this.routeVectorSource.clear();
+      this.setIsActiveRoute(false);
+
       // Draw a new route if more than 1 stop is defined
       if (Object.keys(currentStopsGeoJSON).length > 1) {
         this.drawNewRoute();
       }
     }
+  }
+
+  setIsActiveRoute(isActiveRoute) {
+    this.setState({ isActiveRoute });
   }
 
   /**
@@ -176,63 +326,57 @@ class MapComponent extends Component {
       routingUrl,
       currentMot,
       APIKey,
-      onShowNotification
+      onShowNotification,
     } = this.props;
     Object.keys(currentStopsGeoJSON).forEach(key => {
       if (currentStopsGeoJSON[key].features) {
         // If the current item is a point selected on the map, not a station.
-        hops.push(`@${currentStopsGeoJSON[key].features[0].properties.id}`);
+        hops.push(
+          `${to4326(currentStopsGeoJSON[key].features[0].geometry.coordinates)
+            .slice()
+            .reverse()}`,
+        );
       } else {
         // The item selected is a station from the stations API.
-        hops.push(`!${currentStopsGeoJSON[key].properties.id}`);
+        hops.push(`!${currentStopsGeoJSON[key].properties.name}`);
       }
     });
     axios
       .get(routingUrl, {
         params: {
-          via: hops.join("|"),
+          via: hops.join('|'),
           mot: currentMot,
-          key: APIKey
+          key: APIKey,
+          srs: '3857',
         },
         cancelToken: new this.FindRouteCancelToken(cancel => {
           this.findRouteCancel = cancel;
-        })
+        }),
       })
       .then(
         response => {
           // A route was found, prepare to draw it.
-          const vectorSource = new VectorSource({
-            features: new GeoJSON().readFeatures(response.data)
-          });
-          const vectorLayer = new VectorLayer({
-            source: vectorSource,
-            style: [this.routeStyleOuter, this.routeStyleInner]
-          });
-          vectorLayer.set("type", "route");
-          this.map.addLayer(vectorLayer);
-          this.map.getView().fit(vectorSource.getExtent(), {
-            size: this.map.getSize(),
-            duration: 500,
-            padding: [50, 50, 50, 50]
-          });
+          this.routeVectorSource.clear();
+          const format = WGS84_MOTS.includes(currentMot)
+            ? new GeoJSON({
+                dataProjection: 'EPSG:4326',
+                featureProjection: 'EPSG:3857',
+              })
+            : new GeoJSON();
+          this.routeVectorSource.addFeatures(
+            format.readFeatures(response.data),
+          );
+          this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
+
+          this.routeVectorSource
+            .getFeatures()
+            .forEach(f => f.setStyle(lineStyleFunction(currentMot)));
         },
         error => {
           // No route was found.
-          if (error) onShowNotification("Couldn't find route", "error");
-        }
+          if (error) onShowNotification("Couldn't find route", 'error');
+        },
       );
-  };
-
-  /**
-   * Remove the current route drawn on the map
-   * @category Map
-   */
-  removeCurrentRoute = () => {
-    this.map.getLayers().forEach(layer => {
-      if (layer && layer.get("type") === "route") {
-        this.map.removeLayer(layer);
-      }
-    });
   };
 
   /**
@@ -240,11 +384,24 @@ class MapComponent extends Component {
    * @category Map
    */
   render() {
-    const { hoveredStationOpen, hoveredStationName } = this.state;
+    const { mots, APIKey, stationSearchUrl } = this.props;
+    const {
+      isActiveRoute,
+      hoveredStationOpen,
+      hoveredStationName,
+    } = this.state;
     return (
       <>
+        <RoutingMenu
+          mots={mots}
+          stationSearchUrl={stationSearchUrl}
+          isActiveRoute={isActiveRoute}
+          onZoomRouteClick={this.onZoomRouteClick}
+          onPanViaClick={this.onPanViaClick}
+          APIKey={APIKey}
+        />
         <Snackbar
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           open={hoveredStationOpen}
           message={hoveredStationName}
         />
@@ -257,26 +414,38 @@ class MapComponent extends Component {
 const mapStateToProps = state => {
   return {
     currentMot: state.MapReducer.currentMot,
-    currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON
+    currentStops: state.MapReducer.currentStops,
+    currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
+    isFieldFocused: state.MapReducer.isFieldFocused,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
+    onSetCurrentStops: currentStops =>
+      dispatch(actions.setCurrentStops(currentStops)),
+    onSetCurrentStopsGeoJSON: currentStopsGeoJSON =>
+      dispatch(actions.setCurrentStopsGeoJSON(currentStopsGeoJSON)),
     onSetClickLocation: clickLocation =>
       dispatch(actions.setClickLocation(clickLocation)),
     onShowNotification: (notificationMessage, notificationType) =>
-      dispatch(actions.showNotification(notificationMessage, notificationType))
+      dispatch(actions.showNotification(notificationMessage, notificationType)),
   };
 };
 
 MapComponent.propTypes = {
+  mots: PropTypes.arrayOf(PropTypes.string).isRequired,
+  APIKey: PropTypes.string.isRequired,
+  stationSearchUrl: PropTypes.string.isRequired,
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
-  currentStopsGeoJSON: PropTypes.object.isRequired,
-  APIKey: PropTypes.string.isRequired,
+  onSetCurrentStops: PropTypes.func.isRequired,
+  onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
+  currentStops: propTypeCurrentStops.isRequired,
+  currentStopsGeoJSON: propTypeCurrentStopsGeoJSON.isRequired,
+  isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
-  currentMot: PropTypes.string.isRequired
+  currentMot: PropTypes.string.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

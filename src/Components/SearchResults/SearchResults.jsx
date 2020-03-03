@@ -1,12 +1,12 @@
-import React from "react";
-import PropTypes from "prop-types";
-import nextId from "react-id-generator";
-import Paper from "@material-ui/core/Paper";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import MapMarkerIcon from "@material-ui/icons/LocationOn";
+import React from 'react';
+import PropTypes from 'prop-types';
+import nextId from 'react-id-generator';
+import Paper from '@material-ui/core/Paper';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import MapMarkerIcon from '@material-ui/icons/LocationOn';
 
 /**
  * The component that displays the station search results
@@ -65,11 +65,11 @@ function SearchResults(props) {
 
 SearchResults.propTypes = {
   currentSearchResults: PropTypes.arrayOf(PropTypes.object),
-  processClickedResultHandler: PropTypes.func.isRequired
+  processClickedResultHandler: PropTypes.func.isRequired,
 };
 
 SearchResults.defaultProps = {
-  currentSearchResults: []
+  currentSearchResults: [],
 };
 
 export default SearchResults;
