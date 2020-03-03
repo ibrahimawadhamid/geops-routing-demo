@@ -12,7 +12,7 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
-import SearchIcon from '@material-ui/icons/Search';
+import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
@@ -114,7 +114,7 @@ function SearchField(props) {
             aria-label="Zoom the feature"
             size="small"
           >
-            <SearchIcon fontSize="small" />
+            <ZoomInIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       </Grid>
