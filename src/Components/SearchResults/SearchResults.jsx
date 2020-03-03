@@ -8,6 +8,16 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import MapMarkerIcon from '@material-ui/icons/LocationOn';
 
+const renderSecondary = (code, countryCode) => {
+  if (code && countryCode) {
+    return `${code} - ${countryCode}`;
+  }
+  if (code || countryCode) {
+    return code || countryCode;
+  }
+  return null;
+};
+
 /**
  * The component that displays the station search results
  * @category RoutingMenu
@@ -35,7 +45,10 @@ function SearchResults(props) {
                 </ListItemIcon>
                 <ListItemText
                   primary={searchResult.properties.name}
-                  secondary={`${searchResult.properties.code} - ${searchResult.properties.country_code}`}
+                  secondary={renderSecondary(
+                    searchResult.properties.code,
+                    searchResult.properties.country_code,
+                  )}
                 />
               </ListItem>
             );
@@ -53,7 +66,10 @@ function SearchResults(props) {
               </ListItemIcon>
               <ListItemText
                 primary={searchResult.properties.name}
-                secondary={`${searchResult.properties.code} - ${searchResult.properties.country_code}`}
+                secondary={renderSecondary(
+                  searchResult.properties.code,
+                  searchResult.properties.country_code,
+                )}
               />
             </ListItem>
           );
