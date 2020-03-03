@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
 import PropTypes from 'prop-types';
 import store from '../../store/store';
@@ -26,23 +26,8 @@ const defaultProps = {
  */
 function App(props) {
   const { mots, routingUrl, stationSearchUrl } = props;
-  const [apiKey, setApiKey] = useState(null);
+  const apiKey = process.env.REACT_APP_API_KEY;
 
-  useEffect(() => {
-    fetch('https://developer.geops.io/publickey')
-      .then(response => response.json())
-      .then(data => {
-        setApiKey(data.key);
-      })
-      .catch(() => {
-        console.error('Request to get the apiKey failed');
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (!apiKey) {
-    return null;
-  }
   return (
     <Provider store={store}>
       <MapComponent
