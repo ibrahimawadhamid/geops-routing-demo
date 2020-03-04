@@ -106,12 +106,12 @@ function SearchField(props) {
     searchFieldLabel = 'End';
     fieldRightIcon = (
       <Grid item xs={1} className={classes.buttonWrapper}>
-        <Tooltip title="Zoom the feature">
+        <Tooltip title="Zoom to the route">
           <IconButton
             onClick={() => onZoomRouteClick()}
             disabled={!isActiveRoute}
             className={classes.button}
-            aria-label="Zoom the feature"
+            aria-label="Zoom to the route"
             size="small"
           >
             <ZoomInIcon fontSize="small" />
