@@ -5,7 +5,6 @@ import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
@@ -66,8 +65,14 @@ const useStyles = makeStyles(() => ({
     width: '25%',
     backgroundColor: 'white',
   },
-  dropDownSelected: {
-    width: '25%',
+  select: {
+    height: '100%',
+  },
+  selectInput: {
+    backgroundColor: 'white',
+    '&:focus': {
+      backgroundColor: 'white',
+    },
   },
   checkbox: {
     padding: '20px 23px',
@@ -456,15 +461,11 @@ function RoutingMenu({
               );
             })}
           </Tabs>
-          <FormControl
-            className={
-              currentMot === currentOtherMot
-                ? classes.dropDownSelected
-                : classes.dropDown
-            }
-          >
-            <InputLabel id="rd-other-mot-label">Other MOTs</InputLabel>
+          <FormControl className={classes.dropDown}>
             <Select
+              renderValue={val => (val !== '' ? val : 'Other MOTs')}
+              className={classes.select}
+              classes={{ root: classes.selectInput }}
               labelId="rd-other-mot-label"
               value={currentOtherMot || ''}
               displayEmpty
