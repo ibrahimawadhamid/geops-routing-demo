@@ -68,7 +68,6 @@ const useStyles = makeStyles(() => ({
   },
   dropDownSelected: {
     width: '25%',
-    backgroundColor: 'lightgrey',
   },
   checkbox: {
     padding: '20px 23px',
@@ -253,6 +252,7 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const handleMotChange = (event, newMot) => {
+    setCurrentOtherMot(null);
     setCurrentMotState(newMot);
     dispatch(setCurrentMot(newMot));
   };
@@ -414,7 +414,7 @@ function RoutingMenu({
 
   const changeCurrentOtherMot = evt => {
     if (!evt) {
-      setCurrentOtherMot(undefined);
+      setCurrentOtherMot(null);
     } else {
       const { value } = evt.target;
       handleMotChange({}, value);
@@ -466,7 +466,8 @@ function RoutingMenu({
             <InputLabel id="rd-other-mot-label">Other MOTs</InputLabel>
             <Select
               labelId="rd-other-mot-label"
-              value={currentOtherMot}
+              value={currentOtherMot || ''}
+              displayEmpty
               onChange={changeCurrentOtherMot}
             >
               {otherMots.map(mot => {
