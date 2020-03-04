@@ -8,7 +8,6 @@ import _ from 'lodash/core';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
 import { defaults as defaultInteractions, Translate } from 'ol/interaction';
-import axios from 'axios';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import RoutingMenu from '../RoutingMenu';
@@ -38,6 +37,8 @@ import * as actions from '../../store/actions';
  * @category Props
  */
 
+let abortController = new AbortController();
+
 /**
  * The only true map that shows inside the application.
  * @category Map
@@ -56,8 +57,6 @@ class MapComponent extends Component {
    */
   constructor(props) {
     super(props);
-    this.FindRouteCancelToken = axios.CancelToken;
-    this.findRouteCancel = null;
     this.hoveredFeature = null;
     this.state = {
       hoveredStationOpen: false,
@@ -319,7 +318,6 @@ class MapComponent extends Component {
    * @category Map
    */
   drawNewRoute = () => {
-    if (this.findRouteCancel) this.findRouteCancel();
     const hops = [];
     const {
       currentStopsGeoJSON,
@@ -341,42 +339,47 @@ class MapComponent extends Component {
         hops.push(`!${currentStopsGeoJSON[key].properties.name}`);
       }
     });
-    axios
-      .get(routingUrl, {
-        params: {
-          via: hops.join('|'),
-          mot: currentMot,
-          key: APIKey,
-          srs: '3857',
-        },
-        cancelToken: new this.FindRouteCancelToken(cancel => {
-          this.findRouteCancel = cancel;
-        }),
-      })
-      .then(
-        response => {
-          // A route was found, prepare to draw it.
-          this.routeVectorSource.clear();
-          const format = WGS84_MOTS.includes(currentMot)
-            ? new GeoJSON({
-                dataProjection: 'EPSG:4326',
-                featureProjection: 'EPSG:3857',
-              })
-            : new GeoJSON();
-          this.routeVectorSource.addFeatures(
-            format.readFeatures(response.data),
-          );
-          this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
 
-          this.routeVectorSource
-            .getFeatures()
-            .forEach(f => f.setStyle(lineStyleFunction(currentMot)));
-        },
-        error => {
-          // No route was found.
-          if (error) onShowNotification("Couldn't find route", 'error');
-        },
-      );
+    abortController.abort();
+    abortController = new AbortController();
+    const { signal } = abortController;
+
+    const reqUrl = `${routingUrl}?via=${hops.join(
+      '|',
+    )}&mot=${currentMot}&resolve-hops=false&srs=3857&key=${APIKey}`;
+
+    fetch(reqUrl, { signal })
+      .then(response => response.json())
+      .then(response => {
+        if (response.error) {
+          onShowNotification("Couldn't find route", 'error');
+          return;
+        }
+        // A route was found, prepare to draw it.
+        this.routeVectorSource.clear();
+        const format = WGS84_MOTS.includes(currentMot)
+          ? new GeoJSON({
+              dataProjection: 'EPSG:4326',
+              featureProjection: 'EPSG:3857',
+            })
+          : new GeoJSON();
+        this.routeVectorSource.addFeatures(format.readFeatures(response));
+        this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
+
+        this.routeVectorSource
+          .getFeatures()
+          .forEach(f => f.setStyle(lineStyleFunction(currentMot)));
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') {
+          // eslint-disable-next-line no-console
+          console.warn(`Abort ${reqUrl}`);
+          return;
+        }
+        // It's important to rethrow all other errors so you don't silence them!
+        // For example, any error thrown by setState(), will pass through here.
+        throw err;
+      });
   };
 
   /**
