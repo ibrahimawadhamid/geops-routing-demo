@@ -311,15 +311,6 @@ class MapComponent extends Component {
         this.markerVectorSource
           .getFeatures()
           .forEach(f => f.setStyle(pointStyleFunction(currentMot)));
-
-        const coordinate = this.markerVectorSource
-          .getFeatures()[0]
-          .getGeometry()
-          .getCoordinates();
-        this.map.getView().animate({
-          center: coordinate,
-          duration: 500,
-        });
       });
       // Remove the old route if exists
       this.routeVectorSource.clear();
