@@ -277,7 +277,7 @@ function RoutingMenu({
    * @param indexToInsertAt The index to insert the new search field at.
    * @category RoutingMenu
    */
-  const addNewSearchFieldHandler = indexToInsertAt => {
+  const addNewSearchFieldHandler = (currStops, indexToInsertAt) => {
     const updatedCurrentStops = _.clone(currentStops);
     updatedCurrentStops.splice(indexToInsertAt, 0, '');
     dispatch(setCurrentStops(updatedCurrentStops));

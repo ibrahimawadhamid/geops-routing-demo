@@ -80,7 +80,7 @@ function SearchField(props) {
       <Grid item xs={1} className={classes.buttonWrapper}>
         <Tooltip title="Add Hop">
           <IconButton
-            onClick={() => addNewSearchFieldHandler(index + 1)}
+            onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
             disabled={currentStops[index] === ''}
             className={classes.button}
             aria-label="Add Hop"
@@ -130,7 +130,7 @@ function SearchField(props) {
           <Tooltip title="Add Hop">
             <IconButton
               disabled={currentStops[index] === ''}
-              onClick={() => addNewSearchFieldHandler(index + 1)}
+              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
               className={classes.button}
               aria-label="addHop"
               size="small"
