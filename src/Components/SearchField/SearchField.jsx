@@ -65,6 +65,9 @@ function SearchField(props) {
 
   const formatSingleStop = val => (Array.isArray(val) ? to4326(val) : val);
 
+  const addNextHopDisabled =
+    currentStops[index] === '' ||
+    (currentStops.length > 2 && currentStops[index + 1] === '');
   if (index === 0) {
     // Start station field
     fieldLeftIcon = (
@@ -85,7 +88,7 @@ function SearchField(props) {
         <Tooltip title="Add Hop">
           <IconButton
             onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-            disabled={currentStops[index] === ''}
+            disabled={addNextHopDisabled}
             className={classes.button}
             aria-label="Add Hop"
             size="small"
@@ -144,7 +147,7 @@ function SearchField(props) {
         <Grid item xs={1} className={classes.buttonWrapper}>
           <Tooltip title="Add Hop">
             <IconButton
-              disabled={currentStops[index] === ''}
+              disabled={addNextHopDisabled}
               onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
               className={classes.button}
               aria-label="addHop"
