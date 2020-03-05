@@ -1,70 +1,54 @@
 import { Style, Circle, Stroke, Fill } from 'ol/style';
 
-const railLineStyle = [
-  new Style({
-    stroke: new Stroke({
-      color: 'black',
-      lineDash: [10, 10],
-      width: 5,
-    }),
-  }),
-  new Style({
-    stroke: new Stroke({
-      color: 'red',
-      lineDash: [10, 10],
-      width: 3,
-    }),
-  }),
-];
+const lineStyler = lineStyle => {
+  return lineStyle.map(
+    style =>
+      new Style({
+        stroke: new Stroke({
+          color: style[0],
+          width: style[1],
+          lineDash: style[2],
+        }),
+      }),
+  );
+};
 
-const busLineStyle = [
-  new Style({
-    stroke: new Stroke({
-      color: 'black',
-      width: 5,
-    }),
-  }),
-  new Style({
-    stroke: new Stroke({
-      color: 'yellow',
-      width: 3,
-    }),
-  }),
-];
+const railLineStyle = lineStyler([
+  ['black', 5, [10, 10]],
+  ['red', 3, [10, 10]],
+]);
 
-const pedestrianLineStyle = [
-  new Style({
-    stroke: new Stroke({
-      color: 'rgb(173, 216, 230)',
-      width: 3,
-    }),
-  }),
-];
+const railLineHoveredStyle = lineStyler([
+  ['black', 6, [10, 10]],
+  ['red', 4, [10, 10]],
+]);
 
-const carLineStyle = [
-  new Style({
-    stroke: new Stroke({
-      color: 'black',
-      lineDash: [0.5, 10],
-      width: 5,
-    }),
-  }),
-];
+const busLineStyle = lineStyler([
+  ['black', 5],
+  ['yellow', 3],
+]);
 
-const othersLineStyle = [
-  new Style({
-    stroke: new Stroke({
-      color: 'black',
-      width: 5,
-    }),
-  }),
-  new Style({
-    stroke: new Stroke({
-      color: 'blue',
-      width: 3,
-    }),
-  }),
-];
+const busLineHoveredStyle = lineStyler([
+  ['black', 6],
+  ['yellow', 4],
+]);
+
+const pedestrianLineStyle = lineStyler([['rgb(173, 216, 230)', 3]]);
+const pedestrianLineHoveredStyle = lineStyler([['rgb(173, 216, 230)', 5]]);
+
+const carLineStyle = lineStyler([['black', 5, [0.5, 10]]]);
+
+const carLineHoveredStyle = lineStyler([['black', 6, [0.5, 10]]]);
+
+const othersLineStyle = lineStyler([
+  ['black', 5],
+  ['blue', 3],
+]);
+
+const othersLineHoveredStyle = lineStyler([
+  ['black', 6],
+  ['blue', 4],
+]);
 
 const railPointStyle = new Style({
   image: new Circle({
@@ -120,20 +104,20 @@ const pointStyleFunction = mot => {
   return othersPointStyle;
 };
 
-const lineStyleFunction = mot => {
+const lineStyleFunction = (mot, isHovered) => {
   if (mot === 'rail') {
-    return railLineStyle;
+    return isHovered ? railLineHoveredStyle : railLineStyle;
   }
   if (mot === 'bus') {
-    return busLineStyle;
+    return isHovered ? busLineHoveredStyle : busLineStyle;
   }
   if (mot === 'foot') {
-    return pedestrianLineStyle;
+    return isHovered ? pedestrianLineHoveredStyle : pedestrianLineStyle;
   }
   if (mot === 'car') {
-    return carLineStyle;
+    return isHovered ? carLineHoveredStyle : carLineStyle;
   }
-  return othersLineStyle;
+  return isHovered ? othersLineHoveredStyle : othersLineStyle;
 };
 
 export { lineStyleFunction, pointStyleFunction };

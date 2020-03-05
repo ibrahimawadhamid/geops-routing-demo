@@ -7,6 +7,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.rd-pointer {
+  cursor: pointer;
+}
+
 #root {
   position: absolute;
   width: 100%;

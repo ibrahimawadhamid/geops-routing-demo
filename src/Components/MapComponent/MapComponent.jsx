@@ -58,6 +58,7 @@ class MapComponent extends Component {
   constructor(props) {
     super(props);
     this.hoveredFeature = null;
+    this.hoveredRoute = null;
     this.state = {
       hoveredStationOpen: false,
       hoveredStationName: '',
@@ -98,6 +99,14 @@ class MapComponent extends Component {
         }
       }
       return -1;
+    };
+
+    const handleMapCursor = isHovering => {
+      if (isHovering) {
+        document.body.classList.add('rd-pointer');
+      } else {
+        document.body.classList.remove('rd-pointer');
+      }
     };
 
     translate.on('translateend', evt => {
@@ -245,11 +254,21 @@ class MapComponent extends Component {
       }
     });
     this.map.on('pointermove', evt => {
+      const { currentMot } = this.props;
+
       if (this.hoveredFeature) {
         this.hoveredFeature = null;
         this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
       }
-      this.map.forEachFeatureAtPixel(evt.pixel, feature => {
+
+      if (this.hoveredRoute) {
+        this.hoveredRoute.setStyle(lineStyleFunction(currentMot, false));
+        this.hoveredRoute = null;
+      }
+      const hovFeats = this.map.getFeaturesAtPixel(evt.pixel);
+      handleMapCursor(hovFeats.length);
+
+      hovFeats.forEach(feature => {
         if (feature.getGeometry().getType() === 'Point') {
           this.hoveredFeature = feature;
           let name = '';
@@ -265,6 +284,10 @@ class MapComponent extends Component {
             hoveredStationOpen: true,
             hoveredStationName: name,
           });
+        }
+        if (feature.getGeometry().getType() === 'LineString') {
+          this.hoveredRoute = feature;
+          feature.setStyle(lineStyleFunction(currentMot, true));
         }
         return true;
       });
