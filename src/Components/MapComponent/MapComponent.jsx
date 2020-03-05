@@ -253,9 +253,14 @@ class MapComponent extends Component {
         if (feature.getGeometry().getType() === 'Point') {
           this.hoveredFeature = feature;
           let name = '';
-          if (feature.get('name'))
-            name = `${feature.get('name')} - ${feature.get('country_code')}`;
-          else name = `${feature.get('id')[0]}, ${feature.get('id')[1]}`;
+          const featCountryCode = feature.get('country_code');
+          if (feature.get('name')) {
+            name = `${feature.get('name')}${
+              featCountryCode ? ` - ${featCountryCode}` : ''
+            }`;
+          } else {
+            name = `${to4326(feature.getGeometry().flatCoordinates)}`;
+          }
           this.setState({
             hoveredStationOpen: true,
             hoveredStationName: name,
