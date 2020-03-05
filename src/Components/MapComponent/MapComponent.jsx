@@ -243,13 +243,9 @@ class MapComponent extends Component {
     };
 
     this.map.on('singleclick', evt => {
-      const { isFieldFocused, currentStopsGeoJSON } = this.props;
+      const { isFieldFocused, currentStops } = this.props;
       // if one field empty or if a field is focused
-      if (
-        !currentStopsGeoJSON['0'] ||
-        !currentStopsGeoJSON['1'] ||
-        isFieldFocused
-      ) {
+      if (currentStops.includes('') || isFieldFocused) {
         onSetClickLocation(evt.coordinate);
       }
     });
