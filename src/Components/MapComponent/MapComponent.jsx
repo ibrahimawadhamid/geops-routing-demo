@@ -104,7 +104,7 @@ class MapComponent extends Component {
     const handleMapCursor = isHovering => {
       if (isHovering) {
         document.body.classList.add('rd-pointer');
-      } else {
+      } else if (document.body.classList.contains('rd-pointer')) {
         document.body.classList.remove('rd-pointer');
       }
     };
