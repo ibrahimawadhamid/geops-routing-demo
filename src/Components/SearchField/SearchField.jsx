@@ -25,6 +25,10 @@ const useStyles = makeStyles(() => ({
   },
   button: {
     color: 'black',
+    '& svg': {
+      height: '20px',
+      width: '20px',
+    },
   },
   fieldWrapper: {
     maxWidth: '75%',
@@ -121,7 +125,18 @@ function SearchField(props) {
       </Grid>
     );
   } else {
-    fieldLeftIcon = <Adjust fontSize="small" color="primary" />;
+    fieldLeftIcon = (
+      <Tooltip title="Pan to the feature">
+        <IconButton
+          onClick={() => onPanViaClick(singleStop, index)}
+          className={classes.button}
+          aria-label="Pan to the feature"
+          size="small"
+        >
+          <Adjust fontSize="small" color="primary" />
+        </IconButton>
+      </Tooltip>
+    );
     searchFieldSize = 9;
     searchFieldLabel = 'Hop';
     fieldRightIcon = (
