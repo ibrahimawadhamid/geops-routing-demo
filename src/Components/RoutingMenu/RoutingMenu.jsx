@@ -468,6 +468,7 @@ function RoutingMenu({
               classes={{ root: classes.selectInput }}
               labelId="rd-other-mot-label"
               value={currentOtherMot || ''}
+              disableUnderline={!currentOtherMot}
               displayEmpty
               onChange={changeCurrentOtherMot}
             >
