@@ -19,7 +19,7 @@ import {
   propTypeCurrentStops,
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
-import { WGS84_MOTS } from '../../constants';
+import { GRAPHHOPPER_MOTS } from '../../constants';
 import { to4326 } from '../../utils';
 import './MapComponent.css';
 import * as actions from '../../store/actions';
@@ -363,8 +363,11 @@ class MapComponent extends Component {
             .reverse()}`,
         );
       } else {
+        const identifier = GRAPHHOPPER_MOTS.includes(currentMot)
+          ? 'name'
+          : 'uid';
         // The item selected is a station from the stations API.
-        hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
+        hops.push(`!${currentStopsGeoJSON[key].properties[identifier]}`);
       }
     });
 
@@ -385,7 +388,7 @@ class MapComponent extends Component {
         }
         // A route was found, prepare to draw it.
         this.routeVectorSource.clear();
-        const format = WGS84_MOTS.includes(currentMot)
+        const format = GRAPHHOPPER_MOTS.includes(currentMot)
           ? new GeoJSON({
               dataProjection: 'EPSG:4326',
               featureProjection: 'EPSG:3857',

@@ -21,7 +21,12 @@ import {
   setIsFieldFocused,
 } from '../../store/actions/Map';
 import './RoutingMenu.css';
-import { VALID_MOTS, DEFAULT_MOTS, OTHER_MOTS } from '../../constants';
+import {
+  VALID_MOTS,
+  DEFAULT_MOTS,
+  OTHER_MOTS,
+  GRAPHHOPPER_MOTS,
+} from '../../constants';
 import { to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
@@ -279,8 +284,21 @@ function RoutingMenu({
    */
   const addNewSearchFieldHandler = (currStops, indexToInsertAt) => {
     const updatedCurrentStops = _.clone(currentStops);
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStops.splice(indexToInsertAt, 0, '');
+
+    if (updatedCurrentStopsGeoJSON[indexToInsertAt]) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON).reverse();
+      keys.forEach(k => {
+        if (parseInt(k, 10) >= keys.length - 1) {
+          updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+            updatedCurrentStopsGeoJSON[k];
+        }
+      });
+    }
+
     dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
   /**
@@ -290,16 +308,24 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const removeSearchFieldHandler = indexToRemoveFrom => {
-    const updatedCurrentStops = currentStops;
+    const updatedCurrentStops = _.clone(currentStops);
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStops.splice(indexToRemoveFrom, 1);
-    const updatedCurrentStopsGeoJSON = {};
-    Object.keys(currentStopsGeoJSON).forEach(key => {
-      if (key !== indexToRemoveFrom.toString()) {
-        updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
-      }
-    });
-    dispatch(setCurrentStops(updatedCurrentStops));
 
+    if (updatedCurrentStopsGeoJSON[indexToRemoveFrom]) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON);
+      keys.forEach(key => {
+        const k = parseInt(key, 10);
+        if (k === indexToRemoveFrom) {
+          delete updatedCurrentStopsGeoJSON[indexToRemoveFrom];
+        } else if (k > indexToRemoveFrom) {
+          updatedCurrentStopsGeoJSON[k - 1] = updatedCurrentStopsGeoJSON[k];
+        }
+      });
+      delete updatedCurrentStopsGeoJSON[keys.length - 1];
+    }
+
+    dispatch(setCurrentStops(updatedCurrentStops));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
@@ -328,25 +354,23 @@ function RoutingMenu({
     abortController = new AbortController();
     const { signal } = abortController;
 
-    const reqUrl = `${stationSearchUrl}?q=${
-      event.target.value
-    }&key=${APIKey}&mots=${searchMotOnly ? currentMot : ''}`;
+    const reqUrl = `${stationSearchUrl}?q=${event.target.value}&key=${APIKey}${
+      !GRAPHHOPPER_MOTS.includes(currentMot)
+        ? `&mots=${searchMotOnly ? currentMot : ''}`
+        : ''
+    }`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
       .then(response => {
-        const searchResults = [];
-        response.features.forEach(singleResult => {
-          // Search results from the API
-          if (singleResult.properties.mot[currentMot])
-            searchResults.push(singleResult);
-        });
-        if (response.features.length === 0 || searchResults.length === 0) {
-          // No results for the given query
-          // onShowNotification("Couldn't find stations", 'warning');
+        if (response.error) {
+          dispatch(showNotification("Couldn't find stations", 'warning'));
+          return;
+        }
+        if (response.features.length === 0) {
           dispatch(showNotification("Couldn't find stations", 'warning'));
         }
-        setCurrentSearchResults(searchResults);
+        setCurrentSearchResults(response.features);
         setShowLoadingBar(false);
       })
       .catch(err => {
