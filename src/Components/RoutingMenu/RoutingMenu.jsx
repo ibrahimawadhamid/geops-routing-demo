@@ -278,7 +278,7 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const addNewSearchFieldHandler = indexToInsertAt => {
-    const updatedCurrentStops = currentStops;
+    const updatedCurrentStops = _.clone(currentStops);
     updatedCurrentStops.splice(indexToInsertAt, 0, '');
     dispatch(setCurrentStops(updatedCurrentStops));
   };
