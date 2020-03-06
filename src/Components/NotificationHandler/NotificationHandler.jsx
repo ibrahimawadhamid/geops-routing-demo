@@ -3,6 +3,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import { connect } from 'react-redux';
 import Alert from '@material-ui/lab/Alert';
 import PropTypes from 'prop-types';
+import { showNotification } from '../../store/actions';
 
 /**
  * The notification handler props
@@ -59,9 +60,11 @@ class NotificationHandler extends React.Component {
    * @category NotificationHandler
    */
   handleClose = () => {
+    const { onShowNotification } = this.props;
     this.setState({
       open: false,
     });
+    onShowNotification(null, 'error');
   };
 
   /**
@@ -94,6 +97,13 @@ class NotificationHandler extends React.Component {
   }
 }
 
+const mapDispatchToProps = dispatch => {
+  return {
+    onShowNotification: (notificationMessage, notificationType) =>
+      dispatch(showNotification(notificationMessage, notificationType)),
+  };
+};
+
 const mapStateToProps = state => {
   return {
     notificationMessage: state.MapReducer.notificationMessage,
@@ -102,8 +112,12 @@ const mapStateToProps = state => {
 };
 
 NotificationHandler.propTypes = {
+  onShowNotification: PropTypes.func.isRequired,
   notificationMessage: PropTypes.string.isRequired,
   notificationType: PropTypes.string.isRequired,
 };
 
-export default connect(mapStateToProps)(NotificationHandler);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(NotificationHandler);
