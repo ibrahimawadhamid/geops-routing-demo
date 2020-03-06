@@ -349,10 +349,10 @@ class MapComponent extends Component {
             .slice()
             .reverse()}`,
         );
+      } else if (currentMot === 'rail') {
+        hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
       } else {
-        const identifier = currentMot !== 'rail' ? 'name' : 'uid';
-        // The item selected is a station from the stations API.
-        hops.push(`!${currentStopsGeoJSON[key].properties[identifier]}`);
+        hops.push(`${currentStopsGeoJSON[key].properties.name}`);
       }
     });
 
