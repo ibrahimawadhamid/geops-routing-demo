@@ -350,9 +350,7 @@ class MapComponent extends Component {
             .reverse()}`,
         );
       } else {
-        const identifier = GRAPHHOPPER_MOTS.includes(currentMot)
-          ? 'name'
-          : 'uid';
+        const identifier = currentMot !== 'rail' ? 'name' : 'uid';
         // The item selected is a station from the stations API.
         hops.push(`!${currentStopsGeoJSON[key].properties[identifier]}`);
       }
