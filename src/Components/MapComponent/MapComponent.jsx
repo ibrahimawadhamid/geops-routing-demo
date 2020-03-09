@@ -424,7 +424,7 @@ class MapComponent extends Component {
           open={hoveredStationOpen}
           message={hoveredStationName}
         />
-        <div id="map" className="MapComponent" />
+        <div id="map" className="rd-map-comp" />
       </>
     );
   }
