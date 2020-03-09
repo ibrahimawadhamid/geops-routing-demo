@@ -192,6 +192,7 @@ class MapComponent extends Component {
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       let newHopIdx = -1;
 
+      // No drag for foot/car for now on.
       if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
         const flatCoords = features
           .map(f => f.getGeometry().getFlatCoordinates())
@@ -379,7 +380,7 @@ class MapComponent extends Component {
       }
 
       if (this.hoveredRoute) {
-        this.hoveredRoute.setStyle(lineStyleFunction(currentMot, false));
+        this.routeVectorLayer.setStyle(lineStyleFunction(currentMot, false));
         this.hoveredRoute = null;
       }
       const hovFeats = this.map.getFeaturesAtPixel(evt.pixel);
@@ -404,7 +405,7 @@ class MapComponent extends Component {
         }
         if (feature.getGeometry().getType() === 'LineString') {
           this.hoveredRoute = feature;
-          feature.setStyle(lineStyleFunction(currentMot, true));
+          this.routeVectorLayer.setStyle(lineStyleFunction(currentMot, true));
         }
         return true;
       });
@@ -503,9 +504,7 @@ class MapComponent extends Component {
         this.routeVectorSource.addFeatures(format.readFeatures(response));
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
 
-        this.routeVectorSource
-          .getFeatures()
-          .forEach(f => f.setStyle(lineStyleFunction(currentMot)));
+        this.routeVectorLayer.setStyle(lineStyleFunction(currentMot, false));
       })
       .catch(err => {
         if (err.name === 'AbortError') {
