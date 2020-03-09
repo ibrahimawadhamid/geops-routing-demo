@@ -7,7 +7,11 @@ import mapboxgl from 'mapbox-gl';
 import _ from 'lodash/core';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
-import { defaults as defaultInteractions, Translate } from 'ol/interaction';
+import {
+  defaults as defaultInteractions,
+  Translate,
+  Modify,
+} from 'ol/interaction';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import RoutingMenu from '../RoutingMenu';
@@ -39,6 +43,15 @@ import * as actions from '../../store/actions';
 
 let abortController = new AbortController();
 
+const isItemInArray = (array, item) => {
+  for (let i = 0; i < array.length; i += 1) {
+    if (array[i][0] === item[0] && array[i][1] === item[1]) {
+      return i;
+    }
+  }
+  return -1;
+};
+
 /**
  * The only true map that shows inside the application.
  * @category Map
@@ -50,6 +63,13 @@ class MapComponent extends Component {
     return [X, Y];
   };
 
+  static indexInGeom = (lineGeom, point) => {
+    const firstBreakIdx = lineGeom.indexOf(point[0]);
+    const secondBreakIdx = lineGeom.indexOf(point[1]);
+
+    return firstBreakIdx === secondBreakIdx - 1;
+  };
+
   /**
    * Default constructor, gets called automatically upon initialization.
    * @param {...MapComponentProps} props Props received so that the component can function properly.
@@ -59,6 +79,7 @@ class MapComponent extends Component {
     super(props);
     this.hoveredFeature = null;
     this.hoveredRoute = null;
+    this.initialRouteDrag = null;
     this.state = {
       hoveredStationOpen: false,
       hoveredStationName: '',
@@ -82,24 +103,13 @@ class MapComponent extends Component {
       source: this.markerVectorSource,
     });
     // Define route vectorLayer.
-    this.routeVectorSource = new VectorSource({});
+    this.routeVectorSource = new VectorSource({
+      features: [],
+    });
     this.routeVectorLayer = new VectorLayer({
       zIndex: 0,
       source: this.routeVectorSource,
     });
-
-    const translate = new Translate({
-      layers: [this.markerVectorLayer],
-    });
-
-    const isItemInArray = (array, item) => {
-      for (let i = 0; i < array.length; i += 1) {
-        if (array[i][0] === item[0] && array[i][1] === item[1]) {
-          return i;
-        }
-      }
-      return -1;
-    };
 
     const handleMapCursor = isHovering => {
       if (isHovering) {
@@ -108,6 +118,11 @@ class MapComponent extends Component {
         document.body.classList.remove('rd-pointer');
       }
     };
+
+    const translate = new Translate({
+      layers: [this.markerVectorLayer],
+      hitTolerance: 3,
+    });
 
     translate.on('translateend', evt => {
       const {
@@ -147,9 +162,115 @@ class MapComponent extends Component {
       onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
     });
 
+    const modify = new Modify({
+      source: this.routeVectorSource,
+      pixelTolerance: 2,
+      style: () => {
+        const { currentMot } = this.props;
+        return pointStyleFunction(currentMot);
+      },
+    });
+
+    modify.on('modifystart', evt => {
+      // save start point to find where to add the new HOP!
+      this.initialRouteDrag = {
+        features: evt.features.getArray(),
+        coordinate: evt.mapBrowserEvent.coordinate,
+      };
+    });
+
+    modify.on('modifyend', evt => {
+      const { features } = this.initialRouteDrag;
+      const {
+        currentMot,
+        currentStops,
+        currentStopsGeoJSON,
+        onSetCurrentStops,
+        onSetCurrentStopsGeoJSON,
+      } = this.props;
+      const updatedCurrentStops = _.clone(currentStops);
+      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+      let newHopIdx = -1;
+
+      if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
+        const flatCoords = features
+          .map(f => f.getGeometry().getFlatCoordinates())
+          .map(coords => {
+            return [
+              coords[0],
+              coords[1],
+              coords[coords.length - 2],
+              coords[coords.length - 1],
+            ];
+          });
+
+        const closestSegment = this.routeVectorSource
+          .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
+          .getGeometry()
+          .getFlatCoordinates();
+        const closestEdges = [
+          closestSegment[0],
+          closestSegment[1],
+          closestSegment[closestSegment.length - 2],
+          closestSegment[closestSegment.length - 1],
+        ];
+
+        flatCoords.forEach((segment, idx) => {
+          if (
+            segment.length === closestEdges.length &&
+            segment.sort().every((value, index) => {
+              return value === closestEdges.sort()[index];
+            })
+          ) {
+            newHopIdx = idx + 1;
+          }
+        });
+      }
+
+      if (newHopIdx >= 0) {
+        updatedCurrentStops.splice(
+          newHopIdx,
+          0,
+          evt.mapBrowserEvent.coordinate,
+        );
+
+        if (updatedCurrentStopsGeoJSON[newHopIdx]) {
+          const keys = Object.keys(updatedCurrentStopsGeoJSON).reverse();
+          keys.forEach(k => {
+            if (parseInt(k, 10) >= newHopIdx) {
+              updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+                updatedCurrentStopsGeoJSON[k];
+            }
+            if (parseInt(k, 10) === newHopIdx) {
+              updatedCurrentStopsGeoJSON[newHopIdx] = {
+                type: 'FeatureCollection',
+                features: [
+                  {
+                    type: 'Feature',
+                    properties: {
+                      id: evt.mapBrowserEvent.coordinate.slice().reverse(),
+                      type: 'coordinates',
+                    },
+                    geometry: {
+                      type: 'Point',
+                      coordinates: evt.mapBrowserEvent.coordinate,
+                    },
+                  },
+                ],
+              };
+            }
+          });
+        }
+
+        onSetCurrentStops(updatedCurrentStops);
+        onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      }
+      this.initialRouteDrag = null;
+    });
+
     this.map = new Map({
       target: 'map',
-      interactions: defaultInteractions().extend([translate]),
+      interactions: defaultInteractions().extend([translate, modify]),
       view: new View({
         projection: 'EPSG:3857',
         center,
