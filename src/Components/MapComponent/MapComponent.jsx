@@ -349,7 +349,7 @@ class MapComponent extends Component {
             .slice()
             .reverse()}`,
         );
-      } else if (currentMot === 'rail') {
+      } else if (currentMot === 'rail' || currentMot === 'bus') {
         hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
       } else {
         hops.push(`${currentStopsGeoJSON[key].properties.name}`);
