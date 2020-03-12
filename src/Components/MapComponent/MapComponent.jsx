@@ -195,25 +195,21 @@ class MapComponent extends Component {
       // No drag for foot/car for now on.
       if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
         const flatCoords = features
-          .map(f => f.getGeometry().getFlatCoordinates())
-          .map(coords => {
+          .map(f => f.getGeometry())
+          .map(lineString => {
             return [
-              coords[0],
-              coords[1],
-              coords[coords.length - 2],
-              coords[coords.length - 1],
+              ...lineString.getFirstCoordinate(),
+              ...lineString.getLastCoordinate(),
             ];
           });
 
         const closestSegment = this.routeVectorSource
           .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
-          .getGeometry()
-          .getFlatCoordinates();
+          .getGeometry();
+
         const closestEdges = [
-          closestSegment[0],
-          closestSegment[1],
-          closestSegment[closestSegment.length - 2],
-          closestSegment[closestSegment.length - 1],
+          ...closestSegment.getFirstCoordinate(),
+          ...closestSegment.getLastCoordinate(),
         ];
 
         flatCoords.forEach((segment, idx) => {
