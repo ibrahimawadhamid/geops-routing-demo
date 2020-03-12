@@ -14,13 +14,13 @@ const lineStyler = lineStyle => {
 };
 
 const railLineStyle = lineStyler([
-  ['darkred', 6, [10, 10]],
-  ['red', 3, [10, 10]],
+  ['darkred', 6],
+  ['red', 3],
 ]);
 
 const railLineHoveredStyle = lineStyler([
-  ['darkred', 7, [10, 10]],
-  ['red', 4, [10, 10]],
+  ['darkred', 7],
+  ['red', 4],
 ]);
 
 const busLineStyle = lineStyler([
@@ -43,9 +43,9 @@ const pedestrianLineHoveredStyle = lineStyler([
   ['rgb(173, 216, 230)', 4],
 ]);
 
-const carLineStyle = lineStyler([['black', 5, [0.5, 10]]]);
+const carLineStyle = lineStyler([['black', 5]]);
 
-const carLineHoveredStyle = lineStyler([['black', 6, [0.5, 10]]]);
+const carLineHoveredStyle = lineStyler([['black', 6]]);
 
 const othersLineStyle = lineStyler([
   ['darkblue', 6],
