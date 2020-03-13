@@ -43,9 +43,15 @@ const pedestrianLineHoveredStyle = lineStyler([
   ['rgb(173, 216, 230)', 4],
 ]);
 
-const carLineStyle = lineStyler([['black', 5]]);
+const carLineStyle = lineStyler([
+  ['grey', 6],
+  ['darkgrey', 3],
+]);
 
-const carLineHoveredStyle = lineStyler([['black', 6]]);
+const carLineHoveredStyle = lineStyler([
+  ['grey', 7],
+  ['darkgrey', 4],
+]);
 
 const othersLineStyle = lineStyler([
   ['darkblue', 6],
@@ -76,7 +82,8 @@ const pedestrianPointStyle = new Style({
 const carPointStyle = new Style({
   image: new Circle({
     radius: 3,
-    fill: new Fill({ color: 'black' }),
+    fill: new Fill({ color: 'darkgrey' }),
+    stroke: new Stroke({ color: 'grey', width: 2 }),
   }),
 });
 
