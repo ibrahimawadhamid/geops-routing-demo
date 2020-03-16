@@ -213,8 +213,8 @@ class MapComponent extends Component {
         flatCoords.forEach((segment, idx) => {
           if (
             segment.length === closestEdges.length &&
-            segment.sort().every((value, index) => {
-              return value === closestEdges.sort()[index];
+            segment.every((value, index) => {
+              return value === closestEdges[index];
             })
           ) {
             newHopIdx = idx + 1;
