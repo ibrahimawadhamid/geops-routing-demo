@@ -43,15 +43,6 @@ import * as actions from '../../store/actions';
 
 let abortController = new AbortController();
 
-const isItemInArray = (array, item) => {
-  for (let i = 0; i < array.length; i += 1) {
-    if (array[i][0] === item[0] && array[i][1] === item[1]) {
-      return i;
-    }
-  }
-  return -1;
-};
-
 /**
  * The only true map that shows inside the application.
  * @category Map
@@ -139,7 +130,14 @@ class MapComponent extends Component {
       if (name) {
         featureIndex = currentStops.indexOf(name);
       } else {
-        featureIndex = isItemInArray(currentStops, id.slice().reverse());
+        const isCoordPresent = el => {
+          if (!Array.isArray(el)) {
+            return false;
+          }
+          const coords = id.slice().reverse();
+          return el[0] === coords[0] && el[1] === coords[1];
+        };
+        featureIndex = currentStops.findIndex(isCoordPresent);
       }
       newCurrentStops[featureIndex] = evt.coordinate;
       newCurentStopsGeoJSON[featureIndex] = {
