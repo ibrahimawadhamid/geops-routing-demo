@@ -141,9 +141,17 @@ function RoutingMenu({
     state => state.MapReducer.currentStopsGeoJSON,
   );
 
+  const elRefs = React.useRef([]);
+  if (elRefs.current.length !== currentStops.length) {
+    elRefs.current = Array(currentStops.length)
+      .fill()
+      .map((el, i) => elRefs.current[i] || React.createRef());
+  }
+
   const [currentMots] = useState(currentMotsVal);
   const [currentMot, setCurrentMotState] = useState(currentMotsVal[0].name);
   const [otherMots] = useState(otherMotsVal);
+  const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
   const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
@@ -336,6 +344,7 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const searchStopsHandler = (event, fieldIndex) => {
+    setLastChangedFieldIdx(fieldIndex);
     // only search if text is available
     if (!event.target.value) {
       const updatedCurrentStops = currentStops;
@@ -383,6 +392,20 @@ function RoutingMenu({
         // For example, any error thrown by setState(), will pass through here.
         throw err;
       });
+  };
+
+  const retriggerSearch = () => {
+    if (lastChangedFieldIdx === null) {
+      return;
+    }
+    searchStopsHandler(
+      {
+        target: {
+          value: elRefs.current[lastChangedFieldIdx].current.value,
+        },
+      },
+      lastChangedFieldIdx,
+    );
   };
 
   /**
@@ -513,6 +536,7 @@ function RoutingMenu({
                 // eslint-disable-next-line react/no-array-index-key
                 key={`searchField-${index}`}
                 index={index}
+                inputReference={elRefs.current[index]}
                 addNewSearchFieldHandler={addNewSearchFieldHandler}
                 currentStops={currentStops}
                 removeSearchFieldHandler={removeSearchFieldHandler}
@@ -532,7 +556,10 @@ function RoutingMenu({
             <Checkbox
               className={classes.checkbox}
               checked={searchMotOnly}
-              onChange={() => setSearchMotOnly(!searchMotOnly)}
+              onChange={() => {
+                setSearchMotOnly(!searchMotOnly);
+                retriggerSearch(lastChangedFieldIdx);
+              }}
               color="primary"
               inputProps={{ 'aria-label': 'use only mot' }}
             />

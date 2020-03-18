@@ -57,6 +57,7 @@ function SearchField(props) {
     onZoomRouteClick,
     isActiveRoute,
     onPanViaClick,
+    inputReference,
   } = props;
   let fieldLeftIcon = null;
   let searchFieldSize = 10;
@@ -187,6 +188,7 @@ function SearchField(props) {
           style={{
             width: '100%',
           }}
+          inputRef={inputReference}
           label={searchFieldLabel}
           color="primary"
           onChange={e => searchStopsHandler(e, index)}
@@ -228,6 +230,10 @@ SearchField.propTypes = {
   onZoomRouteClick: PropTypes.func.isRequired,
   onPanViaClick: PropTypes.func.isRequired,
   isActiveRoute: PropTypes.bool.isRequired,
+  inputReference: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.instanceOf(Element) }),
+  ]).isRequired,
 };
 
 SearchField.defaultProps = {
