@@ -10,6 +10,7 @@ import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
 import _ from 'lodash/core';
@@ -296,12 +297,12 @@ function RoutingMenu({
     updatedCurrentStops.splice(indexToInsertAt, 0, '');
 
     if (updatedCurrentStopsGeoJSON[indexToInsertAt]) {
-      const keys = Object.keys(updatedCurrentStopsGeoJSON).reverse();
+      const keys = Object.keys(updatedCurrentStopsGeoJSON)
+        .filter(k => k >= indexToInsertAt)
+        .reverse();
       keys.forEach(k => {
-        if (parseInt(k, 10) >= keys.length - 1) {
-          updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
-            updatedCurrentStopsGeoJSON[k];
-        }
+        updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+          updatedCurrentStopsGeoJSON[k];
       });
     }
 
@@ -474,6 +475,59 @@ function RoutingMenu({
     }
   };
 
+  const getItemStyle = (isDragging, draggableStyle) => ({
+    userSelect: 'none',
+    background: isDragging ? '#ededed' : 'white',
+    ...draggableStyle,
+  });
+
+  const onDragEnd = result => {
+    // dropped outside the list
+    if (!result.destination) {
+      return;
+    }
+
+    const updatedCurrentStops = _.clone(currentStops);
+    const [removed] = updatedCurrentStops.splice(result.source.index, 1);
+    updatedCurrentStops.splice(result.destination.index, 0, removed);
+
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+
+    const newSource = { ...updatedCurrentStopsGeoJSON[result.source.index] };
+    if (result.destination.index < result.source.index) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON)
+        .filter(k => {
+          return (
+            parseInt(k, 10) >= result.destination.index &&
+            parseInt(k, 10) < result.source.index
+          );
+        })
+        .reverse();
+      keys.forEach(k => {
+        updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+          updatedCurrentStopsGeoJSON[k];
+      });
+      updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
+    } else if (result.destination.index > result.source.index) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON).filter(
+        k =>
+          parseInt(k, 10) >= result.source.index &&
+          parseInt(k, 10) <= result.destination.index,
+      );
+      keys.forEach(k => {
+        if (parseInt(k, 10) === result.destination.index) {
+          updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
+        } else {
+          updatedCurrentStopsGeoJSON[k] =
+            updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`];
+        }
+      });
+    }
+
+    dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+  };
+
   /**
    * Render the component to the dom.
    * @category RoutingMenu
@@ -530,28 +584,63 @@ function RoutingMenu({
           </FormControl>
         </div>
         <TabPanel>
-          {currentStops.map((singleStop, index) => {
-            return (
-              <SearchField
-                // eslint-disable-next-line react/no-array-index-key
-                key={`searchField-${index}`}
-                index={index}
-                inputReference={elRefs.current[index]}
-                addNewSearchFieldHandler={addNewSearchFieldHandler}
-                currentStops={currentStops}
-                removeSearchFieldHandler={removeSearchFieldHandler}
-                searchStopsHandler={searchStopsHandler}
-                singleStop={singleStop}
-                processHighlightedResultSelectHandler={
-                  processHighlightedResultSelectHandler
-                }
-                onFieldFocusHandler={onFieldFocusHandler}
-                onZoomRouteClick={onZoomRouteClick}
-                onPanViaClick={onPanViaClick}
-                isActiveRoute={isActiveRoute}
-              />
-            );
-          })}
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="droppable">
+              {provided => (
+                <div
+                  // eslint-disable-next-line react/jsx-props-no-spreading
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  style={{
+                    background: 'white',
+                  }}
+                >
+                  {currentStops.map((item, index) => (
+                    <Draggable
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={`searchField-${index}`}
+                      draggableId={`searchField-${index}`}
+                      index={index}
+                    >
+                      {(prov, snpsht) => (
+                        <div
+                          ref={prov.innerRef}
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...prov.draggableProps}
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...prov.dragHandleProps}
+                          style={getItemStyle(
+                            snpsht.isDragging,
+                            prov.draggableProps.style,
+                          )}
+                        >
+                          <SearchField
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`searchField-${index}`}
+                            index={index}
+                            inputReference={elRefs.current[index]}
+                            addNewSearchFieldHandler={addNewSearchFieldHandler}
+                            currentStops={currentStops}
+                            removeSearchFieldHandler={removeSearchFieldHandler}
+                            searchStopsHandler={searchStopsHandler}
+                            singleStop={item}
+                            processHighlightedResultSelectHandler={
+                              processHighlightedResultSelectHandler
+                            }
+                            onFieldFocusHandler={onFieldFocusHandler}
+                            onZoomRouteClick={onZoomRouteClick}
+                            onPanViaClick={onPanViaClick}
+                            isActiveRoute={isActiveRoute}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
           <div className="rd-mot-checkbox">
             <Checkbox
               className={classes.checkbox}
