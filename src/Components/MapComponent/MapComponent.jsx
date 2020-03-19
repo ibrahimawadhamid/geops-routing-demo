@@ -163,6 +163,10 @@ class MapComponent extends Component {
     const modify = new Modify({
       source: this.routeVectorSource,
       pixelTolerance: 2,
+      condition: () => {
+        const { currentMot } = this.props;
+        return !GRAPHHOPPER_MOTS.includes(currentMot);
+      },
       style: () => {
         const { currentMot } = this.props;
         return pointStyleFunction(currentMot);
