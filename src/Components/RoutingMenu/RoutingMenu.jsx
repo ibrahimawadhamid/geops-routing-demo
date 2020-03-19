@@ -20,6 +20,7 @@ import {
   setCurrentMot,
   showNotification,
   setIsFieldFocused,
+  setShowLoadingBar,
 } from '../../store/actions/Map';
 import './RoutingMenu.css';
 import {
@@ -138,6 +139,7 @@ function RoutingMenu({
 
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
+  const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
   );
@@ -156,7 +158,6 @@ function RoutingMenu({
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
   const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
-  const [showLoadingBar, setShowLoadingBar] = useState(false);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
   useEffect(() => {
@@ -352,13 +353,13 @@ function RoutingMenu({
       updatedCurrentStops[fieldIndex] = '';
       setCurrentSearchResults([]);
       dispatch(setCurrentStops(updatedCurrentStops));
-      setShowLoadingBar(false);
+      dispatch(setShowLoadingBar(false));
       return;
     }
     const updatedCurrentStops = _.clone(currentStops);
     updatedCurrentStops[fieldIndex] = event.target.value;
     dispatch(setCurrentStops(updatedCurrentStops));
-    setShowLoadingBar(true);
+    dispatch(setShowLoadingBar(true));
 
     abortController.abort();
     abortController = new AbortController();
@@ -381,7 +382,7 @@ function RoutingMenu({
           dispatch(showNotification("Couldn't find stations", 'warning'));
         }
         setCurrentSearchResults(response.features);
-        setShowLoadingBar(false);
+        dispatch(setShowLoadingBar(false));
       })
       .catch(err => {
         if (err.name === 'AbortError') {

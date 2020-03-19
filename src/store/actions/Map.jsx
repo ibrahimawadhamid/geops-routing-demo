@@ -42,3 +42,10 @@ export const setIsFieldFocused = isFieldFocused => {
     isFieldFocused,
   };
 };
+
+export const setShowLoadingBar = showLoadingBar => {
+  return {
+    type: actionTypes.SET_SHOW_LOADING_BAR,
+    showLoadingBar,
+  };
+};

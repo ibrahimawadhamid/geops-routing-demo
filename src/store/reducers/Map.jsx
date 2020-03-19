@@ -8,6 +8,7 @@ const initialState = {
   notificationMessage: '',
   notificationType: 'info',
   isFieldFocused: false,
+  showLoadingBar: false,
 };
 
 const setCurrentStops = (state, action) => {
@@ -71,6 +72,16 @@ const setIsFieldFocused = (state, action) => {
   };
 };
 
+const setShowLoadingBar = (state, action) => {
+  const updatedState = {
+    showLoadingBar: action.showLoadingBar,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CURRENT_STOPS:
@@ -85,6 +96,8 @@ const reducer = (state = initialState, action) => {
       return showNotification(state, action);
     case actionTypes.SET_IS_FIELD_FOCUSED:
       return setIsFieldFocused(state, action);
+    case actionTypes.SET_SHOW_LOADING_BAR:
+      return setShowLoadingBar(state, action);
     default:
       return state;
   }

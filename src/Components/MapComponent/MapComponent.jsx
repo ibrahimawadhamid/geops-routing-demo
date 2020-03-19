@@ -340,7 +340,11 @@ class MapComponent extends Component {
       currentMot,
       APIKey,
       onShowNotification,
+      onSetShowLoadingBar,
     } = this.props;
+
+    onSetShowLoadingBar(true);
+
     Object.keys(currentStopsGeoJSON).forEach(key => {
       if (currentStopsGeoJSON[key].features) {
         // If the current item is a point selected on the map, not a station.
@@ -367,6 +371,7 @@ class MapComponent extends Component {
     fetch(reqUrl, { signal })
       .then(response => response.json())
       .then(response => {
+        onSetShowLoadingBar(false);
         if (response.error) {
           onShowNotification("Couldn't find route", 'error');
           return;
@@ -449,6 +454,8 @@ const mapDispatchToProps = dispatch => {
       dispatch(actions.setClickLocation(clickLocation)),
     onShowNotification: (notificationMessage, notificationType) =>
       dispatch(actions.showNotification(notificationMessage, notificationType)),
+    onSetShowLoadingBar: showLoadcingBar =>
+      dispatch(actions.setShowLoadingBar(showLoadcingBar)),
   };
 };
 
@@ -458,6 +465,7 @@ MapComponent.propTypes = {
   stationSearchUrl: PropTypes.string.isRequired,
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
+  onSetShowLoadingBar: PropTypes.func.isRequired,
   onSetCurrentStops: PropTypes.func.isRequired,
   onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
   currentStops: propTypeCurrentStops.isRequired,

@@ -12,6 +12,7 @@ describe('map reducer', () => {
       notificationMessage: '',
       notificationType: 'info',
       isFieldFocused: false,
+      showLoadingBar: false,
     });
   });
 
