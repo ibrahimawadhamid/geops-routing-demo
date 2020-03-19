@@ -7,7 +7,11 @@ import mapboxgl from 'mapbox-gl';
 import _ from 'lodash/core';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
-import { defaults as defaultInteractions, Translate } from 'ol/interaction';
+import {
+  defaults as defaultInteractions,
+  Translate,
+  Modify,
+} from 'ol/interaction';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import RoutingMenu from '../RoutingMenu';
@@ -50,6 +54,13 @@ class MapComponent extends Component {
     return [X, Y];
   };
 
+  static indexInGeom = (lineGeom, point) => {
+    const firstBreakIdx = lineGeom.indexOf(point[0]);
+    const secondBreakIdx = lineGeom.indexOf(point[1]);
+
+    return firstBreakIdx === secondBreakIdx - 1;
+  };
+
   /**
    * Default constructor, gets called automatically upon initialization.
    * @param {...MapComponentProps} props Props received so that the component can function properly.
@@ -59,6 +70,7 @@ class MapComponent extends Component {
     super(props);
     this.hoveredFeature = null;
     this.hoveredRoute = null;
+    this.initialRouteDrag = null;
     this.state = {
       hoveredStationOpen: false,
       hoveredStationName: '',
@@ -82,24 +94,13 @@ class MapComponent extends Component {
       source: this.markerVectorSource,
     });
     // Define route vectorLayer.
-    this.routeVectorSource = new VectorSource({});
+    this.routeVectorSource = new VectorSource({
+      features: [],
+    });
     this.routeVectorLayer = new VectorLayer({
       zIndex: 0,
       source: this.routeVectorSource,
     });
-
-    const translate = new Translate({
-      layers: [this.markerVectorLayer],
-    });
-
-    const isItemInArray = (array, item) => {
-      for (let i = 0; i < array.length; i += 1) {
-        if (array[i][0] === item[0] && array[i][1] === item[1]) {
-          return i;
-        }
-      }
-      return -1;
-    };
 
     const handleMapCursor = isHovering => {
       if (isHovering) {
@@ -108,6 +109,11 @@ class MapComponent extends Component {
         document.body.classList.remove('rd-pointer');
       }
     };
+
+    const translate = new Translate({
+      layers: [this.markerVectorLayer],
+      hitTolerance: 3,
+    });
 
     translate.on('translateend', evt => {
       const {
@@ -124,7 +130,14 @@ class MapComponent extends Component {
       if (name) {
         featureIndex = currentStops.indexOf(name);
       } else {
-        featureIndex = isItemInArray(currentStops, id.slice().reverse());
+        const isCoordPresent = el => {
+          if (!Array.isArray(el)) {
+            return false;
+          }
+          const coords = id.slice().reverse();
+          return el[0] === coords[0] && el[1] === coords[1];
+        };
+        featureIndex = currentStops.findIndex(isCoordPresent);
       }
       newCurrentStops[featureIndex] = evt.coordinate;
       newCurentStopsGeoJSON[featureIndex] = {
@@ -147,9 +160,112 @@ class MapComponent extends Component {
       onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
     });
 
+    const modify = new Modify({
+      source: this.routeVectorSource,
+      pixelTolerance: 2,
+      style: () => {
+        const { currentMot } = this.props;
+        return pointStyleFunction(currentMot);
+      },
+    });
+
+    modify.on('modifystart', evt => {
+      // save start point to find where to add the new HOP!
+      this.initialRouteDrag = {
+        features: evt.features.getArray(),
+        coordinate: evt.mapBrowserEvent.coordinate,
+      };
+    });
+
+    modify.on('modifyend', evt => {
+      const { features } = this.initialRouteDrag;
+      const {
+        currentMot,
+        currentStops,
+        currentStopsGeoJSON,
+        onSetCurrentStops,
+        onSetCurrentStopsGeoJSON,
+      } = this.props;
+      const updatedCurrentStops = _.clone(currentStops);
+      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+      let newHopIdx = -1;
+
+      // No drag for foot/car for now on.
+      if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
+        const flatCoords = features
+          .map(f => f.getGeometry())
+          .map(lineString => {
+            return [
+              ...lineString.getFirstCoordinate(),
+              ...lineString.getLastCoordinate(),
+            ];
+          });
+
+        const closestSegment = this.routeVectorSource
+          .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
+          .getGeometry();
+
+        const closestEdges = [
+          ...closestSegment.getFirstCoordinate(),
+          ...closestSegment.getLastCoordinate(),
+        ];
+
+        flatCoords.forEach((segment, idx) => {
+          if (
+            segment.length === closestEdges.length &&
+            segment.every((value, index) => {
+              return value === closestEdges[index];
+            })
+          ) {
+            newHopIdx = idx + 1;
+          }
+        });
+      }
+
+      if (newHopIdx >= 0) {
+        updatedCurrentStops.splice(
+          newHopIdx,
+          0,
+          evt.mapBrowserEvent.coordinate,
+        );
+
+        if (updatedCurrentStopsGeoJSON[newHopIdx]) {
+          const keys = Object.keys(updatedCurrentStopsGeoJSON).reverse();
+          keys.forEach(k => {
+            if (parseInt(k, 10) >= newHopIdx) {
+              updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+                updatedCurrentStopsGeoJSON[k];
+            }
+            if (parseInt(k, 10) === newHopIdx) {
+              updatedCurrentStopsGeoJSON[newHopIdx] = {
+                type: 'FeatureCollection',
+                features: [
+                  {
+                    type: 'Feature',
+                    properties: {
+                      id: evt.mapBrowserEvent.coordinate.slice().reverse(),
+                      type: 'coordinates',
+                    },
+                    geometry: {
+                      type: 'Point',
+                      coordinates: evt.mapBrowserEvent.coordinate,
+                    },
+                  },
+                ],
+              };
+            }
+          });
+        }
+
+        onSetCurrentStops(updatedCurrentStops);
+        onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      }
+      this.initialRouteDrag = null;
+    });
+
     this.map = new Map({
       target: 'map',
-      interactions: defaultInteractions().extend([translate]),
+      interactions: defaultInteractions().extend([translate, modify]),
       view: new View({
         projection: 'EPSG:3857',
         center,
@@ -258,7 +374,7 @@ class MapComponent extends Component {
       }
 
       if (this.hoveredRoute) {
-        this.hoveredRoute.setStyle(lineStyleFunction(currentMot, false));
+        this.routeVectorLayer.setStyle(lineStyleFunction(currentMot, false));
         this.hoveredRoute = null;
       }
       const hovFeats = this.map.getFeaturesAtPixel(evt.pixel);
@@ -283,7 +399,7 @@ class MapComponent extends Component {
         }
         if (feature.getGeometry().getType() === 'LineString') {
           this.hoveredRoute = feature;
-          feature.setStyle(lineStyleFunction(currentMot, true));
+          this.routeVectorLayer.setStyle(lineStyleFunction(currentMot, true));
         }
         return true;
       });
@@ -382,9 +498,7 @@ class MapComponent extends Component {
         this.routeVectorSource.addFeatures(format.readFeatures(response));
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
 
-        this.routeVectorSource
-          .getFeatures()
-          .forEach(f => f.setStyle(lineStyleFunction(currentMot)));
+        this.routeVectorLayer.setStyle(lineStyleFunction(currentMot, false));
       })
       .catch(err => {
         if (err.name === 'AbortError') {
