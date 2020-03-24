@@ -5,4 +5,5 @@ export {
   setClickLocation,
   showNotification,
   setIsFieldFocused,
+  setShowLoadingBar,
 } from './Map';
