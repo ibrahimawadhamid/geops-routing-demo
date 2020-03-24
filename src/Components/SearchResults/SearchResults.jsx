@@ -8,14 +8,24 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import MapMarkerIcon from '@material-ui/icons/LocationOn';
 
-const renderSecondary = (code, countryCode) => {
-  if (code && countryCode) {
-    return `${code} - ${countryCode}`;
+const renderSecondary = (id, code, countryCode, ifopt) => {
+  const display = [];
+
+  if (countryCode) {
+    display.push(
+      `${countryCode}${id || code ? ':' : ''}${id ? ` ${id}` : ''}${
+        code ? ` ${code}` : ''
+      }`,
+    );
+  } else {
+    display.push(
+      `${id ? `${id}` : ''}${id && code ? ' ' : ''}${code ? `${code}` : ''}`,
+    );
   }
-  if (code || countryCode) {
-    return code || countryCode;
+  if (ifopt) {
+    display.push(`ifopt: ${ifopt}`);
   }
-  return null;
+  return display.join(',');
 };
 
 /**
@@ -46,8 +56,10 @@ function SearchResults(props) {
                 <ListItemText
                   primary={searchResult.properties.name}
                   secondary={renderSecondary(
+                    searchResult.properties.id,
                     searchResult.properties.code,
                     searchResult.properties.country_code,
+                    searchResult.properties.ifopt,
                   )}
                 />
               </ListItem>
