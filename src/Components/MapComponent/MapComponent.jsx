@@ -454,8 +454,8 @@ const mapDispatchToProps = dispatch => {
       dispatch(actions.setClickLocation(clickLocation)),
     onShowNotification: (notificationMessage, notificationType) =>
       dispatch(actions.showNotification(notificationMessage, notificationType)),
-    onSetShowLoadingBar: showLoadcingBar =>
-      dispatch(actions.setShowLoadingBar(showLoadcingBar)),
+    onSetShowLoadingBar: showLoadingBar =>
+      dispatch(actions.setShowLoadingBar(showLoadingBar)),
   };
 };
 
