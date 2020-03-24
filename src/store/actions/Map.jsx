@@ -1,5 +1,12 @@
 import * as actionTypes from './actionTypes';
 
+export const setCenter = center => {
+  return {
+    type: actionTypes.SET_CENTER,
+    center,
+  };
+};
+
 export const setCurrentStops = currentStops => {
   return {
     type: actionTypes.SET_CURRENT_STOPS,

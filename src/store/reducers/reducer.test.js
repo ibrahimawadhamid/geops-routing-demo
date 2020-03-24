@@ -5,6 +5,7 @@ import * as types from '../actions/actionTypes';
 describe('map reducer', () => {
   it('should return the initial state', () => {
     expect(mapReducer(undefined, {})).toEqual({
+      center: [949042.143189, 5899715.591163],
       currentMot: 'bus',
       currentStops: ['', ''],
       currentStopsGeoJSON: {},

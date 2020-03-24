@@ -1,9 +1,10 @@
 import PropTypes from 'prop-types';
 
-const coordinates = PropTypes.arrayOf(PropTypes.number.isRequired).isRequired;
+const propTypeCoordinates = PropTypes.arrayOf(PropTypes.number.isRequired)
+  .isRequired;
 
 const geometry = PropTypes.shape({
-  coordinates,
+  propTypeCoordinates,
   type: PropTypes.string.isRequired,
 });
 
@@ -21,8 +22,8 @@ const feature = PropTypes.shape({
 
 const currentStop = PropTypes.shape({
   features: PropTypes.shape({
-    '0': PropTypes.oneOfType([feature, coordinates]),
-    '1': PropTypes.oneOfType([feature, coordinates]),
+    '0': PropTypes.oneOfType([feature, propTypeCoordinates]),
+    '1': PropTypes.oneOfType([feature, propTypeCoordinates]),
   }),
   type: PropTypes.string.isRequired,
 });
@@ -33,7 +34,11 @@ const propTypeCurrentStopsGeoJSON = PropTypes.shape({
 });
 
 const propTypeCurrentStops = PropTypes.arrayOf(
-  PropTypes.oneOfType([PropTypes.string.isRequired, coordinates]),
+  PropTypes.oneOfType([PropTypes.string.isRequired, propTypeCoordinates]),
 );
 
-export { propTypeCurrentStops, propTypeCurrentStopsGeoJSON };
+export {
+  propTypeCoordinates,
+  propTypeCurrentStops,
+  propTypeCurrentStopsGeoJSON,
+};
