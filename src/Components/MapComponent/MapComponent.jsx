@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Map, View } from 'ol';
-import { toLonLat } from 'ol/proj';
-import { Layer, Vector as VectorLayer } from 'ol/layer';
-import mapboxgl from 'mapbox-gl';
+import ConfigReader from 'react-spatial/ConfigReader';
+import LayerService from 'react-spatial/LayerService';
+import Layer from 'react-spatial/layers/Layer';
+import BasicMap from 'react-spatial/components/BasicMap';
+import { Map } from 'ol';
+import { Vector as VectorLayer } from 'ol/layer';
 import _ from 'lodash/core';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
@@ -68,6 +70,7 @@ class MapComponent extends Component {
    */
   constructor(props) {
     super(props);
+    const { APIKey, onSetClickLocation } = this.props;
     this.hoveredFeature = null;
     this.hoveredRoute = null;
     this.initialRouteDrag = null;
@@ -75,43 +78,60 @@ class MapComponent extends Component {
       hoveredStationOpen: false,
       hoveredStationName: '',
       isActiveRoute: false,
+      zoom: 6,
+      center: [949042.143189, 5899715.591163],
     };
-  }
 
-  /**
-   * Create Openlayers map (source, view, layer, etc...).
-   * Add event listener onClick to handle location selection from map.
-   * @category Map
-   */
-  componentDidMount() {
-    const { APIKey, onSetClickLocation } = this.props;
-    const center = [949042.143189, 5899715.591163];
+    this.projection = 'EPSG:3857';
+
+    const layerService = new LayerService(
+      ConfigReader.readConfig([
+        {
+          name: 'Basemap',
+          visible: true,
+          isBaseLayer: true,
+          data: {
+            type: 'mapbox',
+            url: `https://maps.geops.io/styles/travic/style.json?key=${APIKey}`,
+          },
+        },
+      ]),
+    );
 
     // Define stop vectorLayer.
     this.markerVectorSource = new VectorSource({});
-    this.markerVectorLayer = new VectorLayer({
-      zIndex: 1,
-      source: this.markerVectorSource,
-    });
+    layerService.addLayer(
+      new Layer({
+        key: 'markerLayer',
+        name: 'markerLayer',
+        olLayer: new VectorLayer({
+          zIndex: 1,
+          source: this.markerVectorSource,
+        }),
+      }),
+    );
+
     // Define route vectorLayer.
     this.routeVectorSource = new VectorSource({
       features: [],
     });
-    this.routeVectorLayer = new VectorLayer({
-      zIndex: 0,
-      source: this.routeVectorSource,
-    });
+    layerService.addLayer(
+      new Layer({
+        key: 'routeLayer',
+        name: 'routeLayer',
+        olLayer: new VectorLayer({
+          zIndex: 1,
+          source: this.routeVectorSource,
+        }),
+      }),
+    );
 
-    const handleMapCursor = isHovering => {
-      if (isHovering) {
-        document.body.classList.add('rd-pointer');
-      } else if (document.body.classList.contains('rd-pointer')) {
-        document.body.classList.remove('rd-pointer');
-      }
-    };
+    this.markerVectorLayer = layerService.getLayer('markerLayer');
+    this.routeVectorLayer = layerService.getLayer('routeLayer');
+    this.layers = [...layerService.getLayers()];
 
     const translate = new Translate({
-      layers: [this.markerVectorLayer],
+      layers: [this.markerVectorLayer.olLayer],
       hitTolerance: 3,
     });
 
@@ -267,70 +287,12 @@ class MapComponent extends Component {
       this.initialRouteDrag = null;
     });
 
+    const interactions = defaultInteractions().extend([translate, modify]);
+
     this.map = new Map({
-      target: 'map',
-      interactions: defaultInteractions().extend([translate, modify]),
-      view: new View({
-        projection: 'EPSG:3857',
-        center,
-        zoom: 6,
-      }),
+      controls: [],
+      interactions,
     });
-
-    const mbMap = new mapboxgl.Map({
-      style: `https://maps.geops.io/styles/travic/style.json?key=${APIKey}`,
-      attributionControl: false,
-      boxZoom: false,
-      center: toLonLat(center),
-      container: this.map.getTargetElement(),
-      doubleClickZoom: false,
-      dragPan: false,
-      dragRotate: false,
-      interactive: false,
-      keyboard: false,
-      pitchWithRotate: false,
-      scrollZoom: false,
-      touchZoomRotate: false,
-    });
-
-    /* eslint-disable no-underscore-dangle */
-    const mbLayer = new Layer({
-      render: frameState => {
-        const canvas = mbMap.getCanvas();
-        const { viewState } = frameState;
-
-        const visible = mbLayer.getVisible();
-        canvas.style.display = visible ? 'block' : 'none';
-
-        const opacity = mbLayer.getOpacity();
-        canvas.style.opacity = opacity;
-
-        // adjust view parameters in mapbox
-        const { rotation } = viewState;
-        if (rotation) {
-          mbMap.rotateTo((-rotation * 180) / Math.PI, {
-            animate: false,
-          });
-        }
-        mbMap.jumpTo({
-          center: toLonLat(viewState.center),
-          zoom: viewState.zoom - 1,
-          animate: false,
-        });
-
-        if (mbMap._frame) {
-          mbMap._frame.cancel();
-          mbMap._frame = null;
-        }
-        mbMap._render();
-
-        return canvas;
-      },
-    });
-
-    [mbLayer, this.markerVectorLayer, this.routeVectorLayer].forEach(l =>
-      this.map.addLayer(l),
-    );
 
     this.onZoomRouteClick = () => {
       let featExtent;
@@ -378,11 +340,12 @@ class MapComponent extends Component {
       }
 
       if (this.hoveredRoute) {
-        this.routeVectorLayer.setStyle(lineStyleFunction(currentMot, false));
+        this.routeVectorLayer.olLayer.setStyle(
+          lineStyleFunction(currentMot, false),
+        );
         this.hoveredRoute = null;
       }
       const hovFeats = this.map.getFeaturesAtPixel(evt.pixel);
-      handleMapCursor(hovFeats.length);
 
       hovFeats.forEach(feature => {
         if (feature.getGeometry().getType() === 'Point') {
@@ -403,7 +366,9 @@ class MapComponent extends Component {
         }
         if (feature.getGeometry().getType() === 'LineString') {
           this.hoveredRoute = feature;
-          this.routeVectorLayer.setStyle(lineStyleFunction(currentMot, true));
+          this.routeVectorLayer.olLayer.setStyle(
+            lineStyleFunction(currentMot, true),
+          );
         }
         return true;
       });
@@ -502,7 +467,9 @@ class MapComponent extends Component {
         this.routeVectorSource.addFeatures(format.readFeatures(response));
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
 
-        this.routeVectorLayer.setStyle(lineStyleFunction(currentMot, false));
+        this.routeVectorLayer.olLayer.setStyle(
+          lineStyleFunction(currentMot, false),
+        );
       })
       .catch(err => {
         if (err.name === 'AbortError') {
@@ -523,6 +490,8 @@ class MapComponent extends Component {
   render() {
     const { mots, APIKey, stationSearchUrl } = this.props;
     const {
+      zoom,
+      center,
       isActiveRoute,
       hoveredStationOpen,
       hoveredStationName,
@@ -542,7 +511,16 @@ class MapComponent extends Component {
           open={hoveredStationOpen}
           message={hoveredStationName}
         />
-        <div id="map" className="rd-map-comp" />
+        <BasicMap
+          center={center}
+          layers={this.layers}
+          zoom={zoom}
+          tabIndex={null}
+          map={this.map}
+          viewOptions={{
+            projection: this.projection,
+          }}
+        />
       </>
     );
   }

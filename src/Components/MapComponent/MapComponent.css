@@ -1,11 +1,8 @@
 @import "~ol/ol.css";
-
-.rd-map-comp {
-    height: 100%;
-    width: 100%;
-}
-
-.ol-zoom {
-    right: 10px;
-    left: unset;
+.rs-map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
 }
