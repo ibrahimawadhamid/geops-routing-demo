@@ -29,7 +29,7 @@ import {
   OTHER_MOTS,
   GRAPHHOPPER_MOTS,
 } from '../../constants';
-import { to3857, findMotIcon } from '../../utils';
+import { to4326, to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 
@@ -137,6 +137,7 @@ function RoutingMenu({
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
+  const center = useSelector(state => state.MapReducer.center);
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
@@ -369,7 +370,9 @@ function RoutingMenu({
       !GRAPHHOPPER_MOTS.includes(currentMot)
         ? `&mots=${searchMotOnly ? currentMot : ''}`
         : ''
-    }`;
+    }&ref_location=${to4326(center)
+      .reverse()
+      .join(',')}`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())

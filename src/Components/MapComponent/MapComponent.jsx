@@ -22,6 +22,7 @@ import {
   pointStyleFunction,
 } from '../../config/styleConfig';
 import {
+  propTypeCoordinates,
   propTypeCurrentStops,
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
@@ -44,6 +45,7 @@ import * as actions from '../../store/actions';
  */
 
 let abortController = new AbortController();
+const zoom = 6;
 
 /**
  * The only true map that shows inside the application.
@@ -78,8 +80,6 @@ class MapComponent extends Component {
       hoveredStationOpen: false,
       hoveredStationName: '',
       isActiveRoute: false,
-      zoom: 6,
-      center: [949042.143189, 5899715.591163],
     };
 
     this.projection = 'EPSG:3857';
@@ -408,6 +408,15 @@ class MapComponent extends Component {
     }
   }
 
+  onMapMoved = evt => {
+    const { center, onSetCenter } = this.props;
+    const newCenter = evt.map.getView().getCenter();
+
+    if (center[0] !== newCenter[0] || center[1] !== newCenter[1]) {
+      onSetCenter(newCenter);
+    }
+  };
+
   setIsActiveRoute(isActiveRoute) {
     this.setState({ isActiveRoute });
   }
@@ -493,10 +502,8 @@ class MapComponent extends Component {
    * @category Map
    */
   render() {
-    const { mots, APIKey, stationSearchUrl } = this.props;
+    const { center, mots, APIKey, stationSearchUrl } = this.props;
     const {
-      zoom,
-      center,
       isActiveRoute,
       hoveredStationOpen,
       hoveredStationName,
@@ -519,6 +526,7 @@ class MapComponent extends Component {
         <BasicMap
           center={center}
           layers={this.layers}
+          onMapMoved={evt => this.onMapMoved(evt)}
           zoom={zoom}
           tabIndex={null}
           map={this.map}
@@ -533,6 +541,7 @@ class MapComponent extends Component {
 
 const mapStateToProps = state => {
   return {
+    center: state.MapReducer.center,
     currentMot: state.MapReducer.currentMot,
     currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
@@ -542,6 +551,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
+    onSetCenter: center => dispatch(actions.setCenter(center)),
     onSetCurrentStops: currentStops =>
       dispatch(actions.setCurrentStops(currentStops)),
     onSetCurrentStopsGeoJSON: currentStopsGeoJSON =>
@@ -556,9 +566,11 @@ const mapDispatchToProps = dispatch => {
 };
 
 MapComponent.propTypes = {
+  center: propTypeCoordinates.isRequired,
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
   stationSearchUrl: PropTypes.string.isRequired,
+  onSetCenter: PropTypes.func.isRequired,
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
   onSetShowLoadingBar: PropTypes.func.isRequired,

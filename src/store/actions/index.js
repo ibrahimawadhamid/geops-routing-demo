@@ -1,4 +1,5 @@
 export {
+  setCenter,
   setCurrentStops,
   setCurrentStopsGeoJSON,
   setCurrentMot,

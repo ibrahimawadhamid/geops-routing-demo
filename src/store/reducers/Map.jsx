@@ -1,6 +1,7 @@
 import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
+  center: [949042.143189, 5899715.591163],
   currentMot: 'bus',
   currentStops: ['', ''],
   currentStopsGeoJSON: {},
@@ -9,6 +10,16 @@ const initialState = {
   notificationType: 'info',
   isFieldFocused: false,
   showLoadingBar: false,
+};
+
+const setCenter = (state, action) => {
+  const updatedState = {
+    center: action.center,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
 };
 
 const setCurrentStops = (state, action) => {
@@ -84,6 +95,8 @@ const setShowLoadingBar = (state, action) => {
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
+    case actionTypes.SET_CENTER:
+      return setCenter(state, action);
     case actionTypes.SET_CURRENT_STOPS:
       return setCurrentStops(state, action);
     case actionTypes.SET_CURRENT_STOPS_GEOJSON:
