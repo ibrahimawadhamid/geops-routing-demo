@@ -22,7 +22,7 @@ import {
   setIsFieldFocused,
   setShowLoadingBar,
 } from '../../store/actions/Map';
-import './RoutingMenu.css';
+import './RoutingMenu.scss';
 import {
   VALID_MOTS,
   DEFAULT_MOTS,
