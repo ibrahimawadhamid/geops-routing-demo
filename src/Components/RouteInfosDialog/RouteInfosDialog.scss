@@ -1,0 +1,54 @@
+.tm-rnd {
+  width: auto;
+  position: absolute;
+  cursor: initial;
+  background: white;
+  color: rgba(0, 0, 0, 0.87);
+  background-color: #fff;
+  box-shadow: 0 3px 3px -2px rgba(0, 0, 0, 0.2), 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12);
+
+  .rd-dialog-container {
+    height: 300px;
+    width: 500px;
+
+    .rd-dialog-header {
+      line-height: 50px;
+      height: 50px;
+      padding: 0 20px;
+      text-align: left;
+
+      .rd-dialog-close-bt {
+        position: absolute;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        right: 0;
+        top: 0;
+        height: 50px;
+        width: 50px;
+      }
+    }
+
+    .tm-dialog-body {
+      height: calc(100% - 50px);
+      font-size: 12px;
+      width: 100%;
+
+      span {
+        padding-left: 65px;
+      }
+
+      .recharts-wrapper {
+        width: 100% !important;
+        height: 100% !important;
+
+        svg {
+          overflow: visible;
+          width: calc(100% - 65px);
+          height: 100%;
+        }
+      }
+    }
+  }
+}

@@ -56,3 +56,24 @@ export const setShowLoadingBar = showLoadingBar => {
     showLoadingBar,
   };
 };
+
+export const setSelectedRoute = selectedRoute => {
+  return {
+    type: actionTypes.SET_SELECTED_ROUTE,
+    selectedRoute,
+  };
+};
+
+export const setIsRouteInfoOpen = isRouteInfoOpen => {
+  return {
+    type: actionTypes.SET_IS_ROUTE_INFO_OPEN,
+    isRouteInfoOpen,
+  };
+};
+
+export const setDialogPosition = dialogPosition => {
+  return {
+    type: actionTypes.SET_DIALOG_POSITION,
+    dialogPosition,
+  };
+};
