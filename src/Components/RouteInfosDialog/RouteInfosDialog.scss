@@ -47,6 +47,10 @@
           overflow: visible;
           width: calc(100% - 65px);
           height: 100%;
+
+          text {
+            fill: rgb(102, 102, 102);
+          }
         }
       }
     }
