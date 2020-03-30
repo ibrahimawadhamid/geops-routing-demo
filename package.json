@@ -5,6 +5,7 @@
   "version": "0.6.6",
   "homepage": "https://geops.github.io/geops-routing-demo",
   "dependencies": {
+    "@geops/react-ui": "^1.0.8",
     "@material-ui/core": "^4.8.3",
     "@material-ui/icons": "^4.5.1",
     "@material-ui/lab": "^4.0.0-alpha.39",
@@ -14,6 +15,7 @@
     "abortcontroller-polyfill": "^1.2.1",
     "lodash": "^4.17.15",
     "mapbox-gl": "^1.7.0",
+    "node-sass": "^4.13.1",
     "ol": "^6.1.1",
     "prop-types": "^15.7.2",
     "react": "^16.12.0",
@@ -24,6 +26,7 @@
     "react-redux": "^7.1.3",
     "react-scripts": "3.4.0",
     "react-spatial": "^v0.2.9",
+    "recharts": "^1.8.5",
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0"
   },
@@ -168,7 +171,7 @@
       "fixpack --sortToTop name --sortToTop description --sortToTop main --sortToTop version --sortToTop private --sortToTop homepage --sortToTop dependencies --sortToTop peerDependencies --sortToTop devDependencies --sortToTop scripts",
       "git add"
     ],
-    "src/**/*.{css}": [
+    "src/**/*.{css,scss}": [
       "stylelint --fix",
       "git add"
     ]

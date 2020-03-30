@@ -4,7 +4,7 @@ import ConfigReader from 'react-spatial/ConfigReader';
 import LayerService from 'react-spatial/LayerService';
 import Layer from 'react-spatial/layers/Layer';
 import BasicMap from 'react-spatial/components/BasicMap';
-import { Map } from 'ol';
+import { Map, Feature } from 'ol';
 import { Vector as VectorLayer } from 'ol/layer';
 import _ from 'lodash/core';
 import GeoJSON from 'ol/format/GeoJSON';
@@ -17,6 +17,7 @@ import {
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import RoutingMenu from '../RoutingMenu';
+import RouteInfosDialog from '../RouteInfosDialog';
 import {
   lineStyleFunction,
   pointStyleFunction,
@@ -28,7 +29,7 @@ import {
 } from '../../store/prop-types';
 import { GRAPHHOPPER_MOTS } from '../../constants';
 import { to4326 } from '../../utils';
-import './MapComponent.css';
+import './MapComponent.scss';
 import * as actions from '../../store/actions';
 
 /**
@@ -417,6 +418,14 @@ class MapComponent extends Component {
     }
   };
 
+  onFeaturesClick = feats => {
+    const { onSetIsRouteInfoOpen } = this.props;
+    const lines = feats.filter(f => f.getGeometry().getType() === 'LineString');
+    if (lines.length) {
+      onSetIsRouteInfoOpen(true);
+    }
+  };
+
   setIsActiveRoute(isActiveRoute) {
     this.setState({ isActiveRoute });
   }
@@ -435,6 +444,8 @@ class MapComponent extends Component {
       APIKey,
       onShowNotification,
       onSetShowLoadingBar,
+      onSetSelectedRoute,
+      onSetIsRouteInfoOpen,
     } = this.props;
 
     onSetShowLoadingBar(true);
@@ -447,11 +458,15 @@ class MapComponent extends Component {
             .slice()
             .reverse()}`,
         );
-      } else if (currentMot === 'rail' || currentMot === 'bus') {
+      } else {
+        hops.push(`${currentStopsGeoJSON[key].properties.name}`);
+      }
+      /* else if (currentMot === 'rail' || currentMot === 'bus') {
         hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
       } else {
         hops.push(`${currentStopsGeoJSON[key].properties.name}`);
       }
+      */
     });
 
     abortController.abort();
@@ -460,7 +475,7 @@ class MapComponent extends Component {
 
     const reqUrl = `${routingUrl}?via=${hops.join(
       '|',
-    )}&mot=${currentMot}&resolve-hops=false&srs=3857&key=${APIKey}`;
+    )}&mot=${currentMot}&resolve-hops=false&key=${APIKey}&features={%22elevation%22:%20{}}`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
@@ -468,19 +483,19 @@ class MapComponent extends Component {
         onSetShowLoadingBar(false);
         if (response.error) {
           onShowNotification("Couldn't find route", 'error');
+          onSetSelectedRoute(null);
+          onSetIsRouteInfoOpen(false);
           return;
         }
         // A route was found, prepare to draw it.
         this.routeVectorSource.clear();
-        const format = GRAPHHOPPER_MOTS.includes(currentMot)
-          ? new GeoJSON({
-              dataProjection: 'EPSG:4326',
-              featureProjection: 'EPSG:3857',
-            })
-          : new GeoJSON();
+        const format = new GeoJSON({
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:3857',
+        });
         this.routeVectorSource.addFeatures(format.readFeatures(response));
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
-
+        onSetSelectedRoute(this.routeVectorSource.getFeatures()[0]);
         this.routeVectorLayer.olLayer.setStyle(
           lineStyleFunction(currentMot, false),
         );
@@ -491,6 +506,9 @@ class MapComponent extends Component {
           console.warn(`Abort ${reqUrl}`);
           return;
         }
+        onSetShowLoadingBar(false);
+        onSetIsRouteInfoOpen(false);
+        onSetSelectedRoute(null);
         // It's important to rethrow all other errors so you don't silence them!
         // For example, any error thrown by setState(), will pass through here.
         throw err;
@@ -502,12 +520,21 @@ class MapComponent extends Component {
    * @category Map
    */
   render() {
-    const { center, mots, APIKey, stationSearchUrl } = this.props;
+    const {
+      center,
+      mots,
+      APIKey,
+      selectedRoute,
+      isRouteInfoOpen,
+      stationSearchUrl,
+    } = this.props;
+
     const {
       isActiveRoute,
       hoveredStationOpen,
       hoveredStationName,
     } = this.state;
+
     return (
       <>
         <RoutingMenu
@@ -526,6 +553,7 @@ class MapComponent extends Component {
         <BasicMap
           center={center}
           layers={this.layers}
+          onFeaturesClick={feats => this.onFeaturesClick(feats)}
           onMapMoved={evt => this.onMapMoved(evt)}
           zoom={zoom}
           tabIndex={null}
@@ -534,6 +562,9 @@ class MapComponent extends Component {
             projection: this.projection,
           }}
         />
+        {isRouteInfoOpen && selectedRoute ? (
+          <RouteInfosDialog route={selectedRoute} />
+        ) : null}
       </>
     );
   }
@@ -542,6 +573,8 @@ class MapComponent extends Component {
 const mapStateToProps = state => {
   return {
     center: state.MapReducer.center,
+    selectedRoute: state.MapReducer.selectedRoute,
+    isRouteInfoOpen: state.MapReducer.isRouteInfoOpen,
     currentMot: state.MapReducer.currentMot,
     currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
@@ -562,11 +595,17 @@ const mapDispatchToProps = dispatch => {
       dispatch(actions.showNotification(notificationMessage, notificationType)),
     onSetShowLoadingBar: showLoadingBar =>
       dispatch(actions.setShowLoadingBar(showLoadingBar)),
+    onSetIsRouteInfoOpen: isRouteInfosOpen =>
+      dispatch(actions.setIsRouteInfoOpen(isRouteInfosOpen)),
+    onSetSelectedRoute: selectedRoute =>
+      dispatch(actions.setSelectedRoute(selectedRoute)),
   };
 };
 
 MapComponent.propTypes = {
   center: propTypeCoordinates.isRequired,
+  selectedRoute: PropTypes.instanceOf(Feature),
+  isRouteInfoOpen: PropTypes.bool.isRequired,
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
   stationSearchUrl: PropTypes.string.isRequired,
@@ -574,6 +613,8 @@ MapComponent.propTypes = {
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
   onSetShowLoadingBar: PropTypes.func.isRequired,
+  onSetIsRouteInfoOpen: PropTypes.func.isRequired,
+  onSetSelectedRoute: PropTypes.func.isRequired,
   onSetCurrentStops: PropTypes.func.isRequired,
   onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
   currentStops: propTypeCurrentStops.isRequired,
@@ -581,6 +622,10 @@ MapComponent.propTypes = {
   isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
+};
+
+MapComponent.defaultProps = {
+  selectedRoute: null,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

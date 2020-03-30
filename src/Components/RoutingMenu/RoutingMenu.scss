@@ -8,15 +8,15 @@
   flex-grow: 1;
   left: 10px;
   top: 10px;
-}
 
-.rd-routing-menu-header {
-  display: flex;
-}
+  .rd-routing-menu-header {
+    display: flex;
 
-.rd-mot-checkbox {
-  display: flex;
-  align-items: center;
+    .rd-mot-checkbox {
+      display: flex;
+      align-items: center;
+    }
+  }
 }
 
 @media (min-width: 768px) {

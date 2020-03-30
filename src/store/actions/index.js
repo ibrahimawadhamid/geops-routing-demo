@@ -7,4 +7,7 @@ export {
   showNotification,
   setIsFieldFocused,
   setShowLoadingBar,
+  setSelectedRoute,
+  setIsRouteInfoOpen,
+  setDialogPosition,
 } from './Map';

@@ -9,11 +9,17 @@ describe('map reducer', () => {
       currentMot: 'bus',
       currentStops: ['', ''],
       currentStopsGeoJSON: {},
+      dialogPosition: {
+        x: 10,
+        y: 240,
+      },
       clickLocation: null,
       notificationMessage: '',
       notificationType: 'info',
       isFieldFocused: false,
       showLoadingBar: false,
+      selectedRoute: null,
+      isRouteInfoOpen: false,
     });
   });
 
