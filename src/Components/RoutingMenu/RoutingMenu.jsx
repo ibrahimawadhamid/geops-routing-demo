@@ -10,10 +10,16 @@ import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import Button from '@material-ui/core/Button';
+import Tooltip from '@material-ui/core/Tooltip';
+import Grid from '@material-ui/core/Grid';
+import ZoomInIcon from '@material-ui/icons/ZoomIn';
+import InfoIcon from '@material-ui/icons/Info';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
 import _ from 'lodash/core';
+
 import {
   setCurrentStops,
   setCurrentStopsGeoJSON,
@@ -21,6 +27,8 @@ import {
   showNotification,
   setIsFieldFocused,
   setShowLoadingBar,
+  setSelectedRoute,
+  setIsRouteInfoOpen,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
 import {
@@ -82,7 +90,7 @@ const useStyles = makeStyles(() => ({
     },
   },
   checkbox: {
-    padding: '20px 23px',
+    margin: '0px 5px 0px 13px',
   },
 }));
 
@@ -141,6 +149,9 @@ function RoutingMenu({
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
+  const isRouteInfoOpen = useSelector(
+    state => state.MapReducer.isRouteInfoOpen,
+  );
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
   );
@@ -165,6 +176,13 @@ function RoutingMenu({
     dispatch(setCurrentMot(currentMots[0].name));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (isRouteInfoOpen) {
+      dispatch(setSelectedRoute(null));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStops]);
 
   /**
    * Update the current stops array (string array) and the GeoJSON array in the local state.
@@ -632,9 +650,7 @@ function RoutingMenu({
                               processHighlightedResultSelectHandler
                             }
                             onFieldFocusHandler={onFieldFocusHandler}
-                            onZoomRouteClick={onZoomRouteClick}
                             onPanViaClick={onPanViaClick}
-                            isActiveRoute={isActiveRoute}
                           />
                         </div>
                       )}
@@ -657,6 +673,47 @@ function RoutingMenu({
               inputProps={{ 'aria-label': 'use only mot' }}
             />
             <span>Search only selected mode of transport</span>
+          </div>
+          <div className="rd-route-buttons">
+            <Grid item xs={6}>
+              <Tooltip title="Zoom to the route">
+                <Button
+                  onClick={() => onZoomRouteClick()}
+                  aria-label="Zoom to the route"
+                  disabled={!isActiveRoute}
+                  variant="contained"
+                  color="default"
+                  classes={{
+                    root: 'rd-button-root',
+                    disabled: 'rd-button-disabled',
+                  }}
+                  startIcon={<ZoomInIcon fontSize="small" />}
+                >
+                  <Typography>Zoom to the route</Typography>
+                </Button>
+              </Tooltip>
+            </Grid>
+            <Grid item xs={6}>
+              <Tooltip title="Route information">
+                <Button
+                  onClick={() => {
+                    dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                  }}
+                  aria-label="Route information"
+                  disabled={!isActiveRoute}
+                  variant="contained"
+                  color="default"
+                  className={isRouteInfoOpen ? 'rd-button-active' : ''}
+                  classes={{
+                    root: 'rd-button-root',
+                    disabled: 'rd-button-disabled',
+                  }}
+                  startIcon={<InfoIcon fontSize="small" />}
+                >
+                  <Typography>Route information</Typography>
+                </Button>
+              </Tooltip>
+            </Grid>
           </div>
         </TabPanel>
         {showLoadingBar ? <LinearProgress /> : null}

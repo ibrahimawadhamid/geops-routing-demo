@@ -418,14 +418,6 @@ class MapComponent extends Component {
     }
   };
 
-  onFeaturesClick = feats => {
-    const { onSetIsRouteInfoOpen } = this.props;
-    const lines = feats.filter(f => f.getGeometry().getType() === 'LineString');
-    if (lines.length) {
-      onSetIsRouteInfoOpen(true);
-    }
-  };
-
   setIsActiveRoute(isActiveRoute) {
     this.setState({ isActiveRoute });
   }
@@ -445,7 +437,6 @@ class MapComponent extends Component {
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoute,
-      onSetIsRouteInfoOpen,
     } = this.props;
 
     onSetShowLoadingBar(true);
@@ -484,7 +475,6 @@ class MapComponent extends Component {
         if (response.error) {
           onShowNotification("Couldn't find route", 'error');
           onSetSelectedRoute(null);
-          onSetIsRouteInfoOpen(false);
           return;
         }
         // A route was found, prepare to draw it.
@@ -507,7 +497,6 @@ class MapComponent extends Component {
           return;
         }
         onSetShowLoadingBar(false);
-        onSetIsRouteInfoOpen(false);
         onSetSelectedRoute(null);
         // It's important to rethrow all other errors so you don't silence them!
         // For example, any error thrown by setState(), will pass through here.
@@ -553,7 +542,6 @@ class MapComponent extends Component {
         <BasicMap
           center={center}
           layers={this.layers}
-          onFeaturesClick={feats => this.onFeaturesClick(feats)}
           onMapMoved={evt => this.onMapMoved(evt)}
           zoom={zoom}
           tabIndex={null}
@@ -595,8 +583,6 @@ const mapDispatchToProps = dispatch => {
       dispatch(actions.showNotification(notificationMessage, notificationType)),
     onSetShowLoadingBar: showLoadingBar =>
       dispatch(actions.setShowLoadingBar(showLoadingBar)),
-    onSetIsRouteInfoOpen: isRouteInfosOpen =>
-      dispatch(actions.setIsRouteInfoOpen(isRouteInfosOpen)),
     onSetSelectedRoute: selectedRoute =>
       dispatch(actions.setSelectedRoute(selectedRoute)),
   };
@@ -613,7 +599,6 @@ MapComponent.propTypes = {
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
   onSetShowLoadingBar: PropTypes.func.isRequired,
-  onSetIsRouteInfoOpen: PropTypes.func.isRequired,
   onSetSelectedRoute: PropTypes.func.isRequired,
   onSetCurrentStops: PropTypes.func.isRequired,
   onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,

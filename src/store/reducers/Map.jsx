@@ -14,7 +14,7 @@ const initialState = {
   isRouteInfoOpen: false,
   dialogPosition: {
     x: 10,
-    y: 240,
+    y: 275,
   },
 };
 
