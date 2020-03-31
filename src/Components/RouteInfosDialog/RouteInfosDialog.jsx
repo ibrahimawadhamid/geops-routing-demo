@@ -68,7 +68,6 @@ function RouteInfosDialog({ route }) {
         </YAxis>
         <XAxis
           type="number"
-          ticks={ticks}
           dataKey="val"
           tickFormatter={val => tickFormatter(val, distanceUnit === 'm')}
         >
