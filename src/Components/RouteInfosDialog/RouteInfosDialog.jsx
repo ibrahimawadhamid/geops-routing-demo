@@ -38,7 +38,7 @@ function RouteInfosDialog({ route }) {
   };
 
   const length = getLength(route.getGeometry());
-  const distanceUnit = length > 100 ? 'km' : 'm';
+  const distanceUnit = length > 1000 ? 'km' : 'm';
 
   const altitudesArray = everyNth(route.getGeometry().getFlatCoordinates(), 3);
   const data = [];
@@ -48,12 +48,6 @@ function RouteInfosDialog({ route }) {
       val: length * (idx / (altitudesArray.length - 1)),
     });
   });
-
-  const ticks = [
-    0,
-    data[parseInt(altitudesArray.length * (2 / 4), 10)].val,
-    length,
-  ];
 
   return (
     <Dialog
