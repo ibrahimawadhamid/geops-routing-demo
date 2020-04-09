@@ -458,15 +458,11 @@ class MapComponent extends Component {
             .slice()
             .reverse()}`,
         );
-      } else {
-        hops.push(`${currentStopsGeoJSON[key].properties.name}`);
-      }
-      /* else if (currentMot === 'rail' || currentMot === 'bus') {
+      } else if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
         hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
       } else {
         hops.push(`${currentStopsGeoJSON[key].properties.name}`);
       }
-      */
     });
 
     abortController.abort();
@@ -553,7 +549,8 @@ class MapComponent extends Component {
         <BasicMap
           center={center}
           layers={this.layers}
-          onFeaturesClick={feats => this.onFeaturesClick(feats)}
+          // To activate when elevation info ready
+          // onFeaturesClick={feats => this.onFeaturesClick(feats)}
           onMapMoved={evt => this.onMapMoved(evt)}
           zoom={zoom}
           tabIndex={null}
