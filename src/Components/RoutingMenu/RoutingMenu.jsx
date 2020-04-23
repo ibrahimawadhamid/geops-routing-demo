@@ -125,12 +125,6 @@ function RoutingMenu({
           });
         }
       });
-    if (currentMotsArray.length === 0) {
-      currentMotsArray.push({
-        name: VALID_MOTS[0],
-        icon: findMotIcon(VALID_MOTS[0]),
-      });
-    }
     return currentMotsArray;
   };
 
@@ -566,26 +560,28 @@ function RoutingMenu({
               );
             })}
           </Tabs>
-          <FormControl className={classes.dropDown}>
-            <Select
-              renderValue={val => (val !== '' ? val : 'Other MOTs')}
-              className={classes.select}
-              classes={{ root: classes.selectInput }}
-              labelId="rd-other-mot-label"
-              value={currentOtherMot || ''}
-              disableUnderline={!currentOtherMot}
-              displayEmpty
-              onChange={changeCurrentOtherMot}
-            >
-              {otherMots.map(mot => {
-                return (
-                  <MenuItem value={mot.name} key={`other-mot-${mot.name}`}>
-                    {mot.name}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
+          {otherMots.length ? (
+            <FormControl className={classes.dropDown}>
+              <Select
+                renderValue={val => (val !== '' ? val : 'Other MOTs')}
+                className={classes.select}
+                classes={{ root: classes.selectInput }}
+                labelId="rd-other-mot-label"
+                value={currentOtherMot || ''}
+                disableUnderline={!currentOtherMot}
+                displayEmpty
+                onChange={changeCurrentOtherMot}
+              >
+                {otherMots.map(mot => {
+                  return (
+                    <MenuItem value={mot.name} key={`other-mot-${mot.name}`}>
+                      {mot.name}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          ) : null}
         </div>
         <TabPanel>
           <DragDropContext onDragEnd={onDragEnd}>
