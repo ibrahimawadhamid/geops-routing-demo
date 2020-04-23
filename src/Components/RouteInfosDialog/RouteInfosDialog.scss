@@ -33,6 +33,7 @@
 
     .tm-dialog-body {
       height: calc(100% - 50px);
+      margin-top: 5px;
       font-size: 12px;
       width: 100%;
 
@@ -40,19 +41,22 @@
         padding-left: 65px;
       }
 
-      .recharts-wrapper {
-        width: 100% !important;
-        height: 100% !important;
+      .recharts-surface {
+        overflow: visible;
 
-        svg {
-          overflow: visible;
-          width: calc(100% - 50px);
-          height: 100%;
-
-          text {
-            fill: rgb(102, 102, 102);
-          }
+        text {
+          fill: rgb(102, 102, 102);
         }
+      }
+
+      .recharts-tooltip-wrapper {
+        visibility: visible !important;
+      }
+
+      .rd-tootip-wrapper {
+        padding: 5px;
+        background-color: rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.5);
       }
     }
   }

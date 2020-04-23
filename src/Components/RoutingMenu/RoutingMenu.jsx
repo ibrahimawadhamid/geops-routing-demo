@@ -27,7 +27,7 @@ import {
   showNotification,
   setIsFieldFocused,
   setShowLoadingBar,
-  setSelectedRoute,
+  setSelectedRoutes,
   setIsRouteInfoOpen,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
@@ -179,7 +179,7 @@ function RoutingMenu({
 
   useEffect(() => {
     if (isRouteInfoOpen) {
-      dispatch(setSelectedRoute(null));
+      dispatch(setSelectedRoutes([]));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStops]);

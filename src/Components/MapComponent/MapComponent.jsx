@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, createRef } from 'react';
 import { connect } from 'react-redux';
 import ConfigReader from 'react-spatial/ConfigReader';
 import LayerService from 'react-spatial/LayerService';
@@ -7,6 +7,7 @@ import BasicMap from 'react-spatial/components/BasicMap';
 import { Map, Feature } from 'ol';
 import { Vector as VectorLayer } from 'ol/layer';
 import _ from 'lodash/core';
+import { Point } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
 import {
@@ -74,6 +75,7 @@ class MapComponent extends Component {
   constructor(props) {
     super(props);
     const { APIKey, onSetClickLocation } = this.props;
+    this.mapRef = createRef();
     this.hoveredFeature = null;
     this.hoveredRoute = null;
     this.initialRouteDrag = null;
@@ -81,7 +83,10 @@ class MapComponent extends Component {
       hoveredStationOpen: false,
       hoveredStationName: '',
       isActiveRoute: false,
+      hoveredPoint: null,
     };
+
+    this.onHighlightPoint = this.onHighlightPoint.bind(this);
 
     this.projection = 'EPSG:3857';
 
@@ -99,19 +104,6 @@ class MapComponent extends Component {
       ]),
     );
 
-    // Define stop vectorLayer.
-    this.markerVectorSource = new VectorSource({});
-    layerService.addLayer(
-      new Layer({
-        key: 'markerLayer',
-        name: 'markerLayer',
-        olLayer: new VectorLayer({
-          zIndex: 1,
-          source: this.markerVectorSource,
-        }),
-      }),
-    );
-
     // Define route vectorLayer.
     this.routeVectorSource = new VectorSource({
       features: [],
@@ -123,6 +115,32 @@ class MapComponent extends Component {
         olLayer: new VectorLayer({
           zIndex: 1,
           source: this.routeVectorSource,
+        }),
+      }),
+    );
+
+    // Define highlight vectorLayer.
+    this.highlightVectorSource = new VectorSource({});
+    layerService.addLayer(
+      new Layer({
+        key: 'highlightLayer',
+        name: 'highlightLayer',
+        olLayer: new VectorLayer({
+          zIndex: 1,
+          source: this.highlightVectorSource,
+        }),
+      }),
+    );
+
+    // Define stop vectorLayer.
+    this.markerVectorSource = new VectorSource({});
+    layerService.addLayer(
+      new Layer({
+        key: 'markerLayer',
+        name: 'markerLayer',
+        olLayer: new VectorLayer({
+          zIndex: 1,
+          source: this.markerVectorSource,
         }),
       }),
     );
@@ -183,7 +201,7 @@ class MapComponent extends Component {
 
     const modify = new Modify({
       source: this.routeVectorSource,
-      pixelTolerance: 2,
+      pixelTolerance: 4,
       condition: () => {
         const { currentMot } = this.props;
         return !GRAPHHOPPER_MOTS.includes(currentMot);
@@ -345,8 +363,13 @@ class MapComponent extends Component {
           lineStyleFunction(currentMot, false),
         );
         this.hoveredRoute = null;
+        this.setState({
+          hoveredPoint: null,
+        });
       }
-      const hovFeats = this.map.getFeaturesAtPixel(evt.pixel);
+      const hovFeats = this.map.getFeaturesAtPixel(evt.pixel, {
+        hitTolerance: 2,
+      });
 
       hovFeats.forEach(feature => {
         if (feature.getGeometry().getType() === 'Point') {
@@ -367,9 +390,10 @@ class MapComponent extends Component {
         }
         if (feature.getGeometry().getType() === 'LineString') {
           this.hoveredRoute = feature;
-          this.routeVectorLayer.olLayer.setStyle(
-            lineStyleFunction(currentMot, true),
-          );
+
+          this.setState({
+            hoveredPoint: evt.coordinate,
+          });
         }
         return true;
       });
@@ -418,6 +442,28 @@ class MapComponent extends Component {
     }
   };
 
+  /*
+   *  Highlight a point on the route.
+   */
+  onHighlightPoint(coords) {
+    const { currentMot } = this.props;
+
+    this.highlightVectorSource.clear();
+    const feat = new Feature({
+      geometry: new Point(coords),
+    });
+    feat.setStyle(pointStyleFunction(currentMot));
+    this.highlightVectorSource.addFeatures([feat]);
+  }
+
+  onFeaturesHover(features) {
+    if (this.mapRef) {
+      this.mapRef.current.node.current.style.cursor = features.length
+        ? 'pointer'
+        : 'inherit';
+    }
+  }
+
   setIsActiveRoute(isActiveRoute) {
     this.setState({ isActiveRoute });
   }
@@ -436,7 +482,7 @@ class MapComponent extends Component {
       APIKey,
       onShowNotification,
       onSetShowLoadingBar,
-      onSetSelectedRoute,
+      onSetSelectedRoutes,
     } = this.props;
 
     onSetShowLoadingBar(true);
@@ -474,7 +520,7 @@ class MapComponent extends Component {
         onSetShowLoadingBar(false);
         if (response.error) {
           onShowNotification("Couldn't find route", 'error');
-          onSetSelectedRoute(null);
+          onSetSelectedRoutes([]);
           return;
         }
         // A route was found, prepare to draw it.
@@ -485,7 +531,7 @@ class MapComponent extends Component {
         });
         this.routeVectorSource.addFeatures(format.readFeatures(response));
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
-        onSetSelectedRoute(this.routeVectorSource.getFeatures()[0]);
+        onSetSelectedRoutes(this.routeVectorSource.getFeatures());
         this.routeVectorLayer.olLayer.setStyle(
           lineStyleFunction(currentMot, false),
         );
@@ -497,7 +543,7 @@ class MapComponent extends Component {
           return;
         }
         onSetShowLoadingBar(false);
-        onSetSelectedRoute(null);
+        onSetSelectedRoutes([]);
         // It's important to rethrow all other errors so you don't silence them!
         // For example, any error thrown by setState(), will pass through here.
         throw err;
@@ -513,13 +559,14 @@ class MapComponent extends Component {
       center,
       mots,
       APIKey,
-      selectedRoute,
+      selectedRoutes,
       isRouteInfoOpen,
       stationSearchUrl,
     } = this.props;
 
     const {
       isActiveRoute,
+      hoveredPoint,
       hoveredStationOpen,
       hoveredStationName,
     } = this.state;
@@ -540,9 +587,11 @@ class MapComponent extends Component {
           message={hoveredStationName}
         />
         <BasicMap
+          ref={this.mapRef}
           center={center}
           layers={this.layers}
           onMapMoved={evt => this.onMapMoved(evt)}
+          onFeaturesHover={evt => this.onFeaturesHover(evt)}
           zoom={zoom}
           tabIndex={null}
           map={this.map}
@@ -550,8 +599,15 @@ class MapComponent extends Component {
             projection: this.projection,
           }}
         />
-        {isRouteInfoOpen && selectedRoute ? (
-          <RouteInfosDialog route={selectedRoute} />
+        {isRouteInfoOpen && selectedRoutes.length ? (
+          <RouteInfosDialog
+            routes={selectedRoutes}
+            hoveredCoords={hoveredPoint}
+            onHighlightPoint={this.onHighlightPoint}
+            clearHighlightPoint={() => {
+              this.highlightVectorSource.clear();
+            }}
+          />
         ) : null}
       </>
     );
@@ -561,7 +617,7 @@ class MapComponent extends Component {
 const mapStateToProps = state => {
   return {
     center: state.MapReducer.center,
-    selectedRoute: state.MapReducer.selectedRoute,
+    selectedRoutes: state.MapReducer.selectedRoutes,
     isRouteInfoOpen: state.MapReducer.isRouteInfoOpen,
     currentMot: state.MapReducer.currentMot,
     currentStops: state.MapReducer.currentStops,
@@ -583,14 +639,14 @@ const mapDispatchToProps = dispatch => {
       dispatch(actions.showNotification(notificationMessage, notificationType)),
     onSetShowLoadingBar: showLoadingBar =>
       dispatch(actions.setShowLoadingBar(showLoadingBar)),
-    onSetSelectedRoute: selectedRoute =>
-      dispatch(actions.setSelectedRoute(selectedRoute)),
+    onSetSelectedRoutes: selectedRoutes =>
+      dispatch(actions.setSelectedRoutes(selectedRoutes)),
   };
 };
 
 MapComponent.propTypes = {
   center: propTypeCoordinates.isRequired,
-  selectedRoute: PropTypes.instanceOf(Feature),
+  selectedRoutes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
   isRouteInfoOpen: PropTypes.bool.isRequired,
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
@@ -599,7 +655,7 @@ MapComponent.propTypes = {
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
   onSetShowLoadingBar: PropTypes.func.isRequired,
-  onSetSelectedRoute: PropTypes.func.isRequired,
+  onSetSelectedRoutes: PropTypes.func.isRequired,
   onSetCurrentStops: PropTypes.func.isRequired,
   onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
   currentStops: propTypeCurrentStops.isRequired,
@@ -607,10 +663,6 @@ MapComponent.propTypes = {
   isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
-};
-
-MapComponent.defaultProps = {
-  selectedRoute: null,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

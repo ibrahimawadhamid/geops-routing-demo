@@ -18,7 +18,7 @@ describe('map reducer', () => {
       notificationType: 'info',
       isFieldFocused: false,
       showLoadingBar: false,
-      selectedRoute: null,
+      selectedRoutes: [],
       isRouteInfoOpen: false,
     });
   });
