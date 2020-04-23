@@ -23,12 +23,7 @@ import {
   setShowLoadingBar,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
-import {
-  VALID_MOTS,
-  DEFAULT_MOTS,
-  OTHER_MOTS,
-  GRAPHHOPPER_MOTS,
-} from '../../constants';
+import { DEFAULT_MOTS, OTHER_MOTS, GRAPHHOPPER_MOTS } from '../../constants';
 import { to4326, to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
@@ -340,6 +335,7 @@ function RoutingMenu({
    * @param fieldIndex The search field(hop) index(order)
    * @category RoutingMenu
    */
+  /*
   const searchStopsHandler = (event, fieldIndex) => {
     setLastChangedFieldIdx(fieldIndex);
     // only search if text is available
@@ -406,6 +402,7 @@ function RoutingMenu({
       lastChangedFieldIdx,
     );
   };
+  */
 
   /**
    * The user makes changes to the current search. Either select the first result,
@@ -622,7 +619,8 @@ function RoutingMenu({
                             addNewSearchFieldHandler={addNewSearchFieldHandler}
                             currentStops={currentStops}
                             removeSearchFieldHandler={removeSearchFieldHandler}
-                            searchStopsHandler={searchStopsHandler}
+                            // searchStopsHandler={searchStopsHandler}
+                            searchStopsHandler={() => {}}
                             singleStop={item}
                             processHighlightedResultSelectHandler={
                               processHighlightedResultSelectHandler
@@ -647,7 +645,7 @@ function RoutingMenu({
               checked={searchMotOnly}
               onChange={() => {
                 setSearchMotOnly(!searchMotOnly);
-                retriggerSearch(lastChangedFieldIdx);
+                // retriggerSearch(lastChangedFieldIdx);
               }}
               color="primary"
               inputProps={{ 'aria-label': 'use only mot' }}
