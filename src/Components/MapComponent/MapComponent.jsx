@@ -329,6 +329,7 @@ class MapComponent extends Component {
       const { isFieldFocused, currentStops } = this.props;
       // if one field empty or if a field is focused
       if (currentStops.includes('') || isFieldFocused) {
+        // ADD one here?
         onSetClickLocation(evt.coordinate);
       }
     });
@@ -435,13 +436,13 @@ class MapComponent extends Component {
    * two points/stations, if a route is found, it's returned and drawn to the map.
    * @category Map
    */
-  drawNewRoute = () => {
+  drawNewRoute = (floorInfo = []) => {
     const hops = [];
     const {
       currentStopsGeoJSON,
       routingUrl,
       currentMot,
-      APIKey,
+      // APIKey,
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoute,
@@ -450,13 +451,14 @@ class MapComponent extends Component {
 
     onSetShowLoadingBar(true);
 
-    Object.keys(currentStopsGeoJSON).forEach(key => {
+    // find the index and use this instead.
+    Object.keys(currentStopsGeoJSON).forEach((key, idx) => {
       if (currentStopsGeoJSON[key].features) {
         // If the current item is a point selected on the map, not a station.
         hops.push(
           `${to4326(currentStopsGeoJSON[key].features[0].geometry.coordinates)
             .slice()
-            .reverse()}`,
+            .reverse()}${floorInfo[idx] || ''}`,
         );
       } else if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
         hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
@@ -469,9 +471,12 @@ class MapComponent extends Component {
     abortController = new AbortController();
     const { signal } = abortController;
 
+    /*
     const reqUrl = `${routingUrl}?via=${hops.join(
       '|',
     )}&mot=${currentMot}&resolve-hops=false&key=${APIKey}&features={%22elevation%22:%20{}}`;
+    */
+    const reqUrl = `${routingUrl}?via=${hops.join('|')}`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
@@ -539,6 +544,7 @@ class MapComponent extends Component {
           isActiveRoute={isActiveRoute}
           onZoomRouteClick={this.onZoomRouteClick}
           onPanViaClick={this.onPanViaClick}
+          drawNewRoute={newRoute => this.drawNewRoute(newRoute)}
           APIKey={APIKey}
         />
         <Snackbar

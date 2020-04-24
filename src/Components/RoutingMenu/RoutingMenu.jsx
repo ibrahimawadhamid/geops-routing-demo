@@ -18,13 +18,21 @@ import {
   setCurrentStops,
   setCurrentStopsGeoJSON,
   setCurrentMot,
-  showNotification,
+  // showNotification,
   setIsFieldFocused,
   setShowLoadingBar,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
-import { DEFAULT_MOTS, OTHER_MOTS, GRAPHHOPPER_MOTS } from '../../constants';
-import { to4326, to3857, findMotIcon } from '../../utils';
+import {
+  DEFAULT_MOTS,
+  OTHER_MOTS,
+  // GRAPHHOPPER_MOTS
+} from '../../constants';
+import {
+  // to4326,
+  to3857,
+  findMotIcon,
+} from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 
@@ -81,7 +89,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-let abortController = new AbortController();
+// let abortController = new AbortController();
 
 /**
  * The routing menu that controls station search
@@ -89,8 +97,9 @@ let abortController = new AbortController();
  */
 function RoutingMenu({
   mots,
-  stationSearchUrl,
-  APIKey,
+  // stationSearchUrl,
+  // APIKey,
+  drawNewRoute,
   isActiveRoute,
   onZoomRouteClick,
   onPanViaClick,
@@ -126,7 +135,7 @@ function RoutingMenu({
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
-  const center = useSelector(state => state.MapReducer.center);
+  // const center = useSelector(state => state.MapReducer.center);
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
@@ -335,7 +344,6 @@ function RoutingMenu({
    * @param fieldIndex The search field(hop) index(order)
    * @category RoutingMenu
    */
-  /*
   const searchStopsHandler = (event, fieldIndex) => {
     setLastChangedFieldIdx(fieldIndex);
     // only search if text is available
@@ -350,8 +358,20 @@ function RoutingMenu({
     const updatedCurrentStops = _.clone(currentStops);
     updatedCurrentStops[fieldIndex] = event.target.value;
     dispatch(setCurrentStops(updatedCurrentStops));
-    dispatch(setShowLoadingBar(true));
 
+    const floorInfo = [];
+    updatedCurrentStops.forEach(stop => {
+      const floorMatched =
+        typeof stop === 'string' && stop.match(/\$-?(?:[1-9][0-9]?|100)$$/i);
+      if (floorMatched) {
+        floorInfo.push(floorMatched[0]);
+      } else {
+        floorInfo.push(null);
+      }
+    });
+
+    drawNewRoute(floorInfo);
+    /*
     abortController.abort();
     abortController = new AbortController();
     const { signal } = abortController;
@@ -387,6 +407,7 @@ function RoutingMenu({
         // For example, any error thrown by setState(), will pass through here.
         throw err;
       });
+    */
   };
 
   const retriggerSearch = () => {
@@ -402,7 +423,6 @@ function RoutingMenu({
       lastChangedFieldIdx,
     );
   };
-  */
 
   /**
    * The user makes changes to the current search. Either select the first result,
@@ -619,8 +639,8 @@ function RoutingMenu({
                             addNewSearchFieldHandler={addNewSearchFieldHandler}
                             currentStops={currentStops}
                             removeSearchFieldHandler={removeSearchFieldHandler}
-                            // searchStopsHandler={searchStopsHandler}
-                            searchStopsHandler={() => {}}
+                            searchStopsHandler={searchStopsHandler}
+                            // searchStopsHandler={() => {}}
                             singleStop={item}
                             processHighlightedResultSelectHandler={
                               processHighlightedResultSelectHandler
@@ -645,7 +665,7 @@ function RoutingMenu({
               checked={searchMotOnly}
               onChange={() => {
                 setSearchMotOnly(!searchMotOnly);
-                // retriggerSearch(lastChangedFieldIdx);
+                retriggerSearch(lastChangedFieldIdx);
               }}
               color="primary"
               inputProps={{ 'aria-label': 'use only mot' }}
@@ -681,6 +701,7 @@ RoutingMenu.propTypes = {
   isActiveRoute: PropTypes.bool.isRequired,
   onZoomRouteClick: PropTypes.func,
   onPanViaClick: PropTypes.func,
+  drawNewRoute: PropTypes.func.isRequired,
 };
 
 RoutingMenu.defaultProps = {

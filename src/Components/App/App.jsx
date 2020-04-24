@@ -14,7 +14,8 @@ const propTypes = {
 
 const defaultProps = {
   mots: VALID_MOTS,
-  routingUrl: 'https://api.geops.io/routing/dev/',
+  // routingUrl: 'https://api.geops.io/routing/dev/',
+  routingUrl: 'https://pedestrian.dev.geops.io/routing',
   // routingUrl: 'https://api.geops.io/route-decorator/v1/decorate_route',
   stationSearchUrl: 'https://api.geops.io/stops/dev/',
 };
