@@ -495,15 +495,12 @@ class MapComponent extends Component {
             .slice()
             .reverse()}`,
         );
+      } else if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
+        // hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
+        hops.push(`!${currentStopsGeoJSON[key].properties.id}`);
       } else {
-        hops.push(`${currentStopsGeoJSON[key].properties.name}`);
+        hops.push(`${currentStopsGeoJSON[key].properties.id}`);
       }
-      /* else if (currentMot === 'rail' || currentMot === 'bus') {
-        hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
-      } else {
-        hops.push(`${currentStopsGeoJSON[key].properties.name}`);
-      }
-      */
     });
 
     abortController.abort();

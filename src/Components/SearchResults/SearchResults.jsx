@@ -79,8 +79,10 @@ function SearchResults(props) {
               <ListItemText
                 primary={searchResult.properties.name}
                 secondary={renderSecondary(
+                  searchResult.properties.id,
                   searchResult.properties.code,
                   searchResult.properties.country_code,
+                  searchResult.properties.ifopt,
                 )}
               />
             </ListItem>

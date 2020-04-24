@@ -160,22 +160,18 @@
   "license": "MIT",
   "lint-staged": {
     "src/lang/*.json": [
-      "yarn sort",
-      "git add"
+      "yarn sort"
     ],
     "(src|__mocks__)/**/*.js": [
       "eslint --fix",
       "prettier --write",
-      "git add",
       "yarn test --bail --findRelatedTests"
     ],
     "package.json": [
-      "fixpack --sortToTop name --sortToTop description --sortToTop main --sortToTop version --sortToTop private --sortToTop homepage --sortToTop dependencies --sortToTop peerDependencies --sortToTop devDependencies --sortToTop scripts",
-      "git add"
+      "fixpack --sortToTop name --sortToTop description --sortToTop main --sortToTop version --sortToTop private --sortToTop homepage --sortToTop dependencies --sortToTop peerDependencies --sortToTop devDependencies --sortToTop scripts"
     ],
     "src/**/*.{css,scss}": [
-      "stylelint --fix",
-      "git add"
+      "stylelint --fix"
     ]
   },
   "prettier": {
