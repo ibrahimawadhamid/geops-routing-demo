@@ -46,7 +46,7 @@ import * as actions from '../../store/actions';
  */
 
 let abortController = new AbortController();
-const zoom = 6;
+const zoom = 17;
 
 /**
  * The only true map that shows inside the application.

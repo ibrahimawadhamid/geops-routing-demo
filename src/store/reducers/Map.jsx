@@ -1,7 +1,8 @@
 import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
-  center: [949042.143189, 5899715.591163],
+  // center: [949042.143189, 5899715.591163],
+  center: [828061.159762, 5933753.540488],
   currentMot: 'bus',
   currentStops: ['', ''],
   currentStopsGeoJSON: {},
