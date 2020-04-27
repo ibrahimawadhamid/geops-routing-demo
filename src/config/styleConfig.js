@@ -12,57 +12,7 @@ const lineStyler = lineStyle => {
       }),
   );
 };
-
-const railLineStyle = lineStyler([
-  ['darkred', 6],
-  ['red', 3],
-]);
-
-const railLineHoveredStyle = lineStyler([
-  ['darkred', 7],
-  ['red', 4],
-]);
-
-const busLineStyle = lineStyler([
-  ['rgb(153,153,0)', 6],
-  ['yellow', 3],
-]);
-
-const busLineHoveredStyle = lineStyler([
-  ['rgb(153,153,0)', 7],
-  ['yellow', 4],
-]);
-
-const pedestrianLineStyle = lineStyler([
-  ['rgb(96, 186, 219)', 6],
-  ['rgb(173, 216, 230)', 3],
-]);
-
-const pedestrianLineHoveredStyle = lineStyler([
-  ['rgb(96, 186, 219)', 7],
-  ['rgb(173, 216, 230)', 4],
-]);
-
-const carLineStyle = lineStyler([
-  ['grey', 6],
-  ['darkgrey', 3],
-]);
-
-const carLineHoveredStyle = lineStyler([
-  ['grey', 7],
-  ['darkgrey', 4],
-]);
-
-const othersLineStyle = lineStyler([
-  ['darkblue', 6],
-  ['blue', 3],
-]);
-
-const othersLineHoveredStyle = lineStyler([
-  ['darkblue', 7],
-  ['blue', 4],
-]);
-
+/*
 const railPointStyle = new Style({
   image: new Circle({
     radius: 7,
@@ -118,21 +68,31 @@ const pointStyleFunction = mot => {
   }
   return othersPointStyle;
 };
+*/
+const pointStyleFunction = () => {
+  return new Style({
+    image: new Circle({
+      radius: 7,
+      fill: new Fill({ color: 'blue' }),
+      stroke: new Stroke({ color: 'darkblue', width: 2 }),
+    }),
+  });
+};
 
-const lineStyleFunction = (mot, isHovered) => {
-  if (mot === 'rail') {
-    return isHovered ? railLineHoveredStyle : railLineStyle;
-  }
-  if (mot === 'bus') {
-    return isHovered ? busLineHoveredStyle : busLineStyle;
-  }
-  if (mot === 'foot') {
-    return isHovered ? pedestrianLineHoveredStyle : pedestrianLineStyle;
-  }
-  if (mot === 'car') {
-    return isHovered ? carLineHoveredStyle : carLineStyle;
-  }
-  return isHovered ? othersLineHoveredStyle : othersLineStyle;
+const floorsColor = {
+  '-2': ['pink', 'hotpink'],
+  '-1': ['darkgrey', 'grey'],
+  '0': ['red', 'darkred'],
+  '1': ['yellow', 'rgb(153,153,0)'],
+  '2': ['green', 'darkgreen'],
+  '3': ['orange', 'darkorange'],
+  '4': ['blueviolet', 'purple'],
+};
+
+const lineStyleFunction = (floor, isHovered) => {
+  const floorColor = floorsColor[floor];
+  const stroke = floorColor && floorColor.length ? floorColor[0] : 'blue';
+  return lineStyler([[stroke, isHovered ? 5 : 7]]);
 };
 
 export { lineStyleFunction, pointStyleFunction };

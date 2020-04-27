@@ -12,7 +12,7 @@ import { Vector as VectorSource } from 'ol/source';
 import {
   defaults as defaultInteractions,
   Translate,
-  Modify,
+  // Modify,
 } from 'ol/interaction';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
@@ -182,6 +182,7 @@ class MapComponent extends Component {
       onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
     });
 
+    /*
     const modify = new Modify({
       source: this.routeVectorSource,
       pixelTolerance: 2,
@@ -288,8 +289,9 @@ class MapComponent extends Component {
       }
       this.initialRouteDrag = null;
     });
+    */
 
-    const interactions = defaultInteractions().extend([translate, modify]);
+    const interactions = defaultInteractions().extend([translate]);
 
     this.map = new Map({
       controls: [],
@@ -335,17 +337,15 @@ class MapComponent extends Component {
       }
     });
     this.map.on('pointermove', evt => {
-      const { currentMot } = this.props;
-
       if (this.hoveredFeature) {
         this.hoveredFeature = null;
         this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
       }
 
       if (this.hoveredRoute) {
-        this.routeVectorLayer.olLayer.setStyle(
-          lineStyleFunction(currentMot, false),
-        );
+        this.routeVectorSource
+          .getFeatures()
+          .forEach(f => f.setStyle(lineStyleFunction(f.get('floor'), true)));
         this.hoveredRoute = null;
       }
       const hovFeats = this.map.getFeaturesAtPixel(evt.pixel);
@@ -367,11 +367,15 @@ class MapComponent extends Component {
             hoveredStationName: name,
           });
         }
-        if (feature.getGeometry().getType() === 'LineString') {
+        if (
+          ['MultiLineString', 'LineString'].includes(
+            feature.getGeometry().getType(),
+          )
+        ) {
           this.hoveredRoute = feature;
-          this.routeVectorLayer.olLayer.setStyle(
-            lineStyleFunction(currentMot, true),
-          );
+          this.routeVectorSource
+            .getFeatures()
+            .forEach(f => f.setStyle(lineStyleFunction(f.get('floor')), true));
         }
         return true;
       });
@@ -506,9 +510,10 @@ class MapComponent extends Component {
         this.routeVectorSource.addFeatures(format.readFeatures(response));
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
         onSetSelectedRoute(this.routeVectorSource.getFeatures()[0]);
-        this.routeVectorLayer.olLayer.setStyle(
-          lineStyleFunction(currentMot, false),
-        );
+
+        this.routeVectorSource
+          .getFeatures()
+          .forEach(f => f.setStyle(lineStyleFunction(f.get('floor'), false)));
       })
       .catch(err => {
         if (err.name === 'AbortError') {
