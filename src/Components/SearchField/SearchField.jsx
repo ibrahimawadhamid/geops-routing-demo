@@ -84,6 +84,7 @@ function SearchField(props) {
       </Tooltip>
     );
     searchFieldLabel = 'Start';
+    /*
     fieldRightIcon = (
       <Grid item xs={1} className={classes.buttonWrapper}>
         <Tooltip title="Add Hop">
@@ -99,6 +100,8 @@ function SearchField(props) {
         </Tooltip>
       </Grid>
     );
+    */
+    fieldRightIcon = null;
   } else if (index === currentStops.length - 1) {
     fieldLeftIcon = (
       <Tooltip title="Pan to the feature">
