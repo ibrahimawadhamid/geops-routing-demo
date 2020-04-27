@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { createRef, Component } from 'react';
 import { connect } from 'react-redux';
 import ConfigReader from 'react-spatial/ConfigReader';
 import LayerService from 'react-spatial/LayerService';
@@ -74,6 +74,7 @@ class MapComponent extends Component {
   constructor(props) {
     super(props);
     const { APIKey, onSetClickLocation } = this.props;
+    this.mapRef = createRef();
     this.hoveredFeature = null;
     this.hoveredRoute = null;
     this.initialRouteDrag = null;
@@ -427,6 +428,14 @@ class MapComponent extends Component {
     }
   };
 
+  onFeaturesHover(features) {
+    if (this.mapRef) {
+      this.mapRef.current.node.current.style.cursor = features.length
+        ? 'pointer'
+        : 'inherit';
+    }
+  }
+
   setIsActiveRoute(isActiveRoute) {
     this.setState({ isActiveRoute });
   }
@@ -553,10 +562,12 @@ class MapComponent extends Component {
           message={hoveredStationName}
         />
         <BasicMap
+          ref={this.mapRef}
           center={center}
           layers={this.layers}
           // To activate when elevation info ready
           // onFeaturesClick={feats => this.onFeaturesClick(feats)}
+          onFeaturesHover={evt => this.onFeaturesHover(evt)}
           onMapMoved={evt => this.onMapMoved(evt)}
           zoom={zoom}
           tabIndex={null}
