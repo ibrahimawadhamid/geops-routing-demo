@@ -57,10 +57,10 @@ export const setShowLoadingBar = showLoadingBar => {
   };
 };
 
-export const setSelectedRoute = selectedRoute => {
+export const setSelectedRoutes = selectedRoutes => {
   return {
-    type: actionTypes.SET_SELECTED_ROUTE,
-    selectedRoute,
+    type: actionTypes.SET_SELECTED_ROUTES,
+    selectedRoutes,
   };
 };
 

@@ -10,11 +10,11 @@ const initialState = {
   notificationType: 'info',
   isFieldFocused: false,
   showLoadingBar: false,
-  selectedRoute: null,
+  selectedRoutes: [],
   isRouteInfoOpen: false,
   dialogPosition: {
     x: 10,
-    y: 240,
+    y: 275,
   },
 };
 
@@ -99,9 +99,9 @@ const setShowLoadingBar = (state, action) => {
   };
 };
 
-const setSelectedRoute = (state, action) => {
+const setSelectedRoutes = (state, action) => {
   const updatedState = {
-    selectedRoute: action.selectedRoute,
+    selectedRoutes: action.selectedRoutes,
   };
   return {
     ...state,
@@ -147,8 +147,8 @@ const reducer = (state = initialState, action) => {
       return setIsFieldFocused(state, action);
     case actionTypes.SET_SHOW_LOADING_BAR:
       return setShowLoadingBar(state, action);
-    case actionTypes.SET_SELECTED_ROUTE:
-      return setSelectedRoute(state, action);
+    case actionTypes.SET_SELECTED_ROUTES:
+      return setSelectedRoutes(state, action);
     case actionTypes.SET_IS_ROUTE_INFO_OPEN:
       return setIsRouteInfoOpen(state, action);
     case actionTypes.SET_DIALOG_POSITION:
