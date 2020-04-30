@@ -19,6 +19,7 @@ import {
   setCurrentStopsGeoJSON,
   setCurrentMot,
   // showNotification,
+  setFloorInfo,
   setIsFieldFocused,
   setShowLoadingBar,
 } from '../../store/actions/Map';
@@ -99,7 +100,6 @@ function RoutingMenu({
   mots,
   // stationSearchUrl,
   // APIKey,
-  drawNewRoute,
   isActiveRoute,
   onZoomRouteClick,
   onPanViaClick,
@@ -359,8 +359,31 @@ function RoutingMenu({
     updatedCurrentStops[fieldIndex] = event.target.value;
     dispatch(setCurrentStops(updatedCurrentStops));
 
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     const floorInfo = [];
-    updatedCurrentStops.forEach(stop => {
+    updatedCurrentStops.forEach((stop, idx) => {
+      if (typeof stop === 'string') {
+        // Convert the string to point and filter floor info
+        const newPoint = to3857(
+          stop.split(',').map(coord => coord.split('$')[0]),
+        );
+        updatedCurrentStopsGeoJSON[idx] = {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: {
+                id: newPoint.slice().reverse(),
+                type: 'coordinates',
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: newPoint,
+              },
+            },
+          ],
+        };
+      }
       const floorMatched =
         typeof stop === 'string' && stop.match(/\$-?(?:[1-9][0-9]?|100)$$/i);
       if (floorMatched) {
@@ -370,7 +393,9 @@ function RoutingMenu({
       }
     });
 
-    drawNewRoute(floorInfo);
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+    // Need to be supported when add/remove stop later on.
+    dispatch(setFloorInfo(floorInfo));
     /*
     abortController.abort();
     abortController = new AbortController();
@@ -701,7 +726,6 @@ RoutingMenu.propTypes = {
   isActiveRoute: PropTypes.bool.isRequired,
   onZoomRouteClick: PropTypes.func,
   onPanViaClick: PropTypes.func,
-  drawNewRoute: PropTypes.func.isRequired,
 };
 
 RoutingMenu.defaultProps = {

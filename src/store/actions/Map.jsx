@@ -7,6 +7,13 @@ export const setCenter = center => {
   };
 };
 
+export const setFloorInfo = floorInfo => {
+  return {
+    type: actionTypes.SET_FLOOR_INFO,
+    floorInfo,
+  };
+};
+
 export const setCurrentStops = currentStops => {
   return {
     type: actionTypes.SET_CURRENT_STOPS,

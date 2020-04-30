@@ -449,13 +449,14 @@ class MapComponent extends Component {
    * two points/stations, if a route is found, it's returned and drawn to the map.
    * @category Map
    */
-  drawNewRoute = (floorInfo = []) => {
+  drawNewRoute = () => {
     const hops = [];
     const {
       currentStopsGeoJSON,
       routingUrl,
       currentMot,
       // APIKey,
+      floorInfo,
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoute,
@@ -558,7 +559,6 @@ class MapComponent extends Component {
           isActiveRoute={isActiveRoute}
           onZoomRouteClick={this.onZoomRouteClick}
           onPanViaClick={this.onPanViaClick}
-          drawNewRoute={newRoute => this.drawNewRoute(newRoute)}
           APIKey={APIKey}
         />
         <Snackbar
@@ -592,6 +592,7 @@ class MapComponent extends Component {
 const mapStateToProps = state => {
   return {
     center: state.MapReducer.center,
+    floorInfo: state.MapReducer.floorInfo,
     selectedRoute: state.MapReducer.selectedRoute,
     isRouteInfoOpen: state.MapReducer.isRouteInfoOpen,
     currentMot: state.MapReducer.currentMot,
@@ -623,6 +624,7 @@ const mapDispatchToProps = dispatch => {
 
 MapComponent.propTypes = {
   center: propTypeCoordinates.isRequired,
+  floorInfo: PropTypes.arrayOf(PropTypes.string).isRequired,
   selectedRoute: PropTypes.instanceOf(Feature),
   isRouteInfoOpen: PropTypes.bool.isRequired,
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,

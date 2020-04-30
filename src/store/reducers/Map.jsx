@@ -4,6 +4,7 @@ const initialState = {
   // center: [949042.143189, 5899715.591163],
   center: [828061.159762, 5933753.540488],
   currentMot: 'bus',
+  floorInfo: [null, null],
   currentStops: ['', ''],
   currentStopsGeoJSON: {},
   clickLocation: null,
@@ -22,6 +23,16 @@ const initialState = {
 const setCenter = (state, action) => {
   const updatedState = {
     center: action.center,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
+const setFloorInfo = (state, action) => {
+  const updatedState = {
+    floorInfo: action.floorInfo,
   };
   return {
     ...state,
@@ -134,6 +145,8 @@ const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
       return setCenter(state, action);
+    case actionTypes.SET_FLOOR_INFO:
+      return setFloorInfo(state, action);
     case actionTypes.SET_CURRENT_STOPS:
       return setCurrentStops(state, action);
     case actionTypes.SET_CURRENT_STOPS_GEOJSON:
