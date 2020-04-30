@@ -136,6 +136,7 @@ function RoutingMenu({
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
   // const center = useSelector(state => state.MapReducer.center);
+  const floorInfo = useSelector(state => state.MapReducer.floorInfo);
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
@@ -185,6 +186,8 @@ function RoutingMenu({
     updatedFocusedFieldIndex,
   ) => {
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+    const updatedFloorInfo = _.clone(floorInfo);
+    updatedFloorInfo[focusedFieldIndex] = null;
     // Create GeoJSON
     const tempGeoJSON = {
       type: 'FeatureCollection',
@@ -208,6 +211,7 @@ function RoutingMenu({
       updatedCurrentStopsGeoJSON,
       updatedFocusedFieldIndex,
     );
+    dispatch(setFloorInfo(updatedFloorInfo));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
@@ -356,17 +360,18 @@ function RoutingMenu({
       return;
     }
     const updatedCurrentStops = _.clone(currentStops);
-    updatedCurrentStops[fieldIndex] = event.target.value;
+    updatedCurrentStops[fieldIndex] = event.target.value.trim();
     dispatch(setCurrentStops(updatedCurrentStops));
 
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-    const floorInfo = [];
+    const updatedFloorInfo = _.clone(floorInfo);
     updatedCurrentStops.forEach((stop, idx) => {
-      if (typeof stop === 'string') {
+      if (typeof stop === 'string' && stop !== '') {
         // Convert the string to point and filter floor info
-        const newPoint = to3857(
-          stop.split(',').map(coord => coord.split('$')[0]),
-        );
+        const coords = stop.split(',');
+        const newPoint = coords.includes(0)
+          ? []
+          : to3857(coords.map(coord => coord.split('$')[0]));
         updatedCurrentStopsGeoJSON[idx] = {
           type: 'FeatureCollection',
           features: [
@@ -387,15 +392,15 @@ function RoutingMenu({
       const floorMatched =
         typeof stop === 'string' && stop.match(/\$-?(?:[1-9][0-9]?|100)$$/i);
       if (floorMatched) {
-        floorInfo.push(floorMatched[0]);
+        [updatedFloorInfo[idx]] = floorMatched;
       } else {
-        floorInfo.push(null);
+        updatedFloorInfo[idx] = null;
       }
     });
 
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     // Need to be supported when add/remove stop later on.
-    dispatch(setFloorInfo(floorInfo));
+    dispatch(setFloorInfo(updatedFloorInfo));
     /*
     abortController.abort();
     abortController = new AbortController();

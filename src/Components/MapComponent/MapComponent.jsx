@@ -152,32 +152,51 @@ class MapComponent extends Component {
       if (name) {
         featureIndex = currentStops.indexOf(name);
       } else {
-        const isCoordPresent = el => {
-          if (!Array.isArray(el)) {
-            return false;
+        const isCoordPresent = element => {
+          let el;
+          let coords;
+          if (!Array.isArray(element)) {
+            el = element.split(',').map(f => f.split('$')[0]);
+            coords = to4326(id.slice().reverse());
+          } else {
+            el = element;
+            coords = id.slice().reverse();
           }
-          const coords = id.slice().reverse();
           return el[0] === coords[0] && el[1] === coords[1];
         };
         featureIndex = currentStops.findIndex(isCoordPresent);
       }
-      newCurrentStops[featureIndex] = evt.coordinate;
-      newCurentStopsGeoJSON[featureIndex] = {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: {
-              id: evt.coordinate.slice().reverse(),
-              type: 'coordinates',
+
+      if (featureIndex !== -1) {
+        if (typeof newCurrentStops[featureIndex] === 'string') {
+          const stopFloor = newCurrentStops[featureIndex].match(
+            /\$-?(?:[1-9][0-9]?|100)$$/i,
+          );
+
+          newCurrentStops[featureIndex] = `${to4326(evt.coordinate).join(
+            ',',
+          )}${stopFloor || ''}`;
+        } else {
+          newCurrentStops[featureIndex] = evt.coordinate;
+        }
+
+        newCurentStopsGeoJSON[featureIndex] = {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: {
+                id: evt.coordinate.slice().reverse(),
+                type: 'coordinates',
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: evt.coordinate,
+              },
             },
-            geometry: {
-              type: 'Point',
-              coordinates: evt.coordinate,
-            },
-          },
-        ],
-      };
+          ],
+        };
+      }
       onSetCurrentStops(newCurrentStops);
       onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
     });
@@ -332,7 +351,6 @@ class MapComponent extends Component {
       const { isFieldFocused, currentStops } = this.props;
       // if one field empty or if a field is focused
       if (currentStops.includes('') || isFieldFocused) {
-        // ADD one here?
         onSetClickLocation(evt.coordinate);
       }
     });
