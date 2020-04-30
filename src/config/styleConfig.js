@@ -69,29 +69,28 @@ const pointStyleFunction = mot => {
   return othersPointStyle;
 };
 */
-const pointStyleFunction = () => {
+const floorsColor = {
+  '-2': 'pink',
+  '-1': 'darkgrey',
+  '0': 'blue',
+  '1': 'yellow',
+  '2': 'green',
+  '3': 'orange',
+  '4': 'blueviolet',
+};
+
+const pointStyleFunction = floor => {
   return new Style({
     image: new Circle({
-      radius: 7,
-      fill: new Fill({ color: 'blue' }),
-      stroke: new Stroke({ color: 'darkblue', width: 2 }),
+      radius: 8,
+      fill: new Fill({ color: floorsColor[floor] }),
     }),
   });
 };
 
-const floorsColor = {
-  '-2': ['pink', 'hotpink'],
-  '-1': ['darkgrey', 'grey'],
-  '0': ['red', 'darkred'],
-  '1': ['yellow', 'rgb(153,153,0)'],
-  '2': ['green', 'darkgreen'],
-  '3': ['orange', 'darkorange'],
-  '4': ['blueviolet', 'purple'],
-};
-
 const lineStyleFunction = (floor, isHovered) => {
   const floorColor = floorsColor[floor];
-  const stroke = floorColor && floorColor.length ? floorColor[0] : 'blue';
+  const stroke = floorColor && floorColor.length ? floorColor : 'blue';
   return lineStyler([[stroke, isHovered ? 5 : 7]]);
 };
 

@@ -388,7 +388,7 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidUpdate(prevProps) {
-    const { currentStopsGeoJSON, currentMot } = this.props;
+    const { currentStopsGeoJSON, currentMot, floorInfo } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &&
@@ -400,9 +400,14 @@ class MapComponent extends Component {
         this.markerVectorSource.addFeatures(
           new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
         );
-        this.markerVectorSource
-          .getFeatures()
-          .forEach(f => f.setStyle(pointStyleFunction(currentMot)));
+        this.markerVectorSource.getFeatures().forEach((f, idx) => {
+          let floor = '0';
+          if (floorInfo[idx]) {
+            const floorNb = floorInfo[idx].match(/\$(-?(?:[1-9][0-9]?|100))$/);
+            floor = floorNb ? floorNb[1] : '0';
+          }
+          f.setStyle(pointStyleFunction(floor));
+        });
       });
       // Remove the old route if exists
       this.routeVectorSource.clear();
