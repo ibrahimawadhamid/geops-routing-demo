@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import Checkbox from '@material-ui/core/Checkbox';
+// import Checkbox from '@material-ui/core/Checkbox';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -155,9 +155,9 @@ function RoutingMenu({
   const [currentMots] = useState(currentMotsVal);
   const [currentMot, setCurrentMotState] = useState(currentMotsVal[0].name);
   const [otherMots] = useState(otherMotsVal);
-  const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
+  const [, setLastChangedFieldIdx] = useState(null);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
-  const [searchMotOnly, setSearchMotOnly] = React.useState(true);
+  // const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
@@ -441,6 +441,7 @@ function RoutingMenu({
     */
   };
 
+  /*
   const retriggerSearch = () => {
     if (lastChangedFieldIdx === null) {
       return;
@@ -454,6 +455,7 @@ function RoutingMenu({
       lastChangedFieldIdx,
     );
   };
+  */
 
   /**
    * The user makes changes to the current search. Either select the first result,
