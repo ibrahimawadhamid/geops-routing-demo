@@ -46,6 +46,7 @@ function TabPanel(props) {
       role="tabpanel"
       hidden={value !== index}
       id={nextId()}
+      style={{ paddingBottom: '20px' }}
       aria-labelledby={`simple-tab-${index}`}
     >
       {value === index && children}
@@ -689,6 +690,7 @@ function RoutingMenu({
               )}
             </Droppable>
           </DragDropContext>
+          {/*
           <div className="rd-mot-checkbox">
             <Checkbox
               className={classes.checkbox}
@@ -702,6 +704,7 @@ function RoutingMenu({
             />
             <span>Search only selected mode of transport</span>
           </div>
+          */}
         </TabPanel>
         {showLoadingBar ? <LinearProgress /> : null}
       </Paper>
