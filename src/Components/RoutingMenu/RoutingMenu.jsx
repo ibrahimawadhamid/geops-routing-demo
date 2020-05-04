@@ -37,6 +37,9 @@ import {
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 
+const FLOOR_REGEX = /\$-?(?:[0-9][0-9]?|100)$/;
+const FLOOR_REGEX_CAPTURE = /\$(-?(?:[1-9][0-9]?|100))$/;
+
 function TabPanel(props) {
   const { children, value, index } = props;
 
@@ -390,8 +393,7 @@ function RoutingMenu({
           ],
         };
       }
-      const floorMatched =
-        typeof stop === 'string' && stop.match(/\$-?(?:[1-9][0-9]?|100)$$/i);
+      const floorMatched = typeof stop === 'string' && stop.match(FLOOR_REGEX);
       if (floorMatched) {
         [updatedFloorInfo[idx]] = floorMatched;
       } else {
@@ -743,4 +745,5 @@ RoutingMenu.defaultProps = {
   onPanViaClick: undefined,
 };
 
+export { FLOOR_REGEX, FLOOR_REGEX_CAPTURE };
 export default RoutingMenu;

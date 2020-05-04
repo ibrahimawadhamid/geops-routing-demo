@@ -48,6 +48,9 @@ import * as actions from '../../store/actions';
 let abortController = new AbortController();
 const zoom = 17;
 
+const FLOOR_REGEX = /\$-?(?:[0-9][0-9]?|100)$/;
+const FLOOR_REGEX_CAPTURE = /\$(-?(?:[1-9][0-9]?|100))$/;
+
 /**
  * The only true map that shows inside the application.
  * @category Map
@@ -169,9 +172,7 @@ class MapComponent extends Component {
 
       if (featureIndex !== -1) {
         if (typeof newCurrentStops[featureIndex] === 'string') {
-          const stopFloor = newCurrentStops[featureIndex].match(
-            /\$-?(?:[1-9][0-9]?|100)$$/i,
-          );
+          const stopFloor = newCurrentStops[featureIndex].match(FLOOR_REGEX);
 
           newCurrentStops[featureIndex] = `${to4326(evt.coordinate).join(
             ',',
@@ -421,7 +422,7 @@ class MapComponent extends Component {
         this.markerVectorSource.getFeatures().forEach((f, idx) => {
           let floor = '0';
           if (floorInfo[idx]) {
-            const floorNb = floorInfo[idx].match(/\$(-?(?:[1-9][0-9]?|100))$/);
+            const floorNb = floorInfo[idx].match(FLOOR_REGEX_CAPTURE);
             floor = floorNb ? floorNb[1] : '0';
           }
           f.setStyle(pointStyleFunction(floor));
@@ -672,4 +673,5 @@ MapComponent.defaultProps = {
   selectedRoute: null,
 };
 
+export { FLOOR_REGEX, FLOOR_REGEX_CAPTURE };
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);
