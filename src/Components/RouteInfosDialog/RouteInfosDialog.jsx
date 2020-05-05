@@ -1,11 +1,11 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Feature } from 'ol';
 import { getLength } from 'ol/sphere';
-import Dialog from '@geops/react-ui/components/Dialog';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Label } from 'recharts';
-import { setIsRouteInfoOpen, setDialogPosition } from '../../store/actions/Map';
+import { setIsRouteInfoOpen } from '../../store/actions/Map';
+import Dialog from '../Dialog';
 import './RouteInfosDialog.scss';
 
 const propTypes = {
@@ -26,16 +26,6 @@ const everyNth = (arr, nth) => arr.filter((e, i) => i % nth === nth - 1);
 
 function RouteInfosDialog({ route }) {
   const dispatch = useDispatch();
-  const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
-
-  const onDragStop = (evt, position) => {
-    dispatch(
-      setDialogPosition({
-        x: position.lastX,
-        y: position.lastY,
-      }),
-    );
-  };
 
   const length = getLength(route.getGeometry());
   const distanceUnit = length > 100 ? 'km' : 'm';
@@ -57,15 +47,7 @@ function RouteInfosDialog({ route }) {
 
   return (
     <Dialog
-      isOpen
       title={<span>Route information</span>}
-      isDraggable
-      onDragStop={onDragStop}
-      className="rd-dialog-container"
-      classNameHeader="rd-dialog-header"
-      classNameCloseBt="rd-dialog-close-bt"
-      cancelDraggable=".tm-dialog-body"
-      position={dialogPosition}
       onClose={() => dispatch(setIsRouteInfoOpen(false))}
     >
       <LineChart width={400} height={200} data={data}>

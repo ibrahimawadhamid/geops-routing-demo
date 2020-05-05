@@ -15,8 +15,11 @@ import {
   // Modify,
 } from 'ol/interaction';
 import PropTypes from 'prop-types';
+import InfoIcon from '@material-ui/icons/Info';
 import Snackbar from '@material-ui/core/Snackbar';
-import RoutingMenu from '../RoutingMenu';
+import IconButton from '@material-ui/core/IconButton';
+import RoutingMenu, { FLOOR_REGEX, FLOOR_REGEX_CAPTURE } from '../RoutingMenu';
+import PlanInfosDialog from '../PlanInfosDialog';
 import RouteInfosDialog from '../RouteInfosDialog';
 import {
   lineStyleFunction,
@@ -47,9 +50,6 @@ import * as actions from '../../store/actions';
 
 let abortController = new AbortController();
 const zoom = 17;
-
-const FLOOR_REGEX = /\$-?(?:[0-9][0-9]?|100)$/;
-const FLOOR_REGEX_CAPTURE = /\$(-?(?:[1-9][0-9]?|100))$/;
 
 /**
  * The only true map that shows inside the application.
@@ -85,6 +85,7 @@ class MapComponent extends Component {
       hoveredStationOpen: false,
       hoveredStationName: '',
       isActiveRoute: false,
+      isInfoOpen: false,
     };
 
     this.projection = 'EPSG:3857';
@@ -570,6 +571,7 @@ class MapComponent extends Component {
     } = this.props;
 
     const {
+      isInfoOpen,
       isActiveRoute,
       hoveredStationOpen,
       hoveredStationName,
@@ -605,6 +607,19 @@ class MapComponent extends Component {
             projection: this.projection,
           }}
         />
+        <IconButton
+          onClick={() => this.setState({ isInfoOpen: !isInfoOpen })}
+          className="rd-info-button"
+          aria-label="Information"
+          size="big"
+        >
+          <InfoIcon fontSize="big" color="primary" />
+        </IconButton>
+        {isInfoOpen ? (
+          <PlanInfosDialog
+            onClose={() => this.setState({ isInfoOpen: false })}
+          />
+        ) : null}
         {isRouteInfoOpen && selectedRoute ? (
           <RouteInfosDialog route={selectedRoute} />
         ) : null}
@@ -673,5 +688,4 @@ MapComponent.defaultProps = {
   selectedRoute: null,
 };
 
-export { FLOOR_REGEX, FLOOR_REGEX_CAPTURE };
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);
