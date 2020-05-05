@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import UIDialog from '@geops/react-ui/components/Dialog';
-import { setDialogPosition } from '../../store/actions/Map';
+import { setDialogPosition, setDialogSize } from '../../store/actions/Map';
 import './Dialog.scss';
 
 const propTypes = {
@@ -10,19 +10,15 @@ const propTypes = {
   title: PropTypes.element.isRequired,
   onClose: PropTypes.func.isRequired,
   isResizable: PropTypes.bool,
-  size: PropTypes.shape({
-    height: PropTypes.number,
-    width: PropTypes.number,
-  }),
 };
 
 const defaultProps = {
   isResizable: false,
-  size: null,
 };
 
-function Dialog({ onClose, title, children, size, isResizable }) {
+function Dialog({ onClose, title, children, isResizable }) {
   const dispatch = useDispatch();
+  const dialogSize = useSelector(state => state.MapReducer.dialogSize);
   const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
 
   const onDragStop = (evt, position) => {
@@ -34,12 +30,23 @@ function Dialog({ onClose, title, children, size, isResizable }) {
     );
   };
 
+  const onResizeStop = (e, direction, ref, delta, position) => {
+    dispatch(
+      setDialogSize({
+        width: ref.offsetWidth,
+        height: ref.offsetHeight,
+        ...position,
+      }),
+    );
+  };
+
   return (
     <UIDialog
       isOpen
       title={title}
       isDraggable
-      size={size}
+      size={dialogSize}
+      onResizeStop={onResizeStop}
       isResizable={isResizable}
       onDragStop={onDragStop}
       className="rd-dialog-container"

@@ -11,4 +11,5 @@ export {
   setSelectedRoute,
   setIsRouteInfoOpen,
   setDialogPosition,
+  setDialogSize,
 } from './Map';

@@ -84,3 +84,10 @@ export const setDialogPosition = dialogPosition => {
     dialogPosition,
   };
 };
+
+export const setDialogSize = dialogSize => {
+  return {
+    type: actionTypes.SET_DIALOG_SIZE,
+    dialogSize,
+  };
+};

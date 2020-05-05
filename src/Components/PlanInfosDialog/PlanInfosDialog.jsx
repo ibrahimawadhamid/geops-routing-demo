@@ -14,10 +14,6 @@ function PlanInfosDialog({ onClose }) {
       title={<span>Plan Information</span>}
       onClose={onClose}
       isResizable
-      size={{
-        height: 550,
-        width: 500,
-      }}
       enableResizing={{
         top: true,
         right: true,

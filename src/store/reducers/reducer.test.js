@@ -12,7 +12,11 @@ describe('map reducer', () => {
       currentStopsGeoJSON: {},
       dialogPosition: {
         x: 10,
-        y: 240,
+        y: 190,
+      },
+      dialogSize: {
+        height: 550,
+        width: 500,
       },
       clickLocation: null,
       notificationMessage: '',

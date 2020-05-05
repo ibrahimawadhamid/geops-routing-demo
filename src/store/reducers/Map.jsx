@@ -18,6 +18,10 @@ const initialState = {
     x: 10,
     y: 190,
   },
+  dialogSize: {
+    height: 550,
+    width: 500,
+  },
 };
 
 const setCenter = (state, action) => {
@@ -141,6 +145,20 @@ const setDialogPosition = (state, action) => {
   };
 };
 
+const setDialogSize = (state, action) => {
+  return {
+    ...state,
+    dialogSize: {
+      height: action.dialogSize.height,
+      width: action.dialogSize.width,
+    },
+    dialogPosition: {
+      x: action.dialogSize.x,
+      y: action.dialogSize.y,
+    },
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
@@ -167,6 +185,8 @@ const reducer = (state = initialState, action) => {
       return setIsRouteInfoOpen(state, action);
     case actionTypes.SET_DIALOG_POSITION:
       return setDialogPosition(state, action);
+    case actionTypes.SET_DIALOG_SIZE:
+      return setDialogSize(state, action);
     default:
       return state;
   }
