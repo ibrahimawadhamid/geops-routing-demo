@@ -74,7 +74,8 @@ class MapComponent extends Component {
    */
   constructor(props) {
     super(props);
-    const { APIKey, onSetClickLocation } = this.props;
+    const { APIKey, onSetClickLocation, olMap } = this.props;
+    this.map = olMap;
     this.mapRef = createRef();
     this.hoveredFeature = null;
     this.hoveredRoute = null;
@@ -307,10 +308,8 @@ class MapComponent extends Component {
     });
 
     const interactions = defaultInteractions().extend([translate, modify]);
-
-    this.map = new Map({
-      controls: [],
-      interactions,
+    interactions.getArray().forEach(interaction => {
+      this.map.addInteraction(interaction);
     });
 
     this.onZoomRouteClick = () => {
@@ -620,6 +619,7 @@ const mapStateToProps = state => {
     currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
     isFieldFocused: state.MapReducer.isFieldFocused,
+    olMap: state.MapReducer.olMap,
   };
 };
 
@@ -660,6 +660,7 @@ MapComponent.propTypes = {
   isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
+  olMap: PropTypes.instanceOf(Map).isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

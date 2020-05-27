@@ -1,3 +1,4 @@
+import { Map } from 'ol';
 import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
@@ -16,6 +17,9 @@ const initialState = {
     x: 10,
     y: 275,
   },
+  olMap: new Map({
+    controls: [],
+  }),
 };
 
 const setCenter = (state, action) => {
