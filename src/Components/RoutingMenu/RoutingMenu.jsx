@@ -173,10 +173,10 @@ function RoutingMenu({
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
-  // useEffect(() => {
-  //   dispatch(setCurrentMot(currentMots[0].name));
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+  useEffect(() => {
+    dispatch(setCurrentMot(currentMot || currentMots[0].name));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMot]);
 
   useEffect(() => {
     if (isRouteInfoOpen) {

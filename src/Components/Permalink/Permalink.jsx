@@ -100,6 +100,7 @@ const compileViaString = currentStopsGeoJson => {
 function Permalink({ mots }) {
   const dispatch = useDispatch();
   const urlSearch = qs.parse(window.location.search);
+  const center = useSelector(state => state.MapReducer.center);
   const appState = useSelector(state => state.MapReducer);
   const currentMot = useSelector(state => state.MapReducer.currentMot);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
@@ -108,8 +109,6 @@ function Permalink({ mots }) {
   );
   const map = appState.olMap;
   const [params, setParams] = useState({});
-
-  console.log(appState);
 
   useEffect(() => {
     const newParams = {};
@@ -158,13 +157,15 @@ function Permalink({ mots }) {
 
   useEffect(() => {
     const newParams = {};
+    newParams.z = map.getView().getZoom();
+    [newParams.x] = center;
+    [, newParams.y] = center;
     newParams.mot = currentMot;
     if (Object.keys(currentStopsGeoJSON).length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON);
     }
     setParams(newParams);
-  }, [currentMot, currentStops, currentStopsGeoJSON]);
-
+  }, [currentMot, currentStops, currentStopsGeoJSON, center, map]);
   return <RSPermalink map={map} params={params} />;
 }
 

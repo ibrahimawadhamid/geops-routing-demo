@@ -3,7 +3,7 @@ import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
   center: [949042.143189, 5899715.591163],
-  currentMot: 'bus',
+  currentMot: 'rail',
   currentStops: ['', ''],
   currentStopsGeoJSON: {},
   clickLocation: null,
