@@ -435,7 +435,6 @@ class MapComponent extends Component {
   onMapMoved = evt => {
     const { center, onSetCenter } = this.props;
     const newCenter = evt.map.getView().getCenter();
-
     if (center[0] !== newCenter[0] || center[1] !== newCenter[1]) {
       onSetCenter(newCenter);
     }
