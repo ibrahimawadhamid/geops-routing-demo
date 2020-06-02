@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -9,14 +10,15 @@ import {
   setCurrentStopsGeoJSON,
   setCurrentMot,
   setCenter,
+  setRoutingElevation,
+  setResolveHops,
 } from '../../store/actions/Map';
 
 const validateUrlCoordinates = coordArray => {
+  /* Check if the x and y values are xy-coordinates */
   if (
-    // eslint-disable-next-line no-restricted-globals
     isFinite(coordArray[1]) &&
     Math.abs(coordArray[1]) <= 90 &&
-    // eslint-disable-next-line no-restricted-globals
     isFinite(coordArray[0]) &&
     Math.abs(coordArray[0]) <= 180
   ) {
@@ -26,12 +28,14 @@ const validateUrlCoordinates = coordArray => {
 };
 
 const getGeoJson = viaString => {
-  // eslint-disable-next-line no-restricted-globals
-  if (viaString.split(',').filter(val => isNaN(val)).length === 0) {
-    const coordArray = viaString.split(',').map(string => parseFloat(string));
-    if (validateUrlCoordinates(coordArray)) {
+  /* When the via is a pair of coordinates */
+  if (viaString.split(',').length) {
+    const coordArray = viaString
+      .split(',')
+      .filter(val => !isNaN(val))
+      .map(string => parseFloat(string));
+    if (coordArray.length === 2 && validateUrlCoordinates(coordArray)) {
       const coords3857 = to3857(coordArray);
-
       return {
         type: 'FeatureCollection',
         features: [
@@ -51,6 +55,8 @@ const getGeoJson = viaString => {
     }
     return null;
   }
+
+  /* When the via is a UID */
   return {
     type: 'Feature',
     properties: {
@@ -107,29 +113,43 @@ function Permalink({ mots }) {
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
   );
+  const routingElevation = useSelector(
+    state => state.MapReducer.routingElevation,
+  );
+  const resolveHops = useSelector(state => state.MapReducer.resolveHops);
   const map = appState.olMap;
   const [params, setParams] = useState({});
 
+  /* Configure app on load using url params */
   useEffect(() => {
     const newParams = {};
     if (urlSearch) {
-      if (urlSearch.z) {
+      if (urlSearch.z && !isNaN(parseFloat(urlSearch.z))) {
+        // Set zoom if defined
         map.getView().setZoom(urlSearch.z);
       }
-      if (urlSearch.x && urlSearch.y) {
+      if (
+        urlSearch.x &&
+        !isNaN(parseFloat(urlSearch.x)) &&
+        urlSearch.y &&
+        !isNaN(parseFloat(urlSearch.y))
+      ) {
+        // Set center if defined
         dispatch(setCenter([parseFloat(urlSearch.x), parseFloat(urlSearch.y)]));
       }
 
       if (urlSearch.mot) {
+        // Set current mot if defined
         const newMot = mots.find(mot => mot === urlSearch.mot) || mots[0];
         newParams.mot = newMot;
-        dispatch(setCurrentMot(newMot));
+        dispatch(setCurrentMot(newMot || mots[0]));
       }
+
       if (urlSearch.via) {
+        // Set via stations if defined
         newParams.via = urlSearch.via;
         const viaArray = urlSearch.via.replace(/!/g, '').split('|');
         const geoJsonArray = viaArray.map(viaString => getGeoJson(viaString));
-
         dispatch(
           setCurrentStops(
             geoJsonArray.map(stop => {
@@ -150,22 +170,42 @@ function Permalink({ mots }) {
           .forEach((stop, idx) => (geoJsonObject[`${idx}`] = stop));
         dispatch(setCurrentStopsGeoJSON(geoJsonObject));
       }
+
+      if (urlSearch.elevation) {
+        // Set elevation if defined
+        dispatch(setRoutingElevation(parseInt(urlSearch.elevation, 10)));
+      }
+
+      if (urlSearch['resolve-hops']) {
+        dispatch(setResolveHops(urlSearch['resolve-hops'] === 'true'));
+      }
     }
     setParams(newParams);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* Update url params on app update */
   useEffect(() => {
     const newParams = {};
     newParams.z = map.getView().getZoom();
     [newParams.x] = center;
     [, newParams.y] = center;
     newParams.mot = currentMot;
+    newParams.elevation = parseInt(routingElevation, 10);
+    newParams['resolve-hops'] = resolveHops;
     if (Object.keys(currentStopsGeoJSON).length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON);
     }
     setParams(newParams);
-  }, [currentMot, currentStops, currentStopsGeoJSON, center, map]);
+  }, [
+    currentMot,
+    currentStops,
+    currentStopsGeoJSON,
+    center,
+    routingElevation,
+    resolveHops,
+    map,
+  ]);
   return <RSPermalink map={map} params={params} />;
 }
 

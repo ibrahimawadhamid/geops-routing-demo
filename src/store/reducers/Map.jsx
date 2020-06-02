@@ -20,6 +20,8 @@ const initialState = {
   olMap: new Map({
     controls: [],
   }),
+  routingElevation: 1,
+  resolveHops: false,
 };
 
 const setCenter = (state, action) => {
@@ -133,6 +135,26 @@ const setDialogPosition = (state, action) => {
   };
 };
 
+const setRoutingElevation = (state, action) => {
+  const updatedState = {
+    routingElevation: action.routingElevation,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
+const setResolveHops = (state, action) => {
+  const updatedState = {
+    resolveHops: action.resolveHops,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
@@ -157,6 +179,10 @@ const reducer = (state = initialState, action) => {
       return setIsRouteInfoOpen(state, action);
     case actionTypes.SET_DIALOG_POSITION:
       return setDialogPosition(state, action);
+    case actionTypes.SET_ROUTING_ELEVATION:
+      return setRoutingElevation(state, action);
+    case actionTypes.SET_RESOLVE_HOPS:
+      return setResolveHops(state, action);
     default:
       return state;
   }

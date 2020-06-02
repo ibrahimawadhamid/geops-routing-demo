@@ -478,6 +478,8 @@ class MapComponent extends Component {
       routingUrl,
       currentMot,
       APIKey,
+      routingElevation,
+      resolveHops,
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoutes,
@@ -507,7 +509,7 @@ class MapComponent extends Component {
 
     const reqUrl = `${routingUrl}?via=${hops.join(
       '|',
-    )}&mot=${currentMot}&resolve-hops=false&key=${APIKey}&elevation=1`;
+    )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}&elevation=${routingElevation}`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
@@ -618,6 +620,8 @@ const mapStateToProps = state => {
     currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
     isFieldFocused: state.MapReducer.isFieldFocused,
+    routingElevation: state.MapReducer.routingElevation,
+    resolveHops: state.MapReducer.resolveHops,
     olMap: state.MapReducer.olMap,
   };
 };
@@ -659,6 +663,8 @@ MapComponent.propTypes = {
   isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
+  routingElevation: PropTypes.number.isRequired,
+  resolveHops: PropTypes.bool.isRequired,
   olMap: PropTypes.instanceOf(Map).isRequired,
 };
 
