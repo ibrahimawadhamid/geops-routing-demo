@@ -206,6 +206,7 @@ function Permalink({ mots }) {
     resolveHops,
     map,
   ]);
+
   return <RSPermalink map={map} params={params} />;
 }
 
