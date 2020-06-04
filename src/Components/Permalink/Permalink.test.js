@@ -47,7 +47,7 @@ describe('Permalink', () => {
     });
     const component = mount(
       <Provider store={store}>
-        <Permalink mots={['rail', 'bus']} />
+        <Permalink mots={['rail', 'bus']} APIKey="foobar" />
       </Provider>,
     );
 
@@ -67,7 +67,7 @@ describe('Permalink', () => {
 
     const component = mount(
       <Provider store={store}>
-        <Permalink mots={['rail', 'bus']} />
+        <Permalink mots={['rail', 'bus']} APIKey="foobar" />
       </Provider>,
     );
 
@@ -75,11 +75,11 @@ describe('Permalink', () => {
       type: 'SET_CURRENT_MOT',
       currentMot: 'bus',
     });
-    expect(component.props().store.getActions()[3]).toEqual({
+    expect(component.props().store.getActions()[1]).toEqual({
       type: 'SET_ROUTING_ELEVATION',
       routingElevation: 2,
     });
-    expect(component.props().store.getActions()[4]).toEqual({
+    expect(component.props().store.getActions()[2]).toEqual({
       type: 'SET_RESOLVE_HOPS',
       resolveHops: true,
     });

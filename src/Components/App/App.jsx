@@ -31,7 +31,7 @@ function App(props) {
 
   return (
     <Provider store={store}>
-      <Permalink mots={mots} />
+      <Permalink mots={mots} APIKey={apiKey} />
       <MapComponent
         mots={mots}
         routingUrl={routingUrl}

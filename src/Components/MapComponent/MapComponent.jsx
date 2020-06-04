@@ -410,7 +410,6 @@ class MapComponent extends Component {
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
-
     if (currentMotChanged || currentStopsGeoJSONChanged) {
       this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
@@ -496,7 +495,6 @@ class MapComponent extends Component {
             .reverse()}`,
         );
       } else if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
-        // hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
         hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
       } else {
         hops.push(`${currentStopsGeoJSON[key].properties.name}`);

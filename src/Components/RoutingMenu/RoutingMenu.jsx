@@ -174,11 +174,6 @@ function RoutingMenu({
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
   useEffect(() => {
-    dispatch(setCurrentMot(currentMot || currentMots[0].name));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentMot]);
-
-  useEffect(() => {
     if (isRouteInfoOpen) {
       dispatch(setSelectedRoutes([]));
     }

@@ -14,6 +14,9 @@ import {
   setResolveHops,
 } from '../../store/actions/Map';
 
+const abortController = new AbortController();
+const { signal } = abortController;
+
 const validateUrlCoordinates = coordArray => {
   /* Check if the x and y values are xy-coordinates */
   if (
@@ -27,16 +30,18 @@ const validateUrlCoordinates = coordArray => {
   return false;
 };
 
-const getGeoJson = viaString => {
+const getGeoJson = (viaString, APIKey) => {
   /* When the via is a pair of coordinates */
-  if (viaString.split(',').length) {
+  if (viaString.split(',').length > 1) {
+    let geoJson;
     const coordArray = viaString
       .split(',')
       .filter(val => !isNaN(val))
       .map(string => parseFloat(string));
     if (coordArray.length === 2 && validateUrlCoordinates(coordArray)) {
+      /* Convert coordinates to 3857 */
       const coords3857 = to3857(coordArray);
-      return {
+      geoJson = {
         type: 'FeatureCollection',
         features: [
           {
@@ -53,38 +58,20 @@ const getGeoJson = viaString => {
         ],
       };
     }
-    return null;
+    return Promise.resolve(geoJson);
   }
-
   /* When the via is a UID */
-  return {
-    type: 'Feature',
-    properties: {
-      uid: viaString,
-      name: 'Bern',
-      country_code: 'CH',
-      rank: 0.343647865289214,
-      translated_names: [],
-      mot: {
-        bus: true,
-        ferry: false,
-        gondola: false,
-        tram: false,
-        rail: true,
-        funicular: false,
-        cable_car: false,
-        subway: false,
-      },
-      ident_source: 'sbb',
-      id: '8507000',
-      code: 'BN',
-      ifopt: null,
-    },
-    geometry: {
-      type: 'Point',
-      coordinates: [828120.1635449642, 5933726.148056162],
-    },
-  };
+  const reqUrl = `https://api.geops.io/stops/v1/lookup/${viaString}/?key=${APIKey}`;
+  return fetch(reqUrl, { signal })
+    .then(response => response.json())
+    .then(response => {
+      /* Convert coordinates to 3857 */
+      const feature = response.features[0];
+      feature.geometry.coordinates = to3857(
+        response.features[0].geometry.coordinates,
+      );
+      return feature;
+    });
 };
 
 const compileViaString = currentStopsGeoJson => {
@@ -103,7 +90,7 @@ const compileViaString = currentStopsGeoJson => {
   return uidStrings.join('|');
 };
 
-function Permalink({ mots }) {
+function Permalink({ mots, APIKey }) {
   const dispatch = useDispatch();
   const urlSearch = qs.parse(window.location.search);
   const center = useSelector(state => state.MapReducer.center);
@@ -142,33 +129,37 @@ function Permalink({ mots }) {
         // Set current mot if defined
         const newMot = mots.find(mot => mot === urlSearch.mot) || mots[0];
         newParams.mot = newMot;
-        dispatch(setCurrentMot(newMot || mots[0]));
+        dispatch(setCurrentMot(newMot));
       }
 
       if (urlSearch.via) {
         // Set via stations if defined
         newParams.via = urlSearch.via;
         const viaArray = urlSearch.via.replace(/!/g, '').split('|');
-        const geoJsonArray = viaArray.map(viaString => getGeoJson(viaString));
-        dispatch(
-          setCurrentStops(
-            geoJsonArray.map(stop => {
-              if (!stop) {
-                return '';
-              }
-              if (stop.type === 'FeatureCollection') {
-                return stop.features[0].geometry.coordinates;
-              }
-              return stop.properties.name;
-            }),
-          ),
+        const geoJsonArray = viaArray.map(viaString =>
+          getGeoJson(viaString, APIKey),
         );
-        const geoJsonObject = {};
-        geoJsonArray
-          .filter(stop => !!stop)
-          // eslint-disable-next-line no-return-assign
-          .forEach((stop, idx) => (geoJsonObject[`${idx}`] = stop));
-        dispatch(setCurrentStopsGeoJSON(geoJsonObject));
+        Promise.all(geoJsonArray).then(values => {
+          dispatch(
+            setCurrentStops(
+              values.map(stop => {
+                if (!stop) {
+                  return '';
+                }
+                if (stop.type === 'FeatureCollection') {
+                  return stop.features[0].geometry.coordinates;
+                }
+                return stop.properties.name;
+              }),
+            ),
+          );
+          const geoJsonObject = {};
+          values
+            .filter(stop => !!stop)
+            // eslint-disable-next-line no-return-assign
+            .forEach((stop, idx) => (geoJsonObject[`${idx}`] = stop));
+          dispatch(setCurrentStopsGeoJSON(geoJsonObject));
+        });
       }
 
       if (urlSearch.elevation) {
@@ -212,6 +203,7 @@ function Permalink({ mots }) {
 
 Permalink.propTypes = {
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
+  APIKey: PropTypes.string.isRequired,
 };
 
 export default Permalink;
