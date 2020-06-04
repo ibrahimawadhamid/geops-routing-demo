@@ -165,7 +165,6 @@ function RoutingMenu({
   }
 
   const [currentMots] = useState(currentMotsVal);
-  // const [currentMot, setCurrentMotState] = useState(currentMotsVal[0].name);
   const [otherMots] = useState(otherMotsVal);
   const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
