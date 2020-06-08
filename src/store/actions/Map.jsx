@@ -77,3 +77,17 @@ export const setDialogPosition = dialogPosition => {
     dialogPosition,
   };
 };
+
+export const setRoutingElevation = routingElevation => {
+  return {
+    type: actionTypes.SET_ROUTING_ELEVATION,
+    routingElevation,
+  };
+};
+
+export const setResolveHops = resolveHops => {
+  return {
+    type: actionTypes.SET_RESOLVE_HOPS,
+    resolveHops,
+  };
+};

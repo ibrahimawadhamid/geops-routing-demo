@@ -155,6 +155,7 @@ function RoutingMenu({
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
   );
+  const currentMot = useSelector(state => state.MapReducer.currentMot);
 
   const elRefs = React.useRef([]);
   if (elRefs.current.length !== currentStops.length) {
@@ -164,18 +165,12 @@ function RoutingMenu({
   }
 
   const [currentMots] = useState(currentMotsVal);
-  const [currentMot, setCurrentMotState] = useState(currentMotsVal[0].name);
   const [otherMots] = useState(otherMotsVal);
   const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
   const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
-
-  useEffect(() => {
-    dispatch(setCurrentMot(currentMots[0].name));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     if (isRouteInfoOpen) {
@@ -292,7 +287,6 @@ function RoutingMenu({
    */
   const handleMotChange = (event, newMot) => {
     setCurrentOtherMot(null);
-    setCurrentMotState(newMot);
     dispatch(setCurrentMot(newMot));
   };
 

@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import PropTypes from 'prop-types';
 import store from '../../store/store';
 import MapComponent from '../MapComponent';
+import Permalink from '../Permalink';
 import NotificationHandler from '../NotificationHandler';
 import { VALID_MOTS } from '../../constants';
 
@@ -30,6 +31,11 @@ function App(props) {
 
   return (
     <Provider store={store}>
+      <Permalink
+        mots={mots}
+        APIKey={apiKey}
+        stationSearchUrl={stationSearchUrl}
+      />
       <MapComponent
         mots={mots}
         routingUrl={routingUrl}

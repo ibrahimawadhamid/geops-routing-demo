@@ -74,7 +74,8 @@ class MapComponent extends Component {
    */
   constructor(props) {
     super(props);
-    const { APIKey, onSetClickLocation } = this.props;
+    const { APIKey, onSetClickLocation, olMap } = this.props;
+    this.map = olMap;
     this.mapRef = createRef();
     this.hoveredFeature = null;
     this.hoveredRoute = null;
@@ -307,10 +308,8 @@ class MapComponent extends Component {
     });
 
     const interactions = defaultInteractions().extend([translate, modify]);
-
-    this.map = new Map({
-      controls: [],
-      interactions,
+    interactions.getArray().forEach(interaction => {
+      this.map.addInteraction(interaction);
     });
 
     this.onZoomRouteClick = () => {
@@ -411,7 +410,6 @@ class MapComponent extends Component {
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
-
     if (currentMotChanged || currentStopsGeoJSONChanged) {
       this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
@@ -436,7 +434,6 @@ class MapComponent extends Component {
   onMapMoved = evt => {
     const { center, onSetCenter } = this.props;
     const newCenter = evt.map.getView().getCenter();
-
     if (center[0] !== newCenter[0] || center[1] !== newCenter[1]) {
       onSetCenter(newCenter);
     }
@@ -480,6 +477,8 @@ class MapComponent extends Component {
       routingUrl,
       currentMot,
       APIKey,
+      routingElevation,
+      resolveHops,
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoutes,
@@ -496,7 +495,6 @@ class MapComponent extends Component {
             .reverse()}`,
         );
       } else if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
-        // hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
         hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
       } else {
         hops.push(`${currentStopsGeoJSON[key].properties.name}`);
@@ -509,7 +507,7 @@ class MapComponent extends Component {
 
     const reqUrl = `${routingUrl}?via=${hops.join(
       '|',
-    )}&mot=${currentMot}&resolve-hops=false&key=${APIKey}&elevation=1`;
+    )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}&elevation=${routingElevation}`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
@@ -620,6 +618,9 @@ const mapStateToProps = state => {
     currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
     isFieldFocused: state.MapReducer.isFieldFocused,
+    routingElevation: state.MapReducer.routingElevation,
+    resolveHops: state.MapReducer.resolveHops,
+    olMap: state.MapReducer.olMap,
   };
 };
 
@@ -660,6 +661,9 @@ MapComponent.propTypes = {
   isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
+  routingElevation: PropTypes.number.isRequired,
+  resolveHops: PropTypes.bool.isRequired,
+  olMap: PropTypes.instanceOf(Map).isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);
