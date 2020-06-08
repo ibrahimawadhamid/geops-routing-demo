@@ -30,7 +30,7 @@ const validateUrlCoordinates = coordArray => {
   return false;
 };
 
-const getGeoJson = (viaString, APIKey) => {
+const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
   /* When the via is a pair of coordinates */
   if (viaString.split(',').length > 1) {
     let geoJson;
@@ -60,8 +60,24 @@ const getGeoJson = (viaString, APIKey) => {
     }
     return Promise.resolve(geoJson);
   }
+  let reqUrl;
+
   /* When the via is a UID */
-  const reqUrl = `https://api.geops.io/stops/v1/lookup/${viaString}/?key=${APIKey}`;
+  if (
+    viaString.charAt(0) === '!' &&
+    /^[a-zA-Z0-9]{16}$/.test(viaString.split('!')[1])
+  ) {
+    reqUrl = `${stationSearchUrl}lookup/${viaString.replace(
+      /!/g,
+      '',
+    )}/?key=${APIKey}`;
+  }
+
+  /* When the via is a station name */
+  if (/^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s]*$/.test(viaString)) {
+    reqUrl = `${stationSearchUrl}?q=${viaString}&key=${APIKey}`;
+  }
+
   return fetch(reqUrl, { signal })
     .then(response => response.json())
     .then(response => {
@@ -71,6 +87,11 @@ const getGeoJson = (viaString, APIKey) => {
         response.features[0].geometry.coordinates,
       );
       return feature;
+    })
+    .catch(() => {
+      // eslint-disable-next-line no-console
+      console.error('Failed to fetch geoJson');
+      return null;
     });
 };
 
@@ -90,7 +111,7 @@ const compileViaString = currentStopsGeoJson => {
   return uidStrings.join('|');
 };
 
-function Permalink({ mots, APIKey }) {
+function Permalink({ mots, APIKey, stationSearchUrl }) {
   const dispatch = useDispatch();
   const urlSearch = qs.parse(window.location.search);
   const center = useSelector(state => state.MapReducer.center);
@@ -135,9 +156,9 @@ function Permalink({ mots, APIKey }) {
       if (urlSearch.via) {
         // Set via stations if defined
         newParams.via = urlSearch.via;
-        const viaArray = urlSearch.via.replace(/!/g, '').split('|');
+        const viaArray = urlSearch.via.split('|');
         const geoJsonArray = viaArray.map(viaString =>
-          getGeoJson(viaString, APIKey),
+          getGeoJson(viaString, APIKey, stationSearchUrl),
         );
         Promise.all(geoJsonArray).then(values => {
           dispatch(
@@ -204,6 +225,7 @@ function Permalink({ mots, APIKey }) {
 Permalink.propTypes = {
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
+  stationSearchUrl: PropTypes.string.isRequired,
 };
 
 export default Permalink;

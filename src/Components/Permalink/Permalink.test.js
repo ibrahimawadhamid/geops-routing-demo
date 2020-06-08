@@ -47,7 +47,11 @@ describe('Permalink', () => {
     });
     const component = mount(
       <Provider store={store}>
-        <Permalink mots={['rail', 'bus']} APIKey="foobar" />
+        <Permalink
+          mots={['rail', 'bus']}
+          APIKey="foobar"
+          stationSearchUrl="https://foo.bar"
+        />
       </Provider>,
     );
 
@@ -67,7 +71,11 @@ describe('Permalink', () => {
 
     const component = mount(
       <Provider store={store}>
-        <Permalink mots={['rail', 'bus']} APIKey="foobar" />
+        <Permalink
+          mots={['rail', 'bus']}
+          APIKey="foobar"
+          stationSearchUrl="https://foo.bar"
+        />
       </Provider>,
     );
 
