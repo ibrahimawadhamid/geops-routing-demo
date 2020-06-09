@@ -507,7 +507,7 @@ class MapComponent extends Component {
 
     const reqUrl = `${routingUrl}?via=${hops.join(
       '|',
-    )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}&elevation=${routingElevation}`;
+    )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}&elevation=${routingElevation}&coord-radius=100.0&coord-punish=1000.0`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
