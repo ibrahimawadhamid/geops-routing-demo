@@ -63,19 +63,11 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
   let reqUrl;
 
   /* When the via is a UID */
-  if (
-    viaString.charAt(0) === '!' &&
-    /^[a-zA-Z0-9]{16}$/.test(viaString.split('!')[1])
-  ) {
-    reqUrl = `${stationSearchUrl}lookup/${viaString.replace(
-      /!/g,
-      '',
-    )}/?key=${APIKey}`;
-  }
-
-  /* When the via is a station name */
-  if (/^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s]*$/.test(viaString)) {
-    reqUrl = `${stationSearchUrl}?q=${viaString}&key=${APIKey}`;
+  if (/^![a-zA-Z0-9]{16}$/.test(viaString)) {
+    reqUrl = `${stationSearchUrl}lookup/${viaString.replace('!', '')}/?key=${APIKey}`;
+  } else {
+    /* search for the station. Remove ! in case it's an IBNR */
+    reqUrl = `${stationSearchUrl}?q=${viaString.replace('!', '')}&key=${APIKey}`;
   }
 
   return fetch(reqUrl, { signal })
