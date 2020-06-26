@@ -64,10 +64,10 @@ export const setShowLoadingBar = showLoadingBar => {
   };
 };
 
-export const setSelectedRoute = selectedRoute => {
+export const setSelectedRoutes = selectedRoutes => {
   return {
-    type: actionTypes.SET_SELECTED_ROUTE,
-    selectedRoute,
+    type: actionTypes.SET_SELECTED_ROUTES,
+    selectedRoutes,
   };
 };
 
@@ -89,5 +89,19 @@ export const setDialogSize = dialogSize => {
   return {
     type: actionTypes.SET_DIALOG_SIZE,
     dialogSize,
+  };
+};
+
+export const setRoutingElevation = routingElevation => {
+  return {
+    type: actionTypes.SET_ROUTING_ELEVATION,
+    routingElevation,
+  };
+};
+
+export const setResolveHops = resolveHops => {
+  return {
+    type: actionTypes.SET_RESOLVE_HOPS,
+    resolveHops,
   };
 };

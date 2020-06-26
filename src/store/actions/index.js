@@ -8,7 +8,7 @@ export {
   showNotification,
   setIsFieldFocused,
   setShowLoadingBar,
-  setSelectedRoute,
+  setSelectedRoutes,
   setIsRouteInfoOpen,
   setDialogPosition,
   setDialogSize,

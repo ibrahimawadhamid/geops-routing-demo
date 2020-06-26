@@ -12,7 +12,7 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
-import ZoomInIcon from '@material-ui/icons/ZoomIn';
+import FloorSelect from '../FloorSelect';
 import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
@@ -31,7 +31,7 @@ const useStyles = makeStyles(() => ({
     },
   },
   fieldWrapper: {
-    maxWidth: '75%',
+    maxWidth: '60%',
   },
   buttonWrapper: {
     maxWidth: '26px',
@@ -54,8 +54,6 @@ function SearchField(props) {
     singleStop,
     processHighlightedResultSelectHandler,
     onFieldFocusHandler,
-    onZoomRouteClick,
-    isActiveRoute,
     onPanViaClick,
     inputReference,
   } = props;
@@ -116,21 +114,6 @@ function SearchField(props) {
       </Tooltip>
     );
     searchFieldLabel = 'End';
-    fieldRightIcon = (
-      <Grid item xs={1} className={classes.buttonWrapper}>
-        <Tooltip title="Zoom to the route">
-          <IconButton
-            onClick={() => onZoomRouteClick()}
-            disabled={!isActiveRoute}
-            className={classes.button}
-            aria-label="Zoom to the route"
-            size="small"
-          >
-            <ZoomInIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Grid>
-    );
   } else {
     fieldLeftIcon = (
       <Tooltip title="Pan to the feature">
@@ -213,6 +196,7 @@ function SearchField(props) {
           }}
         />
       </Grid>
+      <FloorSelect index={index} />
       {fieldRightIcon}
     </Grid>
   );
@@ -230,9 +214,7 @@ SearchField.propTypes = {
   ]),
   processHighlightedResultSelectHandler: PropTypes.func.isRequired,
   onFieldFocusHandler: PropTypes.func.isRequired,
-  onZoomRouteClick: PropTypes.func.isRequired,
   onPanViaClick: PropTypes.func.isRequired,
-  isActiveRoute: PropTypes.bool.isRequired,
   inputReference: PropTypes.oneOfType([
     PropTypes.func,
     PropTypes.shape({ current: PropTypes.instanceOf(Element) }),

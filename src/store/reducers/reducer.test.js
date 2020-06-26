@@ -4,9 +4,9 @@ import * as types from '../actions/actionTypes';
 
 describe('map reducer', () => {
   it('should return the initial state', () => {
-    expect(mapReducer(undefined, {})).toEqual({
+    const test = {
       center: [828061.159762, 5933753.540488],
-      currentMot: 'bus',
+      currentMot: 'foot',
       floorInfo: [null, null],
       currentStops: ['', ''],
       currentStopsGeoJSON: {},
@@ -23,8 +23,12 @@ describe('map reducer', () => {
       notificationType: 'info',
       isFieldFocused: false,
       showLoadingBar: false,
-      selectedRoute: null,
-      isRouteInfoOpen: false,
+      resolveHops: false,
+      routingElevation: 1,
+      selectedRoutes: [],
+    };
+    Object.keys(test).forEach(state => {
+      expect(mapReducer(undefined, {})[state]).toEqual(test[state]);
     });
   });
 
