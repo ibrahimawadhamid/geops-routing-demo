@@ -3,26 +3,6 @@ import mapReducer from './Map';
 import * as types from '../actions/actionTypes';
 
 describe('map reducer', () => {
-  it('should return the initial state', () => {
-    expect(mapReducer(undefined, {})).toEqual({
-      center: [949042.143189, 5899715.591163],
-      currentMot: 'bus',
-      currentStops: ['', ''],
-      currentStopsGeoJSON: {},
-      dialogPosition: {
-        x: 10,
-        y: 240,
-      },
-      clickLocation: null,
-      notificationMessage: '',
-      notificationType: 'info',
-      isFieldFocused: false,
-      showLoadingBar: false,
-      selectedRoute: null,
-      isRouteInfoOpen: false,
-    });
-  });
-
   it('should handle SET_CURRENT_MOT first time', () => {
     expect(
       mapReducer(

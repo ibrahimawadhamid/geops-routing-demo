@@ -1,8 +1,9 @@
+import { Map } from 'ol';
 import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
   center: [949042.143189, 5899715.591163],
-  currentMot: 'bus',
+  currentMot: 'rail',
   currentStops: ['', ''],
   currentStopsGeoJSON: {},
   clickLocation: null,
@@ -10,12 +11,17 @@ const initialState = {
   notificationType: 'info',
   isFieldFocused: false,
   showLoadingBar: false,
-  selectedRoute: null,
+  selectedRoutes: [],
   isRouteInfoOpen: false,
   dialogPosition: {
     x: 10,
-    y: 240,
+    y: 275,
   },
+  olMap: new Map({
+    controls: [],
+  }),
+  routingElevation: 1,
+  resolveHops: false,
 };
 
 const setCenter = (state, action) => {
@@ -99,9 +105,9 @@ const setShowLoadingBar = (state, action) => {
   };
 };
 
-const setSelectedRoute = (state, action) => {
+const setSelectedRoutes = (state, action) => {
   const updatedState = {
-    selectedRoute: action.selectedRoute,
+    selectedRoutes: action.selectedRoutes,
   };
   return {
     ...state,
@@ -129,6 +135,26 @@ const setDialogPosition = (state, action) => {
   };
 };
 
+const setRoutingElevation = (state, action) => {
+  const updatedState = {
+    routingElevation: action.routingElevation,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
+const setResolveHops = (state, action) => {
+  const updatedState = {
+    resolveHops: action.resolveHops,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
@@ -147,12 +173,16 @@ const reducer = (state = initialState, action) => {
       return setIsFieldFocused(state, action);
     case actionTypes.SET_SHOW_LOADING_BAR:
       return setShowLoadingBar(state, action);
-    case actionTypes.SET_SELECTED_ROUTE:
-      return setSelectedRoute(state, action);
+    case actionTypes.SET_SELECTED_ROUTES:
+      return setSelectedRoutes(state, action);
     case actionTypes.SET_IS_ROUTE_INFO_OPEN:
       return setIsRouteInfoOpen(state, action);
     case actionTypes.SET_DIALOG_POSITION:
       return setDialogPosition(state, action);
+    case actionTypes.SET_ROUTING_ELEVATION:
+      return setRoutingElevation(state, action);
+    case actionTypes.SET_RESOLVE_HOPS:
+      return setResolveHops(state, action);
     default:
       return state;
   }

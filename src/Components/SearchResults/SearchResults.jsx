@@ -25,7 +25,7 @@ const renderSecondary = (id, code, countryCode, ifopt) => {
   if (ifopt) {
     display.push(`ifopt: ${ifopt}`);
   }
-  return display.join(',');
+  return display.filter(l => l !== '').join(', ');
 };
 
 /**
