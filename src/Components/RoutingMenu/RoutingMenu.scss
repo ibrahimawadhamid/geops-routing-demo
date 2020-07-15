@@ -56,6 +56,13 @@
       color: rgba(0, 0, 0, 0.26);
     }
   }
+
+  .stopsContainer {
+    max-height: 85.4vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem 0;
+  }
 }
 
 @media (min-width: 768px) {
