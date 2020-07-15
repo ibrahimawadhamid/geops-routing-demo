@@ -604,6 +604,7 @@ function RoutingMenu({
             <Droppable droppableId="droppable">
               {provided => (
                 <div
+                  className="stopsContainer"
                   // eslint-disable-next-line react/jsx-props-no-spreading
                   {...provided.droppableProps}
                   ref={provided.innerRef}
