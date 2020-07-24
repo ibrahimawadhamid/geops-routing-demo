@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
@@ -41,21 +41,8 @@ function SearchResults(props) {
   const map = useSelector(state => state.MapReducer.olMap);
   const [maxHeight, setMaxHeight] = useState(null);
   const ListRef = useRef();
-  let olEventKey = null;
 
-  useEffect(() => {
-    olEventKey = map.on('change:size', () => updateMenuHeight());
-
-    return () => {
-      unByKey(olEventKey);
-    }
-  }, []);
-
-  useEffect(() => {
-    updateMenuHeight();
-  }, [currentSearchResults]);
-
-  const updateMenuHeight = () => {
+  const updateMenuHeight = useCallback(() => {
     let newMaxheight;
 
     if (ListRef.current) {
@@ -67,7 +54,20 @@ function SearchResults(props) {
     if (newMaxheight >= 0) {
       setMaxHeight(newMaxheight);
     }
-  };
+  }, [map]);
+
+  useEffect(() => {
+    const olEventKey = map.on('change:size', () => updateMenuHeight());
+
+    return () => {
+      unByKey(olEventKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    updateMenuHeight();
+  }, [updateMenuHeight, currentSearchResults]);
 
   if (currentSearchResults.length === 0) {
     return null;
@@ -79,7 +79,7 @@ function SearchResults(props) {
         className="rd-result-list"
         aria-label="search results"
         style={{
-          maxHeight: maxHeight,
+          maxHeight,
           overflowY: 'scroll',
           paddingBottom: 0,
           paddingTop: 0,
