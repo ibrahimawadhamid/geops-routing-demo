@@ -384,7 +384,7 @@ function RoutingMenu({
         : ''
     }&ref_location=${to4326(center)
       .reverse()
-      .join(',')}`;
+      .join(',')}&limit=10`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
