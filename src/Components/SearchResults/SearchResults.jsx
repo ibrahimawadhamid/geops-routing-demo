@@ -11,6 +11,8 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import MapMarkerIcon from '@material-ui/icons/LocationOn';
 import { unByKey } from 'ol/Observable';
 
+import './SearchResults.scss';
+
 const renderSecondary = (id, code, countryCode, ifopt) => {
   const display = [];
 
@@ -76,6 +78,7 @@ function SearchResults(props) {
       <Paper square elevation={3}>
         <List
           component="nav"
+          className="rd-result-list"
           aria-label="search results"
           style={{
             maxHeight: maxHeight,
