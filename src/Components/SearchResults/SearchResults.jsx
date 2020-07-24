@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
 import Paper from '@material-ui/core/Paper';
 import List from '@material-ui/core/List';
-import RootRef from '@material-ui/core/RootRef';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -74,51 +73,27 @@ function SearchResults(props) {
     return null;
   }
   return (
-    <RootRef rootRef={ListRef}>
-      <Paper square elevation={3}>
-        <List
-          component="nav"
-          className="rd-result-list"
-          aria-label="search results"
-          style={{
-            maxHeight: maxHeight,
-            overflowY: 'scroll',
-            paddingBottom: 0,
-            paddingTop: 0,
-          }}
-        >
-          {currentSearchResults.map((searchResult, index) => {
-            if (index !== 0) {
-              return (
-                <ListItem
-                  onClick={() => {
-                    processClickedResultHandler(searchResult);
-                  }}
-                  button
-                  key={nextId()}
-                >
-                  <ListItemIcon>
-                    <MapMarkerIcon />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={searchResult.properties.name}
-                    secondary={renderSecondary(
-                      searchResult.properties.id,
-                      searchResult.properties.code,
-                      searchResult.properties.country_code,
-                      searchResult.properties.ifopt,
-                    )}
-                  />
-                </ListItem>
-              );
-            }
-            // First item
+    <Paper square elevation={3} ref={ListRef}>
+      <List
+        component="nav"
+        className="rd-result-list"
+        aria-label="search results"
+        style={{
+          maxHeight: maxHeight,
+          overflowY: 'scroll',
+          paddingBottom: 0,
+          paddingTop: 0,
+        }}
+      >
+        {currentSearchResults.map((searchResult, index) => {
+          if (index !== 0) {
             return (
               <ListItem
-                onClick={() => processClickedResultHandler(searchResult)}
+                onClick={() => {
+                  processClickedResultHandler(searchResult);
+                }}
                 button
-                selected
-                key={`searchResult-${searchResult.properties.name}`}
+                key={nextId()}
               >
                 <ListItemIcon>
                   <MapMarkerIcon />
@@ -134,11 +109,32 @@ function SearchResults(props) {
                 />
               </ListItem>
             );
-          })}
-        </List>
-      </Paper>
-    </RootRef>
-
+          }
+          // First item
+          return (
+            <ListItem
+              onClick={() => processClickedResultHandler(searchResult)}
+              button
+              selected
+              key={`searchResult-${searchResult.properties.name}`}
+            >
+              <ListItemIcon>
+                <MapMarkerIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary={searchResult.properties.name}
+                secondary={renderSecondary(
+                  searchResult.properties.id,
+                  searchResult.properties.code,
+                  searchResult.properties.country_code,
+                  searchResult.properties.ifopt,
+                )}
+              />
+            </ListItem>
+          );
+        })}
+      </List>
+    </Paper>
   );
 }
 
