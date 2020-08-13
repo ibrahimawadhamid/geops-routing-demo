@@ -22,6 +22,7 @@ const initialState = {
   }),
   routingElevation: 1,
   resolveHops: false,
+  tracks: [null, null],
 };
 
 const setCenter = (state, action) => {
@@ -155,6 +156,16 @@ const setResolveHops = (state, action) => {
   };
 };
 
+const setTracks = (state, action) => {
+  const updatedState = {
+    tracks: action.tracks,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
@@ -183,6 +194,8 @@ const reducer = (state = initialState, action) => {
       return setRoutingElevation(state, action);
     case actionTypes.SET_RESOLVE_HOPS:
       return setResolveHops(state, action);
+    case actionTypes.SET_TRACKS:
+      return setTracks(state, action);
     default:
       return state;
   }

@@ -91,3 +91,10 @@ export const setResolveHops = resolveHops => {
     resolveHops,
   };
 };
+
+export const setTracks = tracks => {
+  return {
+    type: actionTypes.SET_TRACKS,
+    tracks,
+  };
+};

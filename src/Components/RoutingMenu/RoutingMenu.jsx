@@ -21,6 +21,7 @@ import nextId from 'react-id-generator';
 import _ from 'lodash/core';
 
 import {
+  setTracks,
   setCurrentStops,
   setCurrentStopsGeoJSON,
   setCurrentMot,
@@ -56,6 +57,15 @@ function TabPanel(props) {
     </Typography>
   );
 }
+
+const swapFc = (input, indexA, indexB) => {
+  const temp = input[indexA];
+
+  // eslint-disable-next-line no-param-reassign
+  input[indexA] = input[indexB];
+  // eslint-disable-next-line no-param-reassign
+  input[indexB] = temp;
+};
 
 /**
  * The routing menu props
@@ -146,6 +156,7 @@ function RoutingMenu({
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
   const center = useSelector(state => state.MapReducer.center);
+  const tracks = useSelector(state => state.MapReducer.tracks);
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
@@ -217,12 +228,15 @@ function RoutingMenu({
         },
       ],
     };
+    const updatedTracks = [...tracks];
+    updatedTracks[updatedFocusedFieldIndex - 1] = '';
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
     updateCurrentStops(
       updatedCurrentStops,
       updatedCurrentStopsGeoJSON,
       updatedFocusedFieldIndex,
     );
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
@@ -285,8 +299,10 @@ function RoutingMenu({
    * @param newMot The new selected mot
    * @category RoutingMenu
    */
-  const handleMotChange = (event, newMot) => {
+  const handleMotChange = (event, newMot, tracksVal) => {
+    const newTracks = [...tracksVal].map(() => '');
     setCurrentOtherMot(null);
+    dispatch(setTracks(newTracks));
     dispatch(setCurrentMot(newMot));
   };
 
@@ -320,6 +336,10 @@ function RoutingMenu({
       });
     }
 
+    const updatedTracks = [...tracks];
+    updatedTracks.splice(indexToInsertAt, 0, '');
+
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStops(updatedCurrentStops));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
@@ -348,6 +368,10 @@ function RoutingMenu({
       delete updatedCurrentStopsGeoJSON[keys.length - 1];
     }
 
+    const updatedTracks = [...tracks];
+    updatedTracks.splice(indexToRemoveFrom, 1);
+
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStops(updatedCurrentStops));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
@@ -366,6 +390,12 @@ function RoutingMenu({
       updatedCurrentStops[fieldIndex] = '';
       setCurrentSearchResults([]);
       dispatch(setCurrentStops(updatedCurrentStops));
+
+      // Reset the track value.
+      const updatedTracks = [...tracks];
+      updatedTracks[fieldIndex] = '';
+      dispatch(setTracks(updatedTracks));
+
       dispatch(setShowLoadingBar(false));
       return;
     }
@@ -469,6 +499,10 @@ function RoutingMenu({
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
     dispatch(setCurrentStops(updatedCurrentStops));
+
+    const updatedTracks = [...tracks];
+    updatedTracks[focusedFieldIndex] = '';
+    dispatch(setTracks(updatedTracks));
     setCurrentSearchResults([]);
 
     Object.keys(updatedCurrentStopsGeoJSON).forEach(key => {
@@ -486,7 +520,7 @@ function RoutingMenu({
       setCurrentOtherMot(null);
     } else {
       const { value } = evt.target;
-      handleMotChange({}, value);
+      handleMotChange({}, value, tracks);
       setCurrentOtherMot(value);
     }
   };
@@ -540,6 +574,10 @@ function RoutingMenu({
       });
     }
 
+    const updatedTracks = [...tracks];
+    swapFc(updatedTracks, result.source.index, result.destination.index);
+
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStops(updatedCurrentStops));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
@@ -560,7 +598,7 @@ function RoutingMenu({
             value={DEFAULT_MOTS.includes(currentMot) ? currentMot : false}
             className={classes.tabs}
             onChange={(e, mot) => {
-              handleMotChange(e, mot);
+              handleMotChange(e, mot, tracks);
             }}
             indicatorColor="primary"
             textColor="primary"

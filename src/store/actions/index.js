@@ -10,4 +10,5 @@ export {
   setSelectedRoutes,
   setIsRouteInfoOpen,
   setDialogPosition,
+  setTracks,
 } from './Map';

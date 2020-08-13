@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
@@ -12,6 +12,7 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
+import TrackSelect from '../TrackSelect';
 import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
@@ -30,7 +31,7 @@ const useStyles = makeStyles(() => ({
     },
   },
   fieldWrapper: {
-    maxWidth: '75%',
+    maxWidth: '58%',
   },
   buttonWrapper: {
     maxWidth: '26px',
@@ -62,6 +63,10 @@ function SearchField(props) {
   let fieldRightIcon = null;
 
   const formatSingleStop = val => (Array.isArray(val) ? to4326(val) : val);
+  const isStationName = useMemo(
+    () => typeof singleStop === 'string' && singleStop !== '',
+    [singleStop],
+  );
 
   const addNextHopDisabled =
     currentStops[index] === '' ||
@@ -192,6 +197,7 @@ function SearchField(props) {
           }}
         />
       </Grid>
+      <TrackSelect index={index} disabled={!isStationName} />
       {fieldRightIcon}
     </Grid>
   );
