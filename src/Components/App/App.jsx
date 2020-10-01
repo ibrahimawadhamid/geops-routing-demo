@@ -15,7 +15,7 @@ const propTypes = {
 
 const defaultProps = {
   mots: VALID_MOTS,
-  routingUrl: 'https://api.geops.io/routing/v1/',
+  routingUrl: 'https://api.geops.io/routing/dev/',
   stationSearchUrl: 'https://api.geops.io/stops/v1/',
 };
 
