@@ -170,9 +170,10 @@ function RouteInfosDialog({
     const coords = [].concat(
       ...routes.map(r => r.getGeometry().getFlatCoordinates()),
     );
-
-    const collec = new GeometryCollection(routes.map(r => r.getGeometry()));
-    const lgth = getLength(collec);
+    const distances = [].concat(
+      ...routes.map(r => r.get('vertex_distances')),
+    );
+    const lgth = routes.map(r => r.get('line_length')).reduce((a, b) => a + b, 0);
     setLength(lgth);
     setDistanceUnit(lgth > 1000 ? 'km' : 'm');
     setIsMeter(distanceUnit === 'm');
@@ -187,7 +188,7 @@ function RouteInfosDialog({
         alt,
         xVal: xArray[idx],
         yVal: yArray[idx],
-        distance: lgth * (idx / (altitudesArray.length - 1)),
+        distance: distances[idx],
       });
     });
 
