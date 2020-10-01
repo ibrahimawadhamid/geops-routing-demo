@@ -169,10 +169,10 @@ function RouteInfosDialog({
     const coords = [].concat(
       ...routes.map(r => r.getGeometry().getFlatCoordinates()),
     );
-    const distances = [].concat(
-      ...routes.map(r => r.get('vertex_distances')),
-    );
-    const lgth = routes.map(r => r.get('line_length')).reduce((a, b) => a + b, 0);
+    const distances = [].concat(...routes.map(r => r.get('vertex_distances')));
+    const lgth = routes
+      .map(r => r.get('line_length'))
+      .reduce((a, b) => a + b, 0);
     setLength(lgth);
     setDistanceUnit(lgth > 1000 ? 'km' : 'm');
     setIsMeter(distanceUnit === 'm');
