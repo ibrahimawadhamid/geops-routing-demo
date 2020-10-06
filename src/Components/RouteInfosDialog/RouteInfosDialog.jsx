@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Feature } from 'ol';
-import { getLength } from 'ol/sphere';
 import GeoJSON from 'ol/format/GeoJSON';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 import combine from '@turf/combine';
-import { Point, GeometryCollection } from 'ol/geom';
+import { Point } from 'ol/geom';
 import Dialog from '@geops/react-ui/components/Dialog';
 import {
   LineChart,
@@ -170,9 +169,10 @@ function RouteInfosDialog({
     const coords = [].concat(
       ...routes.map(r => r.getGeometry().getFlatCoordinates()),
     );
-
-    const collec = new GeometryCollection(routes.map(r => r.getGeometry()));
-    const lgth = getLength(collec);
+    const distances = [].concat(...routes.map(r => r.get('vertex_distances')));
+    const lgth = routes
+      .map(r => r.get('line_length'))
+      .reduce((a, b) => a + b, 0);
     setLength(lgth);
     setDistanceUnit(lgth > 1000 ? 'km' : 'm');
     setIsMeter(distanceUnit === 'm');
@@ -187,7 +187,7 @@ function RouteInfosDialog({
         alt,
         xVal: xArray[idx],
         yVal: yArray[idx],
-        distance: lgth * (idx / (altitudesArray.length - 1)),
+        distance: distances[idx],
       });
     });
 
