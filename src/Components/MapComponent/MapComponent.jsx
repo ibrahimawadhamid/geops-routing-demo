@@ -497,6 +497,7 @@ class MapComponent extends Component {
       onSetShowLoadingBar,
       onSetSelectedRoutes,
       tracks,
+      interpolateElevation,
     } = this.props;
 
     onSetShowLoadingBar(true);
@@ -528,7 +529,10 @@ class MapComponent extends Component {
 
     const reqUrl = `${routingUrl}?via=${hops.join(
       '|',
-    )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}&elevation=${routingElevation}&length=true&coord-radius=100.0&coord-punish=1000.0`;
+    )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
+    `&elevation=${routingElevation}&interpolate_elevation=` +
+    `${interpolateElevation}&length=true` +
+    `&coord-radius=100.0&coord-punish=1000.0`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
@@ -640,6 +644,7 @@ const mapStateToProps = state => {
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
     isFieldFocused: state.MapReducer.isFieldFocused,
     routingElevation: state.MapReducer.routingElevation,
+    interpolateElevation: state.MapReducer.interpolateElevation,
     resolveHops: state.MapReducer.resolveHops,
     olMap: state.MapReducer.olMap,
     tracks: state.MapReducer.tracks,
@@ -686,6 +691,7 @@ MapComponent.propTypes = {
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
   routingElevation: PropTypes.number.isRequired,
+  interpolateElevation: PropTypes.bool.isRequired,
   resolveHops: PropTypes.bool.isRequired,
   tracks: PropTypes.arrayOf(PropTypes.string).isRequired,
   olMap: PropTypes.instanceOf(Map).isRequired,

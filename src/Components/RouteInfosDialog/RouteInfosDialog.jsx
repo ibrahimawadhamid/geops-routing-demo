@@ -18,6 +18,8 @@ import {
   ReferenceDot,
   ReferenceLine,
 } from 'recharts';
+import { ReactComponent as InterpolatedSvg } from './interpolated_surface.svg';
+import { ReactComponent as SurfaceSvg } from './surface_elevation.svg';
 import { setIsRouteInfoOpen, setDialogPosition } from '../../store/actions/Map';
 import './RouteInfosDialog.scss';
 
@@ -74,6 +76,9 @@ function RouteInfosDialog({
   const [isMeter, setIsMeter] = useState(null);
 
   const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
+  const interpolateElevation = useSelector(state =>
+    state.MapReducer.interpolateElevation
+  );
 
   const onDragStop = (evt, position) => {
     dispatch(
@@ -149,12 +154,21 @@ function RouteInfosDialog({
     if (!tooltipProps.payload.length) {
       return;
     }
-    const { xVal, yVal, alt, distance } = tooltipProps.payload[0].payload;
+    const {
+      xVal,
+      yVal,
+      alt,
+      surfaceElevation,
+      distance
+    } = tooltipProps.payload[0].payload;
 
     onHighlightPoint([xVal, yVal]);
     // eslint-disable-next-line consistent-return
     return (
       <div className="rd-tootip-wrapper">
+        {interpolateElevation ? (
+          <div>surface elevation: {surfaceElevation} m</div>
+        ) : null}
         <div>altitude: {alt} m</div>
         <div>
           distance: {tickFormatter(distance, isMeter)}
@@ -180,11 +194,14 @@ function RouteInfosDialog({
     const xArray = everyNth(coords, 3, 0);
     const yArray = everyNth(coords, 3, 1);
     const altitudesArray = everyNth(coords, 3, 2);
+    const surfaceElevation = !interpolateElevation ? [] : [].concat(...routes
+      .map(r => r.get('surface_elevations')));
     setMaxAltitude(Math.max(...altitudesArray));
 
     altitudesArray.forEach((alt, idx) => {
       pointArray.push({
         alt,
+        surfaceElevation: surfaceElevation.length ? surfaceElevation[idx] : null,
         xVal: xArray[idx],
         yVal: yArray[idx],
         distance: distances[idx],
@@ -208,9 +225,15 @@ function RouteInfosDialog({
       position={dialogPosition}
       onClose={() => dispatch(setIsRouteInfoOpen(false))}
     >
+      {interpolateElevation ? (
+          <div className="rd-dialog-legend">
+            <SurfaceSvg /> surface elevation
+            <InterpolatedSvg /> interpolated altitude
+          </div>
+        ) : null}
       <LineChart
         width={450}
-        height={220}
+        height={200}
         data={routePoints}
         onMouseLeave={clearHighlightPoint}
       >
@@ -228,10 +251,23 @@ function RouteInfosDialog({
         <Line
           type="monotone"
           dataKey="alt"
+          name={interpolateElevation ? "interpolated altitude" : "altitude"}
           dot={false}
-          stroke="#3f51b5"
+          stroke={interpolateElevation ? "#ff7f50" : "#3f51b5"}
           strokeWidth={2}
         />
+        {
+          interpolateElevation ? (
+            <Line
+              type="monotone"
+              dataKey="surfaceElevation"
+              name="surface elevation"
+              dot={false}
+              stroke="#3f51b5"
+              strokeWidth={2}
+            />
+          ) : null
+        }
         {hoveredCoords && hoveredPoint && (
           <ReferenceLine x={hoveredPoint.distance} stroke="lightgrey" />
         )}

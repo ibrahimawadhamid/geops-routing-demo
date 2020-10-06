@@ -12,6 +12,7 @@ import {
   setCenter,
   setRoutingElevation,
   setResolveHops,
+  setInterpolateElevation,
   setTracks,
 } from '../../store/actions/Map';
 
@@ -127,6 +128,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     state => state.MapReducer.routingElevation,
   );
   const resolveHops = useSelector(state => state.MapReducer.resolveHops);
+  const interpolateElevation = useSelector(state => state.MapReducer.interpolateElevation);
   const map = appState.olMap;
   const [params, setParams] = useState({});
 
@@ -202,6 +204,12 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       if (urlSearch['resolve-hops']) {
         dispatch(setResolveHops(urlSearch['resolve-hops'] === 'true'));
       }
+
+      if (urlSearch['interpolate-elevation']) {
+        dispatch(setInterpolateElevation(
+          urlSearch['interpolate-elevation'] === 'true'
+        ));
+      }
     }
     setParams(newParams);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -216,6 +224,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     newParams.mot = currentMot;
     newParams.elevation = parseInt(routingElevation, 10);
     newParams['resolve-hops'] = resolveHops;
+    newParams['interpolate-elevation'] = interpolateElevation;
     if (Object.keys(currentStopsGeoJSON).length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON, tracks);
     }
@@ -225,6 +234,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     currentStops,
     currentStopsGeoJSON,
     center,
+    interpolateElevation,
     routingElevation,
     resolveHops,
     map,

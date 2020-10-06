@@ -22,6 +22,7 @@ const initialState = {
   }),
   routingElevation: 1,
   resolveHops: false,
+  interpolateElevation: true,
   tracks: [null, null],
 };
 
@@ -156,6 +157,17 @@ const setResolveHops = (state, action) => {
   };
 };
 
+const setInterpolateElevation = (state, action) => {
+  const updatedState = {
+    interpolateElevation: action.interpolateElevation,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
+
 const setTracks = (state, action) => {
   const updatedState = {
     tracks: action.tracks,
@@ -194,6 +206,8 @@ const reducer = (state = initialState, action) => {
       return setRoutingElevation(state, action);
     case actionTypes.SET_RESOLVE_HOPS:
       return setResolveHops(state, action);
+    case actionTypes.SET_INTERPOLATE_ELEVATION:
+      return setInterpolateElevation(state, action);
     case actionTypes.SET_TRACKS:
       return setTracks(state, action);
     default:

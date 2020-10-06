@@ -85,6 +85,13 @@ export const setRoutingElevation = routingElevation => {
   };
 };
 
+export const setInterpolateElevation = interpolateElevation => {
+  return {
+    type: actionTypes.SET_INTERPOLATE_ELEVATION,
+    interpolateElevation,
+  };
+};
+
 export const setResolveHops = resolveHops => {
   return {
     type: actionTypes.SET_RESOLVE_HOPS,
