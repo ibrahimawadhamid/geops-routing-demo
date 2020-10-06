@@ -128,7 +128,9 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     state => state.MapReducer.routingElevation,
   );
   const resolveHops = useSelector(state => state.MapReducer.resolveHops);
-  const interpolateElevation = useSelector(state => state.MapReducer.interpolateElevation);
+  const interpolateElevation = useSelector(
+    state => state.MapReducer.interpolateElevation,
+  );
   const map = appState.olMap;
   const [params, setParams] = useState({});
 
@@ -206,9 +208,11 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       }
 
       if (urlSearch['interpolate-elevation']) {
-        dispatch(setInterpolateElevation(
-          urlSearch['interpolate-elevation'] === 'true'
-        ));
+        dispatch(
+          setInterpolateElevation(
+            urlSearch['interpolate-elevation'] === 'true',
+          ),
+        );
       }
     }
     setParams(newParams);

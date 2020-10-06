@@ -76,8 +76,8 @@ function RouteInfosDialog({
   const [isMeter, setIsMeter] = useState(null);
 
   const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
-  const interpolateElevation = useSelector(state =>
-    state.MapReducer.interpolateElevation
+  const interpolateElevation = useSelector(
+    state => state.MapReducer.interpolateElevation,
   );
 
   const onDragStop = (evt, position) => {
@@ -159,7 +159,7 @@ function RouteInfosDialog({
       yVal,
       alt,
       surfaceElevation,
-      distance
+      distance,
     } = tooltipProps.payload[0].payload;
 
     onHighlightPoint([xVal, yVal]);
@@ -194,14 +194,17 @@ function RouteInfosDialog({
     const xArray = everyNth(coords, 3, 0);
     const yArray = everyNth(coords, 3, 1);
     const altitudesArray = everyNth(coords, 3, 2);
-    const surfaceElevation = !interpolateElevation ? [] : [].concat(...routes
-      .map(r => r.get('surface_elevations')));
+    const surfaceElevation = !interpolateElevation
+      ? []
+      : [].concat(...routes.map(r => r.get('surface_elevations')));
     setMaxAltitude(Math.max(...altitudesArray));
 
     altitudesArray.forEach((alt, idx) => {
       pointArray.push({
         alt,
-        surfaceElevation: surfaceElevation.length ? surfaceElevation[idx] : null,
+        surfaceElevation: surfaceElevation.length
+          ? surfaceElevation[idx]
+          : null,
         xVal: xArray[idx],
         yVal: yArray[idx],
         distance: distances[idx],
@@ -226,11 +229,11 @@ function RouteInfosDialog({
       onClose={() => dispatch(setIsRouteInfoOpen(false))}
     >
       {interpolateElevation ? (
-          <div className="rd-dialog-legend">
-            <SurfaceSvg /> surface elevation
-            <InterpolatedSvg /> interpolated altitude
-          </div>
-        ) : null}
+        <div className="rd-dialog-legend">
+          <SurfaceSvg /> surface elevation
+          <InterpolatedSvg /> interpolated altitude
+        </div>
+      ) : null}
       <LineChart
         width={450}
         height={200}
@@ -251,23 +254,21 @@ function RouteInfosDialog({
         <Line
           type="monotone"
           dataKey="alt"
-          name={interpolateElevation ? "interpolated altitude" : "altitude"}
+          name={interpolateElevation ? 'interpolated altitude' : 'altitude'}
           dot={false}
-          stroke={interpolateElevation ? "#ff7f50" : "#3f51b5"}
+          stroke={interpolateElevation ? '#ff7f50' : '#3f51b5'}
           strokeWidth={2}
         />
-        {
-          interpolateElevation ? (
-            <Line
-              type="monotone"
-              dataKey="surfaceElevation"
-              name="surface elevation"
-              dot={false}
-              stroke="#3f51b5"
-              strokeWidth={2}
-            />
-          ) : null
-        }
+        {interpolateElevation ? (
+          <Line
+            type="monotone"
+            dataKey="surfaceElevation"
+            name="surface elevation"
+            dot={false}
+            stroke="#3f51b5"
+            strokeWidth={2}
+          />
+        ) : null}
         {hoveredCoords && hoveredPoint && (
           <ReferenceLine x={hoveredPoint.distance} stroke="lightgrey" />
         )}

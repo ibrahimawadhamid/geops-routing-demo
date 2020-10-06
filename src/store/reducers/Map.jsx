@@ -167,7 +167,6 @@ const setInterpolateElevation = (state, action) => {
   };
 };
 
-
 const setTracks = (state, action) => {
   const updatedState = {
     tracks: action.tracks,

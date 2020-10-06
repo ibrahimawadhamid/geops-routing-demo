@@ -527,12 +527,13 @@ class MapComponent extends Component {
     abortController = new AbortController();
     const { signal } = abortController;
 
-    const reqUrl = `${routingUrl}?via=${hops.join(
-      '|',
-    )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
-    `&elevation=${routingElevation}&interpolate_elevation=` +
-    `${interpolateElevation}&length=true` +
-    `&coord-radius=100.0&coord-punish=1000.0`;
+    const reqUrl =
+      `${routingUrl}?via=${hops.join(
+        '|',
+      )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
+      `&elevation=${routingElevation}&interpolate_elevation=` +
+      `${interpolateElevation}&length=true` +
+      `&coord-radius=100.0&coord-punish=1000.0`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
