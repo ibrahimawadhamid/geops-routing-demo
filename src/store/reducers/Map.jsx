@@ -20,9 +20,7 @@ const initialState = {
   olMap: new Map({
     controls: [],
   }),
-  routingElevation: 1,
   resolveHops: false,
-  interpolateElevation: true,
   tracks: [null, null],
 };
 
@@ -137,16 +135,6 @@ const setDialogPosition = (state, action) => {
   };
 };
 
-const setRoutingElevation = (state, action) => {
-  const updatedState = {
-    routingElevation: action.routingElevation,
-  };
-  return {
-    ...state,
-    ...updatedState,
-  };
-};
-
 const setResolveHops = (state, action) => {
   const updatedState = {
     resolveHops: action.resolveHops,
@@ -157,15 +145,6 @@ const setResolveHops = (state, action) => {
   };
 };
 
-const setInterpolateElevation = (state, action) => {
-  const updatedState = {
-    interpolateElevation: action.interpolateElevation,
-  };
-  return {
-    ...state,
-    ...updatedState,
-  };
-};
 
 const setTracks = (state, action) => {
   const updatedState = {
@@ -201,12 +180,8 @@ const reducer = (state = initialState, action) => {
       return setIsRouteInfoOpen(state, action);
     case actionTypes.SET_DIALOG_POSITION:
       return setDialogPosition(state, action);
-    case actionTypes.SET_ROUTING_ELEVATION:
-      return setRoutingElevation(state, action);
     case actionTypes.SET_RESOLVE_HOPS:
       return setResolveHops(state, action);
-    case actionTypes.SET_INTERPOLATE_ELEVATION:
-      return setInterpolateElevation(state, action);
     case actionTypes.SET_TRACKS:
       return setTracks(state, action);
     default:

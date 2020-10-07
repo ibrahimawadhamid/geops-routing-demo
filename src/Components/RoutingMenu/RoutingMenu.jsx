@@ -117,6 +117,7 @@ function RoutingMenu({
   isActiveRoute,
   onZoomRouteClick,
   onPanViaClick,
+  onDrawNewRoute,
 }) {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -730,7 +731,9 @@ function RoutingMenu({
               <Tooltip title="Route information">
                 <Button
                   onClick={() => {
-                    dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                    onDrawNewRoute(true).then(() => {
+                      dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                    });
                   }}
                   aria-label="Route information"
                   disabled={!isActiveRoute}

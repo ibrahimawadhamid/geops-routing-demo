@@ -70,15 +70,13 @@ function RouteInfosDialog({
   const dispatch = useDispatch();
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [length, setLength] = useState(null);
+  const [minAltitude, setMinAltitude] = useState(0);
   const [maxAltitude, setMaxAltitude] = useState(null);
   const [routePoints, setRoutePoints] = useState([]);
   const [distanceUnit, setDistanceUnit] = useState(null);
   const [isMeter, setIsMeter] = useState(null);
 
   const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
-  const interpolateElevation = useSelector(
-    state => state.MapReducer.interpolateElevation,
-  );
 
   const onDragStop = (evt, position) => {
     dispatch(
@@ -166,9 +164,7 @@ function RouteInfosDialog({
     // eslint-disable-next-line consistent-return
     return (
       <div className="rd-tootip-wrapper">
-        {interpolateElevation ? (
-          <div>surface elevation: {surfaceElevation} m</div>
-        ) : null}
+        <div>surface elevation: {surfaceElevation} m</div>
         <div>altitude: {alt} m</div>
         <div>
           distance: {tickFormatter(distance, isMeter)}
@@ -194,9 +190,10 @@ function RouteInfosDialog({
     const xArray = everyNth(coords, 3, 0);
     const yArray = everyNth(coords, 3, 1);
     const altitudesArray = everyNth(coords, 3, 2);
-    const surfaceElevation = !interpolateElevation
-      ? []
-      : [].concat(...routes.map(r => r.get('surface_elevations')));
+    const surfaceElevation = [].concat(
+      ...routes.map(r => r.get('surface_elevations'))
+    );
+    setMinAltitude(Math.min(...surfaceElevation.concat(altitudesArray)));
     setMaxAltitude(Math.max(...altitudesArray));
 
     altitudesArray.forEach((alt, idx) => {
@@ -228,19 +225,22 @@ function RouteInfosDialog({
       position={dialogPosition}
       onClose={() => dispatch(setIsRouteInfoOpen(false))}
     >
-      {interpolateElevation ? (
-        <div className="rd-dialog-legend">
-          <SurfaceSvg /> surface elevation
-          <InterpolatedSvg /> interpolated altitude
-        </div>
-      ) : null}
+      <div className="rd-dialog-legend">
+        <SurfaceSvg /> surface elevation
+        <InterpolatedSvg /> interpolated altitude
+      </div>
       <LineChart
         width={450}
         height={200}
         data={routePoints}
         onMouseLeave={clearHighlightPoint}
       >
-        <YAxis axisLine={false} tickLine={false}>
+        <YAxis
+          type="number"
+          axisLine={false}
+          tickLine={false}
+          domain={[minAltitude - 10, 'dataMax']}
+        >
           <Label value="m" offset={10} position="top" />
         </YAxis>
         <XAxis
@@ -254,21 +254,19 @@ function RouteInfosDialog({
         <Line
           type="monotone"
           dataKey="alt"
-          name={interpolateElevation ? 'interpolated altitude' : 'altitude'}
+          name="interpolated altitude"
           dot={false}
-          stroke={interpolateElevation ? '#ff7f50' : '#3f51b5'}
+          stroke="#ff7f50"
           strokeWidth={2}
         />
-        {interpolateElevation ? (
-          <Line
-            type="monotone"
-            dataKey="surfaceElevation"
-            name="surface elevation"
-            dot={false}
-            stroke="#3f51b5"
-            strokeWidth={2}
-          />
-        ) : null}
+        <Line
+          type="monotone"
+          dataKey="surfaceElevation"
+          name="surface elevation"
+          dot={false}
+          stroke="#3f51b5"
+          strokeWidth={2}
+        />
         {hoveredCoords && hoveredPoint && (
           <ReferenceLine x={hoveredPoint.distance} stroke="lightgrey" />
         )}
