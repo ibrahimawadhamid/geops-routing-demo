@@ -189,9 +189,9 @@ function RouteInfosDialog({
 
     const xArray = everyNth(coords, 3, 0);
     const yArray = everyNth(coords, 3, 1);
-    const altitudesArray = everyNth(coords, 3, 2);
+    const altitudesArray = everyNth(coords, 3, 2).map(el => Math.round(el));
     const surfaceElevation = [].concat(
-      ...routes.map(r => r.get('surface_elevations'))
+      ...routes.map(r => r.get('surface_elevations').map(el => Math.round(el)))
     );
     setMinAltitude(Math.min(...surfaceElevation.concat(altitudesArray)));
     setMaxAltitude(Math.max(...altitudesArray));
