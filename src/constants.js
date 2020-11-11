@@ -18,4 +18,4 @@ export const VALID_MOTS = [...DEFAULT_MOTS, ...OTHER_MOTS];
 
 export const GRAPHHOPPER_MOTS = ['foot', 'car'];
 
-export const SEARCH_MODES = ['normal', 'barrier-free'];
+export const SEARCH_MODES = ['default', 'barrier-free'];
