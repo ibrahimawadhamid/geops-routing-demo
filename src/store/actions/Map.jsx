@@ -105,3 +105,10 @@ export const setResolveHops = resolveHops => {
     resolveHops,
   };
 };
+
+export const setSearchMode = searchMode => {
+  return {
+    type: actionTypes.SET_SEARCH_MODE,
+    searchMode,
+  };
+};

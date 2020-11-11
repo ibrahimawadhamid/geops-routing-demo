@@ -31,12 +31,14 @@ import {
   setIsFieldFocused,
   setShowLoadingBar,
   setSelectedRoutes,
+  setSearchMode,
   // setIsRouteInfoOpen,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
 import {
   DEFAULT_MOTS,
   OTHER_MOTS,
+  SEARCH_MODES,
   // GRAPHHOPPER_MOTS
 } from '../../constants';
 import {
@@ -161,6 +163,7 @@ function RoutingMenu({
     state => state.MapReducer.currentStopsGeoJSON,
   );
   const currentMot = useSelector(state => state.MapReducer.currentMot);
+  const searchMode = useSelector(state => state.MapReducer.searchMode);
 
   const elRefs = React.useRef([]);
   if (elRefs.current.length !== currentStops.length) {
@@ -651,6 +654,25 @@ function RoutingMenu({
               </Select>
             </FormControl>
           ) : null}
+            <FormControl className={classes.dropDown}>
+              <Select
+                renderValue={val => val}
+                className={classes.select}
+                classes={{ root: classes.selectInput }}
+                labelId="rd-other-mot-label"
+                value={searchMode}
+                disableUnderline
+                onChange={evt => dispatch(setSearchMode(evt.target.value))}
+              >
+                {SEARCH_MODES.map(option => {
+                  return (
+                    <MenuItem value={option} key={option}>
+                      {option}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
         </div>
         <TabPanel>
           <DragDropContext onDragEnd={onDragEnd}>

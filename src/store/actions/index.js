@@ -12,4 +12,5 @@ export {
   setIsRouteInfoOpen,
   setDialogPosition,
   setDialogSize,
+  setSearchMode,
 } from './Map';

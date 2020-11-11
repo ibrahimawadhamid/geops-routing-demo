@@ -31,7 +31,7 @@ import {
   propTypeCurrentStops,
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
-import { GRAPHHOPPER_MOTS } from '../../constants';
+import { GRAPHHOPPER_MOTS, SEARCH_MODES } from '../../constants';
 import { to4326 } from '../../utils';
 import './MapComponent.scss';
 import * as actions from '../../store/actions';
@@ -438,13 +438,19 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidUpdate(prevProps) {
-    const { currentStopsGeoJSON, currentMot, floorInfo } = this.props;
+    const { currentStopsGeoJSON, currentMot, floorInfo, searchMode } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
     const floorInfoChanged = floorInfo !== prevProps.floorInfo;
+    const searchModeChanged = searchMode !== prevProps.searchMode;
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
-    if (floorInfoChanged || currentMotChanged || currentStopsGeoJSONChanged) {
+    if (
+      floorInfoChanged ||
+      currentMotChanged ||
+      currentStopsGeoJSONChanged ||
+      searchModeChanged
+    ) {
       this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
         this.markerVectorSource.addFeatures(
@@ -520,6 +526,7 @@ class MapComponent extends Component {
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoutes,
+      searchMode,
     } = this.props;
 
     onSetShowLoadingBar(true);
@@ -554,7 +561,7 @@ class MapComponent extends Component {
     )}&mot=${currentMot}&resolve-hops=false&key=${APIKey}&features={%22elevation%22:%20{}}`;
     */
     // const reqUrl = `${routingUrl}?via=${hops.join('|')}`;
-    const reqUrl = `${routingUrl}?via=${hops.join('|')}`;
+    const reqUrl = `${routingUrl}?via=${hops.join('|')}&barrierefrei=${searchMode === SEARCH_MODES[1]}`;
     // )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}&elevation=${routingElevation}&coord-radius=100.0&coord-punish=1000.0`;
 
     fetch(reqUrl, { signal })
@@ -693,6 +700,7 @@ const mapStateToProps = state => {
     routingElevation: state.MapReducer.routingElevation,
     resolveHops: state.MapReducer.resolveHops,
     olMap: state.MapReducer.olMap,
+    searchMode: state.MapReducer.searchMode,
   };
 };
 
@@ -738,6 +746,7 @@ MapComponent.propTypes = {
   // routingElevation: PropTypes.number.isRequired,
   // resolveHops: PropTypes.bool.isRequired,
   olMap: PropTypes.instanceOf(Map).isRequired,
+  searchMode: PropTypes.string.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

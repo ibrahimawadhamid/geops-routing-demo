@@ -1,5 +1,6 @@
 import { Map } from 'ol';
 import * as actionTypes from '../actions/actionTypes';
+import { SEARCH_MODES } from '../../constants';
 
 const initialState = {
   // center: [949042.143189, 5899715.591163],
@@ -28,6 +29,7 @@ const initialState = {
   }),
   routingElevation: 1,
   resolveHops: false,
+  searchMode: SEARCH_MODES[0],
 };
 
 const setCenter = (state, action) => {
@@ -185,6 +187,16 @@ const setResolveHops = (state, action) => {
   };
 };
 
+const setSearchMode = (state, action) => {
+  const updatedState = {
+    searchMode: action.searchMode,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
@@ -217,6 +229,8 @@ const reducer = (state = initialState, action) => {
       return setRoutingElevation(state, action);
     case actionTypes.SET_RESOLVE_HOPS:
       return setResolveHops(state, action);
+    case actionTypes.SET_SEARCH_MODE:
+      return setSearchMode(state, action);
     default:
       return state;
   }
