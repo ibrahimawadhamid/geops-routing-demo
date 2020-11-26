@@ -145,7 +145,6 @@ const setResolveHops = (state, action) => {
   };
 };
 
-
 const setTracks = (state, action) => {
   const updatedState = {
     tracks: action.tracks,

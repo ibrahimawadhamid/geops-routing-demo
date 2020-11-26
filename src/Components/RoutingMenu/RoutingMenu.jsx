@@ -780,6 +780,7 @@ RoutingMenu.propTypes = {
   isActiveRoute: PropTypes.bool.isRequired,
   onZoomRouteClick: PropTypes.func,
   onPanViaClick: PropTypes.func,
+  onDrawNewRoute: PropTypes.func.isRequired,
 };
 
 RoutingMenu.defaultProps = {

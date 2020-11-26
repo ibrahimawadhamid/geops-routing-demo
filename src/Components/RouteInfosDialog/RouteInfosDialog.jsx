@@ -164,7 +164,7 @@ function RouteInfosDialog({
     // eslint-disable-next-line consistent-return
     return (
       <div className="rd-tootip-wrapper">
-        <div>surface elevation: {surfaceElevation} m</div>
+        <div>surface altitude: {surfaceElevation} m</div>
         <div>altitude: {alt} m</div>
         <div>
           distance: {tickFormatter(distance, isMeter)}
@@ -191,7 +191,7 @@ function RouteInfosDialog({
     const yArray = everyNth(coords, 3, 1);
     const altitudesArray = everyNth(coords, 3, 2).map(el => Math.round(el));
     const surfaceElevation = [].concat(
-      ...routes.map(r => r.get('surface_elevations').map(el => Math.round(el)))
+      ...routes.map(r => r.get('surface_elevations').map(el => Math.round(el))),
     );
     setMinAltitude(Math.min(...surfaceElevation.concat(altitudesArray)));
     setMaxAltitude(Math.max(...altitudesArray));
@@ -226,7 +226,7 @@ function RouteInfosDialog({
       onClose={() => dispatch(setIsRouteInfoOpen(false))}
     >
       <div className="rd-dialog-legend">
-        <SurfaceSvg /> surface elevation
+        <SurfaceSvg /> surface altitude
         <InterpolatedSvg /> interpolated altitude
       </div>
       <LineChart

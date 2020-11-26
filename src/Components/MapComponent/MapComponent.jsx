@@ -484,7 +484,7 @@ class MapComponent extends Component {
    * two points/stations, if a route is found, it's returned and drawn to the map.
    * @category Map
    */
-  drawNewRoute = (useElevation) => {
+  drawNewRoute = useElevation => {
     const hops = [];
     const {
       currentStopsGeoJSON,
