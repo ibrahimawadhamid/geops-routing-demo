@@ -10,7 +10,6 @@ import {
   setCurrentStopsGeoJSON,
   setCurrentMot,
   setCenter,
-  setRoutingElevation,
   setResolveHops,
   setTracks,
 } from '../../store/actions/Map';
@@ -123,9 +122,6 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
   );
-  const routingElevation = useSelector(
-    state => state.MapReducer.routingElevation,
-  );
   const resolveHops = useSelector(state => state.MapReducer.resolveHops);
   const map = appState.olMap;
   const [params, setParams] = useState({});
@@ -194,11 +190,6 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
         });
       }
 
-      if (urlSearch.elevation) {
-        // Set elevation if defined
-        dispatch(setRoutingElevation(parseInt(urlSearch.elevation, 10)));
-      }
-
       if (urlSearch['resolve-hops']) {
         dispatch(setResolveHops(urlSearch['resolve-hops'] === 'true'));
       }
@@ -214,7 +205,6 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     [newParams.x] = center;
     [, newParams.y] = center;
     newParams.mot = currentMot;
-    newParams.elevation = parseInt(routingElevation, 10);
     newParams['resolve-hops'] = resolveHops;
     if (Object.keys(currentStopsGeoJSON).length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON, tracks);
@@ -225,7 +215,6 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     currentStops,
     currentStopsGeoJSON,
     center,
-    routingElevation,
     resolveHops,
     map,
     tracks,

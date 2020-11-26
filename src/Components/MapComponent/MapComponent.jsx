@@ -484,19 +484,19 @@ class MapComponent extends Component {
    * two points/stations, if a route is found, it's returned and drawn to the map.
    * @category Map
    */
-  drawNewRoute = () => {
+  drawNewRoute = useElevation => {
     const hops = [];
     const {
       currentStopsGeoJSON,
       routingUrl,
       currentMot,
       APIKey,
-      routingElevation,
       resolveHops,
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoutes,
       tracks,
+      isRouteInfoOpen,
     } = this.props;
 
     onSetShowLoadingBar(true);
@@ -526,11 +526,16 @@ class MapComponent extends Component {
     abortController = new AbortController();
     const { signal } = abortController;
 
-    const reqUrl = `${routingUrl}?via=${hops.join(
-      '|',
-    )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}&elevation=${routingElevation}&length=true&coord-radius=100.0&coord-punish=1000.0`;
+    const calculateElevation = !!(isRouteInfoOpen || useElevation);
+    const reqUrl =
+      `${routingUrl}?via=${hops.join(
+        '|',
+      )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
+      `&elevation=${calculateElevation ? 1 : 0}` +
+      `&interpolate_elevation=${calculateElevation}` +
+      `&length=true&coord-radius=100.0&coord-punish=1000.0`;
 
-    fetch(reqUrl, { signal })
+    return fetch(reqUrl, { signal })
       .then(response => response.json())
       .then(response => {
         onSetShowLoadingBar(false);
@@ -595,6 +600,7 @@ class MapComponent extends Component {
           isActiveRoute={isActiveRoute}
           onZoomRouteClick={this.onZoomRouteClick}
           onPanViaClick={this.onPanViaClick}
+          onDrawNewRoute={this.drawNewRoute}
           APIKey={APIKey}
         />
         <Snackbar
@@ -639,7 +645,6 @@ const mapStateToProps = state => {
     currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
     isFieldFocused: state.MapReducer.isFieldFocused,
-    routingElevation: state.MapReducer.routingElevation,
     resolveHops: state.MapReducer.resolveHops,
     olMap: state.MapReducer.olMap,
     tracks: state.MapReducer.tracks,
@@ -685,7 +690,6 @@ MapComponent.propTypes = {
   isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
-  routingElevation: PropTypes.number.isRequired,
   resolveHops: PropTypes.bool.isRequired,
   tracks: PropTypes.arrayOf(PropTypes.string).isRequired,
   olMap: PropTypes.instanceOf(Map).isRequired,
