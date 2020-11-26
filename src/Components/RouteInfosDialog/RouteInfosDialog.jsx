@@ -136,7 +136,8 @@ function RouteInfosDialog({
     }
     return (
       <div className="rd-tootip-wrapper">
-        <div>altitude: {point.alt} m</div>
+        <div>surface elevation: {point.surfaceElevation} m</div>
+        <div>interpolated altitude: {point.alt} m</div>
         <div>
           distance: {tickFormatter(point.distance, isMeter)}
           {isMeter ? ' m' : ' km'}
@@ -165,7 +166,7 @@ function RouteInfosDialog({
     return (
       <div className="rd-tootip-wrapper">
         <div>surface elevation: {surfaceElevation} m</div>
-        <div>altitude: {alt} m</div>
+        <div>interpolated altitude: {alt} m</div>
         <div>
           distance: {tickFormatter(distance, isMeter)}
           {isMeter ? ' m' : ' km'}
@@ -194,7 +195,7 @@ function RouteInfosDialog({
       ...routes.map(r => r.get('surface_elevations').map(el => Math.round(el))),
     );
     setMinAltitude(Math.min(...surfaceElevation.concat(altitudesArray)));
-    setMaxAltitude(Math.max(...altitudesArray));
+    setMaxAltitude(Math.max(...surfaceElevation.concat(altitudesArray)));
 
     altitudesArray.forEach((alt, idx) => {
       pointArray.push({
