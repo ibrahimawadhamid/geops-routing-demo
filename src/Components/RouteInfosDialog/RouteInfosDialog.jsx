@@ -164,7 +164,7 @@ function RouteInfosDialog({
     // eslint-disable-next-line consistent-return
     return (
       <div className="rd-tootip-wrapper">
-        <div>surface altitude: {surfaceElevation} m</div>
+        <div>surface elevation: {surfaceElevation} m</div>
         <div>altitude: {alt} m</div>
         <div>
           distance: {tickFormatter(distance, isMeter)}
@@ -226,7 +226,7 @@ function RouteInfosDialog({
       onClose={() => dispatch(setIsRouteInfoOpen(false))}
     >
       <div className="rd-dialog-legend">
-        <SurfaceSvg /> surface altitude
+        <SurfaceSvg /> surface elevation
         <InterpolatedSvg /> interpolated altitude
       </div>
       <LineChart
