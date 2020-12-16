@@ -591,6 +591,7 @@ function RoutingMenu({
   if (!onZoomRouteClick || !onPanViaClick) {
     return null;
   }
+
   return (
     <div className="rd-routing-menu">
       <Paper square elevation={3}>
@@ -715,6 +716,7 @@ function RoutingMenu({
                   onClick={() => onZoomRouteClick()}
                   aria-label="Zoom to the route"
                   disabled={!isActiveRoute}
+                  component={isActiveRoute ? undefined : 'span'}
                   variant="contained"
                   color="default"
                   classes={{
@@ -737,6 +739,7 @@ function RoutingMenu({
                   }}
                   aria-label="Route information"
                   disabled={!isActiveRoute}
+                  component={isActiveRoute ? undefined : 'span'}
                   variant="contained"
                   color="default"
                   className={isRouteInfoOpen ? 'rd-button-active' : ''}

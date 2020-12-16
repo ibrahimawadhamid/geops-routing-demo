@@ -670,8 +670,12 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+MapComponent.defaultProps = {
+  center: [47.99822, 7.84049],
+};
+
 MapComponent.propTypes = {
-  center: propTypeCoordinates.isRequired,
+  center: propTypeCoordinates,
   selectedRoutes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
   isRouteInfoOpen: PropTypes.bool.isRequired,
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,

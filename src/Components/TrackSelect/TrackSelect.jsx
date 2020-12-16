@@ -65,7 +65,7 @@ function TrackSelect({ index, disabled }) {
         classes={selectClasses}
         renderValue={val => (val === '' ? '-' : val)}
         labelId="rd-track-select-label"
-        value={track}
+        value={track || ''}
         displayEmpty
         disabled={disabled || !tracksValues.length}
         onChange={evt => {
