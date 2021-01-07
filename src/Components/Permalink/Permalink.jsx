@@ -64,7 +64,7 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
 
   /* When the via is a UID */
   if (/^![a-zA-Z0-9]{16}$/.test(viaString)) {
-    reqUrl = `${stationSearchUrl}search/lookup/${viaString.replace(
+    reqUrl = `${stationSearchUrl}lookup/${viaString.replace(
       '!',
       '',
     )}/?key=${APIKey}`;
