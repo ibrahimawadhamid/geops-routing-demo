@@ -153,6 +153,9 @@ function RoutingMenu({
     return currentMotsArray;
   };
 
+  // Currently no 'coach' mot available for stop finder.
+  const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
+
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
@@ -411,7 +414,7 @@ function RoutingMenu({
 
     const reqUrl = `${stationSearchUrl}?q=${event.target.value}&key=${APIKey}${
       !GRAPHHOPPER_MOTS.includes(currentMot)
-        ? `&mots=${searchMotOnly ? currentMot : ''}`
+        ? `&mots=${searchMotOnly ? handleStopFinderMot(currentMot) : ''}`
         : ''
     }&ref_location=${to4326(center)
       .reverse()

@@ -7,6 +7,7 @@ export const DEFAULT_MOTS = ['rail', 'bus', 'foot'];
 
 export const OTHER_MOTS = [
   'tram',
+  'coach',
   'subway',
   'gondola',
   'funicular',
