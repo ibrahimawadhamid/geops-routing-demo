@@ -7,6 +7,7 @@ export const DEFAULT_MOTS = ['rail', 'bus', 'foot'];
 
 export const OTHER_MOTS = [
   'tram',
+  'coach',
   'subway',
   'gondola',
   'funicular',
@@ -17,3 +18,6 @@ export const OTHER_MOTS = [
 export const VALID_MOTS = [...DEFAULT_MOTS, ...OTHER_MOTS];
 
 export const GRAPHHOPPER_MOTS = ['foot', 'car'];
+
+// Currently no 'coach' mot available for stop finder.
+export const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);

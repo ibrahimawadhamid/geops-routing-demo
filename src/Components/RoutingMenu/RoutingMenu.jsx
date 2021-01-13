@@ -37,6 +37,7 @@ import {
   DEFAULT_MOTS,
   OTHER_MOTS,
   GRAPHHOPPER_MOTS,
+  handleStopFinderMot,
 } from '../../constants';
 import { to4326, to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
@@ -411,7 +412,7 @@ function RoutingMenu({
 
     const reqUrl = `${stationSearchUrl}?q=${event.target.value}&key=${APIKey}${
       !GRAPHHOPPER_MOTS.includes(currentMot)
-        ? `&mots=${searchMotOnly ? currentMot : ''}`
+        ? `&mots=${searchMotOnly ? handleStopFinderMot(currentMot) : ''}`
         : ''
     }&ref_location=${to4326(center)
       .reverse()
