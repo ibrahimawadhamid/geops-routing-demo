@@ -18,6 +18,3 @@ export const OTHER_MOTS = [
 export const VALID_MOTS = [...DEFAULT_MOTS, ...OTHER_MOTS];
 
 export const GRAPHHOPPER_MOTS = ['foot', 'car'];
-
-// Currently no 'coach' mot available for stop finder.
-export const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);

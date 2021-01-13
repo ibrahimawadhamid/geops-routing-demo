@@ -37,7 +37,6 @@ import {
   DEFAULT_MOTS,
   OTHER_MOTS,
   GRAPHHOPPER_MOTS,
-  handleStopFinderMot,
 } from '../../constants';
 import { to4326, to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
@@ -153,6 +152,9 @@ function RoutingMenu({
     }
     return currentMotsArray;
   };
+
+  // Currently no 'coach' mot available for stop finder.
+  const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
 
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
