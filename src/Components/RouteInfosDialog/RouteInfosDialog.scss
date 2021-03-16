@@ -76,4 +76,19 @@
       }
     }
   }
+
+  .rd-dialog-container-mobile {
+    width: 280px;
+
+    .tm-dialog-body {
+      .rd-dialog-legend {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .recharts-wrapper {
+        padding-top: 50px;
+      }
+    }
+  }
 }

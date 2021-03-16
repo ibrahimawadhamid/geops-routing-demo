@@ -17,6 +17,7 @@ import {
   Tooltip,
   ReferenceDot,
   ReferenceLine,
+  ResponsiveContainer,
 } from 'recharts';
 import { ReactComponent as InterpolatedSvg } from './interpolated_surface.svg';
 import { ReactComponent as SurfaceSvg } from './surface_elevation.svg';
@@ -77,6 +78,7 @@ function RouteInfosDialog({
   const [isMeter, setIsMeter] = useState(null);
 
   const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
+  const isMobile = useSelector(state => state.MapReducer.isMobile);
 
   const onDragStop = (evt, position) => {
     dispatch(
@@ -219,7 +221,9 @@ function RouteInfosDialog({
       title={<span>Route information</span>}
       isDraggable
       onDragStop={onDragStop}
-      className="rd-dialog-container"
+      className={`rd-dialog-container ${
+        isMobile ? 'rd-dialog-container-mobile' : ''
+      }`}
       classNameHeader="rd-dialog-header"
       classNameCloseBt="rd-dialog-close-bt"
       cancelDraggable=".tm-dialog-body"
@@ -227,76 +231,77 @@ function RouteInfosDialog({
       onClose={() => dispatch(setIsRouteInfoOpen(false))}
     >
       <div className="rd-dialog-legend">
-        <SurfaceSvg /> surface elevation
-        <InterpolatedSvg /> interpolated altitude
+        <span>
+          <SurfaceSvg /> surface elevation
+        </span>
+        <span>
+          <InterpolatedSvg /> interpolated altitude
+        </span>
       </div>
-      <LineChart
-        width={450}
-        height={200}
-        data={routePoints}
-        onMouseLeave={clearHighlightPoint}
-      >
-        <YAxis
-          type="number"
-          axisLine={false}
-          tickLine={false}
-          domain={[minAltitude - 10, 'dataMax']}
-        >
-          <Label value="m" offset={10} position="top" />
-        </YAxis>
-        <XAxis
-          type="number"
-          dataKey="distance"
-          tickFormatter={dist => tickFormatter(dist, isMeter)}
-        >
-          <Label value={distanceUnit} offset={10} position="right" />
-        </XAxis>
-        <CartesianGrid vertical={false} />
-        <Line
-          type="monotone"
-          dataKey="alt"
-          name="interpolated altitude"
-          dot={false}
-          stroke="#ff7f50"
-          strokeWidth={2}
-        />
-        <Line
-          type="monotone"
-          dataKey="surfaceElevation"
-          name="surface elevation"
-          dot={false}
-          stroke="#3f51b5"
-          strokeWidth={2}
-        />
-        {hoveredCoords && hoveredPoint && (
-          <ReferenceLine x={hoveredPoint.distance} stroke="lightgrey" />
-        )}
-        {hoveredCoords && hoveredPoint && (
-          <ReferenceDot
-            r={4}
-            x={hoveredPoint.distance}
-            y={hoveredPoint.alt}
-            fill="#3f51b5"
-            stroke="white"
+      <ResponsiveContainer width="90%" height="80%">
+        <LineChart data={routePoints} onMouseLeave={clearHighlightPoint}>
+          <YAxis
+            type="number"
+            axisLine={false}
+            tickLine={false}
+            domain={[minAltitude - 10, 'dataMax']}
+          >
+            <Label value="m" offset={10} position="top" />
+          </YAxis>
+          <XAxis
+            type="number"
+            dataKey="distance"
+            tickFormatter={dist => tickFormatter(dist, isMeter)}
+          >
+            <Label value={distanceUnit} offset={10} position="right" />
+          </XAxis>
+          <CartesianGrid vertical={false} />
+          <Line
+            type="monotone"
+            dataKey="alt"
+            name="interpolated altitude"
+            dot={false}
+            stroke="#ff7f50"
+            strokeWidth={2}
           />
-        )}
-        <Tooltip
-          cursor={hoveredPoint ? true : 'auto'}
-          position={
-            hoveredPoint
-              ? {
-                  x: getTooltipX(hoveredPoint.distance, length),
-                  y: getTooltipY(hoveredPoint.alt, maxAltitude),
-                }
-              : 'auto'
-          }
-          content={content =>
-            hoveredCoords
-              ? renderPrograTooltip(hoveredCoords, routePoints, routes)
-              : renderTooltip(content)
-          }
-        />
-      </LineChart>
+          <Line
+            type="monotone"
+            dataKey="surfaceElevation"
+            name="surface elevation"
+            dot={false}
+            stroke="#3f51b5"
+            strokeWidth={2}
+          />
+          {hoveredCoords && hoveredPoint && (
+            <ReferenceLine x={hoveredPoint.distance} stroke="lightgrey" />
+          )}
+          {hoveredCoords && hoveredPoint && (
+            <ReferenceDot
+              r={4}
+              x={hoveredPoint.distance}
+              y={hoveredPoint.alt}
+              fill="#3f51b5"
+              stroke="white"
+            />
+          )}
+          <Tooltip
+            cursor={hoveredPoint ? true : 'auto'}
+            position={
+              hoveredPoint
+                ? {
+                    x: getTooltipX(hoveredPoint.distance, length),
+                    y: getTooltipY(hoveredPoint.alt, maxAltitude),
+                  }
+                : 'auto'
+            }
+            content={content =>
+              hoveredCoords
+                ? renderPrograTooltip(hoveredCoords, routePoints, routes)
+                : renderTooltip(content)
+            }
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </Dialog>
   );
 }
