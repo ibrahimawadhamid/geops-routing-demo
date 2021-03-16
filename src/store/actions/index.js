@@ -11,4 +11,5 @@ export {
   setIsRouteInfoOpen,
   setDialogPosition,
   setTracks,
+  setIsMobile,
 } from './Map';

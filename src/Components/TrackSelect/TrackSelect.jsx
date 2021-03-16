@@ -17,6 +17,9 @@ const useStyles = makeStyles(() => ({
     width: '12%',
     padding: '0 10px 4px 10px',
   },
+  mobile: {
+    padding: '0 5px 4px 5px',
+  },
 }));
 
 const selectStyles = makeStyles(() => ({
@@ -41,6 +44,7 @@ function TrackSelect({ index, disabled }) {
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
   );
+  const isMobile = useSelector(state => state.MapReducer.isMobile);
   const track = useMemo(() => tracks[index], [index, tracks]);
 
   const tracksValues = useMemo(() => {
@@ -60,7 +64,9 @@ function TrackSelect({ index, disabled }) {
   }, [index, currentMot, currentStopsGeoJSON]);
 
   return (
-    <FormControl className={classes.wrapper}>
+    <FormControl
+      className={`${classes.wrapper} ${isMobile ? classes.mobile : ''}`}
+    >
       <Select
         classes={selectClasses}
         renderValue={val => (val === '' ? '-' : val)}

@@ -91,3 +91,10 @@ export const setTracks = tracks => {
     tracks,
   };
 };
+
+export const setIsMobile = isMobile => {
+  return {
+    type: actionTypes.SET_IS_MOBILE,
+    isMobile,
+  };
+};
