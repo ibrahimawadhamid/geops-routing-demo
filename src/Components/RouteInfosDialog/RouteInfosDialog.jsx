@@ -78,7 +78,6 @@ function RouteInfosDialog({
   const [isMeter, setIsMeter] = useState(null);
 
   const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
-  const isMobile = useSelector(state => state.MapReducer.isMobile);
 
   const onDragStop = (evt, position) => {
     dispatch(
@@ -221,9 +220,7 @@ function RouteInfosDialog({
       title={<span>Route information</span>}
       isDraggable
       onDragStop={onDragStop}
-      className={`rd-dialog-container ${
-        isMobile ? 'rd-dialog-container-mobile' : ''
-      }`}
+      className="rd-dialog-container"
       classNameHeader="rd-dialog-header"
       classNameCloseBt="rd-dialog-close-bt"
       cancelDraggable=".tm-dialog-body"

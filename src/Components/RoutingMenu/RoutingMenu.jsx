@@ -172,9 +172,7 @@ function RoutingMenu({
     state => state.MapReducer.currentStopsGeoJSON,
   );
   const currentMot = useSelector(state => state.MapReducer.currentMot);
-  const isMobile = useSelector(state => state.MapReducer.isMobile);
-
-  const otherMotsLabel = isMobile ? '...' : 'Other MOTs';
+  const otherMotsLabel = 'Other MOTs';
   const elRefs = React.useRef([]);
   if (elRefs.current.length !== currentStops.length) {
     elRefs.current = Array(currentStops.length)
@@ -716,7 +714,7 @@ function RoutingMenu({
             <span>Search only selected mode of transport</span>
           </div>
           <div className="rd-route-buttons">
-            <Grid item xs={isMobile ? 5 : 6}>
+            <Grid item xs={6}>
               <Tooltip title="Zoom to the route">
                 <Button
                   onClick={() => onZoomRouteClick()}
@@ -735,7 +733,7 @@ function RoutingMenu({
                 </Button>
               </Tooltip>
             </Grid>
-            <Grid item xs={isMobile ? 5 : 6}>
+            <Grid item xs={6}>
               <Tooltip title="Route information">
                 <Button
                   onClick={() => {

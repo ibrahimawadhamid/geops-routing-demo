@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
@@ -17,14 +17,14 @@ import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   gridContainer: {
     width: '100%',
     padding: '0px 0px 0px 20px',
     boxSizing: 'unset',
-  },
-  mobileGridContainer: {
-    padding: '0px 0px 0px 5px',
+    [theme.breakpoints.down('xs')]: {
+      padding: '0px 0px 0px 5px',
+    },
   },
   button: {
     color: 'black',
@@ -36,9 +36,9 @@ const useStyles = makeStyles(() => ({
   fieldWrapper: {
     maxWidth: '58%',
     marginLeft: '5px',
-  },
-  mobileFieldWrapper: {
-    maxWidth: '50%',
+    [theme.breakpoints.down('sm')]: {
+      maxWidth: '50%',
+    },
   },
   buttonWrapper: {
     maxWidth: '26px',
@@ -52,7 +52,6 @@ const useStyles = makeStyles(() => ({
 function SearchField(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const isMobile = useSelector(state => state.MapReducer.isMobile);
   const {
     index,
     addNewSearchFieldHandler,
@@ -172,21 +171,13 @@ function SearchField(props) {
     <Grid
       container
       spacing={1}
-      className={`${classes.gridContainer} ${
-        isMobile ? classes.mobileGridContainer : ''
-      }`}
+      className={classes.gridContainer}
       alignItems="flex-end"
     >
       <Grid item xs={1}>
         {fieldLeftIcon}
       </Grid>
-      <Grid
-        item
-        xs={searchFieldSize}
-        className={`${classes.fieldWrapper} ${
-          isMobile ? classes.mobileFieldWrapper : ''
-        }`}
-      >
+      <Grid item xs={searchFieldSize} className={classes.fieldWrapper}>
         <TextField
           style={{
             width: '100%',

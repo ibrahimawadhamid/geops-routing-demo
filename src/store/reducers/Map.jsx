@@ -22,7 +22,6 @@ const initialState = {
   }),
   resolveHops: false,
   tracks: [null, null],
-  isMobile: false,
 };
 
 const setCenter = (state, action) => {
@@ -156,16 +155,6 @@ const setTracks = (state, action) => {
   };
 };
 
-const setIsMobile = (state, action) => {
-  const updatedState = {
-    isMobile: action.isMobile,
-  };
-  return {
-    ...state,
-    ...updatedState,
-  };
-};
-
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
@@ -194,8 +183,6 @@ const reducer = (state = initialState, action) => {
       return setResolveHops(state, action);
     case actionTypes.SET_TRACKS:
       return setTracks(state, action);
-    case actionTypes.SET_IS_MOBILE:
-      return setIsMobile(state, action);
     default:
       return state;
   }

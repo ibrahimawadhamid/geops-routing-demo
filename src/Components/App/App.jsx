@@ -1,13 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { useDispatch } from 'react-redux';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MapComponent from '../MapComponent';
 import Permalink from '../Permalink';
 import NotificationHandler from '../NotificationHandler';
 import { VALID_MOTS } from '../../constants';
-import { setIsMobile } from '../../store/actions/Map';
 
 const propTypes = {
   routingUrl: PropTypes.string,
@@ -34,6 +31,17 @@ const theme = createMuiTheme({
     h5: { fontSize, color },
     h6: { fontSize, color },
   },
+  /*
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 960,
+      lg: 1280,
+      xl: 1920,
+    },
+  },
+  */
 });
 
 /**
@@ -43,14 +51,8 @@ const theme = createMuiTheme({
  * @param {string} stationSearchUrl The API station search URL to be used for searching for stations.
  */
 function App(props) {
-  const dispatch = useDispatch();
-  const isMobile = useMediaQuery(theme.breakpoints.down('xs'));
   const { mots, routingUrl, stationSearchUrl } = props;
   const apiKey = process.env.REACT_APP_API_KEY;
-
-  useEffect(() => {
-    dispatch(setIsMobile(isMobile));
-  }, [dispatch, isMobile]);
 
   return (
     <ThemeProvider theme={theme}>
