@@ -172,7 +172,6 @@ function RoutingMenu({
     state => state.MapReducer.currentStopsGeoJSON,
   );
   const currentMot = useSelector(state => state.MapReducer.currentMot);
-  const otherMotsLabel = 'Other MOTs';
   const elRefs = React.useRef([]);
   if (elRefs.current.length !== currentStops.length) {
     elRefs.current = Array(currentStops.length)
@@ -624,7 +623,7 @@ function RoutingMenu({
           </Tabs>
           <FormControl className={classes.dropDown}>
             <Select
-              renderValue={val => (val !== '' ? val : otherMotsLabel)}
+              renderValue={val => (val !== '' ? val : 'Other MOTs')}
               className={classes.select}
               classes={{ root: classes.selectInput }}
               labelId="rd-other-mot-label"

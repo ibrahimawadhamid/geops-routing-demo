@@ -31,17 +31,6 @@ const theme = createMuiTheme({
     h5: { fontSize, color },
     h6: { fontSize, color },
   },
-  /*
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 960,
-      lg: 1280,
-      xl: 1920,
-    },
-  },
-  */
 });
 
 /**
