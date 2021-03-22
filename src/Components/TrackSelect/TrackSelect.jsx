@@ -12,10 +12,13 @@ const propTypes = {
   disabled: PropTypes.bool.isRequired,
 };
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   wrapper: {
     width: '12%',
     padding: '0 10px 4px 10px',
+    [theme.breakpoints.down('xs')]: {
+      padding: '0 5px 4px 5px',
+    },
   },
 }));
 

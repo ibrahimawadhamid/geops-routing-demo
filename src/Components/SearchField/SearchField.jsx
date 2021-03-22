@@ -17,11 +17,14 @@ import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   gridContainer: {
     width: '100%',
     padding: '0px 0px 0px 20px',
     boxSizing: 'unset',
+    [theme.breakpoints.down('xs')]: {
+      padding: '0px 0px 0px 5px',
+    },
   },
   button: {
     color: 'black',
@@ -32,6 +35,10 @@ const useStyles = makeStyles(() => ({
   },
   fieldWrapper: {
     maxWidth: '58%',
+    marginLeft: '5px',
+    [theme.breakpoints.down('sm')]: {
+      maxWidth: '50%',
+    },
   },
   buttonWrapper: {
     maxWidth: '26px',

@@ -1,3 +1,5 @@
+@import '../../globals.scss';
+
 .tm-rnd {
   width: auto;
   z-index: 2;
@@ -72,6 +74,25 @@
           padding: 5px;
           background-color: rgba(0, 0, 0, 0.1);
           border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .tm-rnd {
+    .rd-dialog-container {
+      width: 280px;
+
+      .tm-dialog-body {
+        .rd-dialog-legend {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .recharts-wrapper {
+          padding-top: 50px;
         }
       }
     }

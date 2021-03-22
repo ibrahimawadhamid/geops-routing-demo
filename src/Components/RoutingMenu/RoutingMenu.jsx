@@ -92,6 +92,7 @@ const useStyles = makeStyles(() => ({
   },
   select: {
     height: '100%',
+    textAlign: 'center',
   },
   selectInput: {
     backgroundColor: 'white',
@@ -171,7 +172,6 @@ function RoutingMenu({
     state => state.MapReducer.currentStopsGeoJSON,
   );
   const currentMot = useSelector(state => state.MapReducer.currentMot);
-
   const elRefs = React.useRef([]);
   if (elRefs.current.length !== currentStops.length) {
     elRefs.current = Array(currentStops.length)

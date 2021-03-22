@@ -335,7 +335,7 @@ class MapComponent extends Component {
         this.map.getView().fit(this.routeVectorSource.getExtent(), {
           size: this.map.getSize(),
           duration: 500,
-          padding: [200, 200, 200, 200],
+          padding: [50, 50, 50, 50],
         });
       }
     };
