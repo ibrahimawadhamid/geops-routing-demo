@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
@@ -52,6 +52,7 @@ const useStyles = makeStyles(theme => ({
 function SearchField(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
   const {
     index,
     addNewSearchFieldHandler,
@@ -98,7 +99,7 @@ function SearchField(props) {
         <Tooltip title="Add Hop">
           <IconButton
             onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-            disabled={addNextHopDisabled}
+            disabled={addNextHopDisabled || showLoadingBar}
             className={classes.button}
             aria-label="Add Hop"
             size="small"
@@ -142,7 +143,7 @@ function SearchField(props) {
         <Grid item xs={1} className={classes.buttonWrapper}>
           <Tooltip title="Add Hop">
             <IconButton
-              disabled={addNextHopDisabled}
+              disabled={addNextHopDisabled || showLoadingBar}
               onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
               className={classes.button}
               aria-label="addHop"
@@ -159,6 +160,7 @@ function SearchField(props) {
               className={classes.button}
               aria-label="removeHop"
               size="small"
+              disabled={showLoadingBar}
             >
               <RemoveCircleOutlineIcon fontSize="small" />
             </IconButton>
