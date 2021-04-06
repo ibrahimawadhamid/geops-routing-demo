@@ -1,3 +1,3 @@
-import MapComponent from "./MapComponent";
+import MapComponent from './MapComponent';
 
 export default MapComponent;

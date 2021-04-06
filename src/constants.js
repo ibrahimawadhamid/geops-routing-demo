@@ -3,15 +3,18 @@
  * @type {string[]}
  * @category Constants
  */
-const VALID_MOTS = [
-  "bus",
-  "ferry",
-  "gondola",
-  "tram",
-  "rail",
-  "funicular",
-  "cable_car",
-  "subway"
+export const DEFAULT_MOTS = ['rail', 'bus', 'foot'];
+
+export const OTHER_MOTS = [
+  'tram',
+  'coach',
+  'subway',
+  'gondola',
+  'funicular',
+  'ferry',
+  'car',
 ];
 
-export default VALID_MOTS;
+export const VALID_MOTS = [...DEFAULT_MOTS, ...OTHER_MOTS];
+
+export const GRAPHHOPPER_MOTS = ['foot', 'car'];

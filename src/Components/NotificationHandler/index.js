@@ -1,3 +1,3 @@
-import NotificationHandler from "./NotificationHandler";
+import NotificationHandler from './NotificationHandler';
 
 export default NotificationHandler;

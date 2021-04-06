@@ -1,25 +1,49 @@
-import React from "react";
-import Paper from "@material-ui/core/Paper";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Typography from "@material-ui/core/Typography";
-import Box from "@material-ui/core/Box";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import axios from "axios";
-import {connect} from "react-redux";
-import PropTypes from "prop-types";
-import nextId from "react-id-generator";
-import _ from "lodash/core";
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { makeStyles } from '@material-ui/core/styles';
+import Paper from '@material-ui/core/Paper';
+import Checkbox from '@material-ui/core/Checkbox';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import FormControl from '@material-ui/core/FormControl';
+import Typography from '@material-ui/core/Typography';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Button from '@material-ui/core/Button';
+import Tooltip from '@material-ui/core/Tooltip';
+import Grid from '@material-ui/core/Grid';
+import ZoomInIcon from '@material-ui/icons/ZoomIn';
+import InfoIcon from '@material-ui/icons/Info';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import PropTypes from 'prop-types';
+import nextId from 'react-id-generator';
+import _ from 'lodash/core';
 
-import * as actions from "../../store/actions";
-import "./RoutingMenu.css";
-import VALID_MOTS from "../../constants";
-import findMotIcon from "../../utils";
-import SearchResults from "../SearchResults";
-import SearchField from "../SearchField";
+import {
+  setTracks,
+  setCurrentStops,
+  setCurrentStopsGeoJSON,
+  setCurrentMot,
+  showNotification,
+  setIsFieldFocused,
+  setShowLoadingBar,
+  setSelectedRoutes,
+  setIsRouteInfoOpen,
+} from '../../store/actions/Map';
+import './RoutingMenu.scss';
+import {
+  VALID_MOTS,
+  DEFAULT_MOTS,
+  OTHER_MOTS,
+  GRAPHHOPPER_MOTS,
+} from '../../constants';
+import { to4326, to3857, findMotIcon } from '../../utils';
+import SearchResults from '../SearchResults';
+import SearchField from '../SearchField';
 
 function TabPanel(props) {
-  const {children, value, index} = props;
+  const { children, value, index } = props;
 
   return (
     <Typography
@@ -29,10 +53,19 @@ function TabPanel(props) {
       id={nextId()}
       aria-labelledby={`simple-tab-${index}`}
     >
-      {value === index && <Box p={3}>{children}</Box>}
+      {value === index && children}
     </Typography>
   );
 }
+
+const swapFc = (input, indexA, indexB) => {
+  const temp = input[indexA];
+
+  // eslint-disable-next-line no-param-reassign
+  input[indexA] = input[indexB];
+  // eslint-disable-next-line no-param-reassign
+  input[indexB] = temp;
+};
 
 /**
  * The routing menu props
@@ -42,104 +75,53 @@ function TabPanel(props) {
  * @property {string} APIKey key obtained from geOps that enables you to used the previous API services.
  * @property {string[]} mots List of mots to be available (ex: ['bus', 'train'])
  * @property {LongLat} clickLocation The location clicked by the user in the form of [long,lat].
- * @property {function} onShowNotification A store action that can be dispatched, takes the notification message and type as arguments.
- * @property {function} onSetCurrentStopsGeoJSON A store action that can be dispatched, sets the current stops in the store in the form of GeoJSON format.
- * @property {function} onSetCurrentMot TA store action that can be dispatched, sets the current selected mot by the user inside the store.
  * @category Props
  */
+
+const useStyles = makeStyles(() => ({
+  tabs: {
+    width: '75%',
+  },
+  tab: {
+    minWidth: '33%',
+    width: '33%',
+  },
+  dropDown: {
+    width: '25%',
+    backgroundColor: 'white',
+  },
+  select: {
+    height: '100%',
+    textAlign: 'center',
+  },
+  selectInput: {
+    backgroundColor: 'white',
+    '&:focus': {
+      backgroundColor: 'white',
+    },
+  },
+  checkbox: {
+    margin: '0px 5px 0px 13px',
+  },
+}));
+
+let abortController = new AbortController();
 
 /**
  * The routing menu that controls station search
  * @category RoutingMenu
  */
-class RoutingMenu extends React.Component {
-  /**
-   * Default constructor, gets called automatically upon initialization.
-   * @param {...RoutingMenuProps} props Props received so that the component can function properly.
-   * @category RoutingMenu
-   */
-  constructor(props) {
-    const {mots, onSetCurrentMot} = props;
-    super(props);
-    const currentMots = this.validateMots(mots);
-    this.state = {
-      currentMots,
-      currentMot: currentMots[0].name,
-      currentSearchResults: [],
-      focusedFieldIndex: 0,
-      currentStops: ["", ""],
-      currentStopsGeoJSON: {},
-      showLoadingBar: false
-    };
-
-    this.SearchCancelToken = axios.CancelToken;
-    this.searchCancel = null;
-    onSetCurrentMot(currentMots[0].name);
-  }
-
-  /**
-   * If a location was received through the props (user click on map) act accordingly.
-   * @category RoutingMenu
-   */
-  componentDidUpdate(prevProps) {
-    const {clickLocation, onSetCurrentStopsGeoJSON} = this.props;
-    const {currentStops, focusedFieldIndex, currentStopsGeoJSON} = this.state;
-    if (clickLocation && clickLocation !== prevProps.clickLocation) {
-      // A click occurred on the map
-      if (currentStops[focusedFieldIndex] === "") {
-        // Only perform when there's an empty field.
-        const updatedCurrentStops = currentStops;
-        const updatedFocusedFieldIndex =
-          focusedFieldIndex + 1 < currentStops.length
-            ? focusedFieldIndex + 1
-            : focusedFieldIndex;
-        updatedCurrentStops[focusedFieldIndex] = clickLocation;
-        const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-        // Create GeoJSON
-        const tempGeoJSON = {
-          type: "FeatureCollection",
-          features: [
-            {
-              type: "Feature",
-              properties: {
-                id: clickLocation.slice().reverse(),
-                type: "coordinates"
-              },
-              geometry: {
-                type: "Point",
-                coordinates: clickLocation
-              }
-            }
-          ]
-        };
-        updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
-        this.updateCurrentStops(
-          updatedCurrentStops,
-          updatedCurrentStopsGeoJSON,
-          updatedFocusedFieldIndex
-        );
-        onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
-      }
-    }
-  }
-
-  /**
-   * Update the current stops array (string array) and the GeoJSON array in the local state.
-   * @param updatedCurrentStops The updated stops.
-   * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
-   * @category RoutingMenu
-   */
-  updateCurrentStops = (
-    updatedCurrentStops,
-    updatedCurrentStopsGeoJSON,
-    updatedFocusedFieldIndex
-  ) => {
-    this.setState({
-      currentStops: updatedCurrentStops,
-      currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
-      focusedFieldIndex: updatedFocusedFieldIndex
-    });
-  };
+function RoutingMenu({
+  mots,
+  stationSearchUrl,
+  APIKey,
+  isActiveRoute,
+  onZoomRouteClick,
+  onPanViaClick,
+  onDrawNewRoute,
+}) {
+  const classes = useStyles();
+  const dispatch = useDispatch();
 
   /**
    * Validate the mots provided from the props, then retrieve the icons for the valid ones.
@@ -147,25 +129,173 @@ class RoutingMenu extends React.Component {
    * @returns {Array} The valid mots with their icons
    * @category RoutingMenu
    */
-  validateMots = mots => {
-    const currentMots = [];
-    mots.forEach(providedMot => {
-      const requestedMot = VALID_MOTS.find(mot => mot === providedMot);
-      if (requestedMot) {
-        currentMots.push({
-          name: requestedMot,
-          icon: findMotIcon(requestedMot)
-        });
-      }
-    });
-    if (currentMots.length === 0) {
-      currentMots.push({
+  const validateMots = (motsArray, validationMots) => {
+    const currentMotsArray = [];
+
+    motsArray
+      .filter(mot => {
+        return validationMots.includes(mot);
+      })
+      .forEach(providedMot => {
+        const requestedMot = validationMots.find(mot => mot === providedMot);
+        if (requestedMot) {
+          currentMotsArray.push({
+            name: requestedMot,
+            icon: findMotIcon(requestedMot),
+          });
+        }
+      });
+    if (currentMotsArray.length === 0) {
+      currentMotsArray.push({
         name: VALID_MOTS[0],
-        icon: findMotIcon(VALID_MOTS[0])
+        icon: findMotIcon(VALID_MOTS[0]),
       });
     }
-    return currentMots;
+    return currentMotsArray;
   };
+
+  // Currently no 'coach' mot available for stop finder.
+  const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
+
+  const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
+  const otherMotsVal = validateMots(mots, OTHER_MOTS);
+
+  const center = useSelector(state => state.MapReducer.center);
+  const tracks = useSelector(state => state.MapReducer.tracks);
+  const clickLocation = useSelector(state => state.MapReducer.clickLocation);
+  const currentStops = useSelector(state => state.MapReducer.currentStops);
+  const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
+  const isRouteInfoOpen = useSelector(
+    state => state.MapReducer.isRouteInfoOpen,
+  );
+  const currentStopsGeoJSON = useSelector(
+    state => state.MapReducer.currentStopsGeoJSON,
+  );
+  const currentMot = useSelector(state => state.MapReducer.currentMot);
+  const elRefs = React.useRef([]);
+  if (elRefs.current.length !== currentStops.length) {
+    elRefs.current = Array(currentStops.length)
+      .fill()
+      .map((el, i) => elRefs.current[i] || React.createRef());
+  }
+
+  const [currentMots] = useState(currentMotsVal);
+  const [otherMots] = useState(otherMotsVal);
+  const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
+  const [currentSearchResults, setCurrentSearchResults] = useState([]);
+  const [searchMotOnly, setSearchMotOnly] = React.useState(true);
+  const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
+  const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
+
+  useEffect(() => {
+    if (isRouteInfoOpen) {
+      dispatch(setSelectedRoutes([]));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStops]);
+
+  /**
+   * Update the current stops array (string array) and the GeoJSON array in the local state.
+   * @param updatedCurrentStops The updated stops.
+   * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
+   * @category RoutingMenu
+   */
+  const updateCurrentStops = (
+    updatedCurrentStops,
+    updatedCurrentStopsGeoJSON,
+    updatedFocusedFieldIndex,
+  ) => {
+    dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+    setFocusedFieldIndex(updatedFocusedFieldIndex);
+  };
+
+  const updateFieldOnMapClick = (
+    updatedCurrentStops,
+    updatedFocusedFieldIndex,
+  ) => {
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+    // Create GeoJSON
+    const tempGeoJSON = {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {
+            id: clickLocation.slice().reverse(),
+            type: 'coordinates',
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: clickLocation,
+          },
+        },
+      ],
+    };
+    const updatedTracks = [...tracks];
+    updatedTracks[updatedFocusedFieldIndex - 1] = '';
+    updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
+    updateCurrentStops(
+      updatedCurrentStops,
+      updatedCurrentStopsGeoJSON,
+      updatedFocusedFieldIndex,
+    );
+    dispatch(setTracks(updatedTracks));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+  };
+
+  /**
+   * If a location was received through the props (user click on map) act accordingly.
+   * @category RoutingMenu
+   */
+  useEffect(() => {
+    if (clickLocation) {
+      // A click occurred on the map
+      if (currentStops[focusedFieldIndex] === '') {
+        // Performs when there's an empty field.
+        const updatedCurrentStops = currentStops;
+        updatedCurrentStops[focusedFieldIndex] = clickLocation;
+        updateFieldOnMapClick(
+          currentStops,
+          focusedFieldIndex + 1 < currentStops.length
+            ? focusedFieldIndex + 1
+            : focusedFieldIndex,
+        );
+      } else {
+        const updatedCurrentStops = currentStops;
+        const updatedFocusedFieldIndex = focusedFieldIndex;
+        updatedCurrentStops[focusedFieldIndex] = clickLocation;
+        updateFieldOnMapClick(updatedCurrentStops, focusedFieldIndex);
+
+        const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+        // Create GeoJSON
+        const tempGeoJSON = {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: {
+                id: clickLocation.slice().reverse(),
+                type: 'coordinates',
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: clickLocation,
+              },
+            },
+          ],
+        };
+        updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
+        updateCurrentStops(
+          updatedCurrentStops,
+          updatedCurrentStopsGeoJSON,
+          updatedFocusedFieldIndex,
+        );
+        dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clickLocation]);
 
   /**
    * Process changing the current selected mot, save in local state and dispatch store action.
@@ -173,10 +303,11 @@ class RoutingMenu extends React.Component {
    * @param newMot The new selected mot
    * @category RoutingMenu
    */
-  handleMotChange = (event, newMot) => {
-    const {onSetCurrentMot} = this.props;
-    this.setState({currentMot: newMot});
-    onSetCurrentMot(newMot);
+  const handleMotChange = (event, newMot, tracksVal) => {
+    const newTracks = [...tracksVal].map(() => '');
+    setCurrentOtherMot(null);
+    dispatch(setTracks(newTracks));
+    dispatch(setCurrentMot(newMot));
   };
 
   /**
@@ -184,8 +315,9 @@ class RoutingMenu extends React.Component {
    * @param fieldIndex The search field index(order)
    * @category RoutingMenu
    */
-  onFieldFocusHandler = fieldIndex => {
-    this.setState({focusedFieldIndex: fieldIndex});
+  const onFieldFocusHandler = fieldIndex => {
+    setFocusedFieldIndex(fieldIndex);
+    dispatch(setIsFieldFocused(true));
   };
 
   /**
@@ -193,11 +325,27 @@ class RoutingMenu extends React.Component {
    * @param indexToInsertAt The index to insert the new search field at.
    * @category RoutingMenu
    */
-  addNewSearchFieldHandler = indexToInsertAt => {
-    const {currentStops} = this.state;
-    const updatedCurrentStops = currentStops;
-    updatedCurrentStops.splice(indexToInsertAt, 0, "");
-    this.setState({currentStops: updatedCurrentStops});
+  const addNewSearchFieldHandler = (currStops, indexToInsertAt) => {
+    const updatedCurrentStops = _.clone(currentStops);
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+    updatedCurrentStops.splice(indexToInsertAt, 0, '');
+
+    if (updatedCurrentStopsGeoJSON[indexToInsertAt]) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON)
+        .filter(k => k >= indexToInsertAt)
+        .reverse();
+      keys.forEach(k => {
+        updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+          updatedCurrentStopsGeoJSON[k];
+      });
+    }
+
+    const updatedTracks = [...tracks];
+    updatedTracks.splice(indexToInsertAt, 0, '');
+
+    dispatch(setTracks(updatedTracks));
+    dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
   /**
@@ -206,22 +354,30 @@ class RoutingMenu extends React.Component {
    * @param indexToRemoveFrom The index to remove the search field from.
    * @category RoutingMenu
    */
-  removeSearchFieldHandler = indexToRemoveFrom => {
-    const {currentStops, currentStopsGeoJSON} = this.state;
-    const {onSetCurrentStopsGeoJSON} = this.props;
-    const updatedCurrentStops = currentStops;
+  const removeSearchFieldHandler = indexToRemoveFrom => {
+    const updatedCurrentStops = _.clone(currentStops);
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStops.splice(indexToRemoveFrom, 1);
-    const updatedCurrentStopsGeoJSON = {};
-    Object.keys(currentStopsGeoJSON).forEach(key => {
-      if (key !== indexToRemoveFrom.toString()) {
-        updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
-      }
-    });
-    this.setState({
-      currentStops: updatedCurrentStops,
-      currentStopsGeoJSON: updatedCurrentStopsGeoJSON
-    });
-    onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+
+    if (updatedCurrentStopsGeoJSON[indexToRemoveFrom]) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON);
+      keys.forEach(key => {
+        const k = parseInt(key, 10);
+        if (k === indexToRemoveFrom) {
+          delete updatedCurrentStopsGeoJSON[indexToRemoveFrom];
+        } else if (k > indexToRemoveFrom) {
+          updatedCurrentStopsGeoJSON[k - 1] = updatedCurrentStopsGeoJSON[k];
+        }
+      });
+      delete updatedCurrentStopsGeoJSON[keys.length - 1];
+    }
+
+    const updatedTracks = [...tracks];
+    updatedTracks.splice(indexToRemoveFrom, 1);
+
+    dispatch(setTracks(updatedTracks));
+    dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
   /**
@@ -230,66 +386,77 @@ class RoutingMenu extends React.Component {
    * @param fieldIndex The search field(hop) index(order)
    * @category RoutingMenu
    */
-  searchStopsHandler = (event, fieldIndex) => {
-    const {currentStops, currentMot} = this.state;
-    const {stationSearchUrl, APIKey, onShowNotification} = this.props;
+  const searchStopsHandler = (event, fieldIndex) => {
+    setLastChangedFieldIdx(fieldIndex);
     // only search if text is available
     if (!event.target.value) {
-      const updateCurrentStops = currentStops;
-      updateCurrentStops[fieldIndex] = "";
-      this.setState({
-        currentSearchResults: [],
-        currentStops: updateCurrentStops,
-        showLoadingBar: false
-      });
+      const updatedCurrentStops = currentStops;
+      updatedCurrentStops[fieldIndex] = '';
+      setCurrentSearchResults([]);
+      dispatch(setCurrentStops(updatedCurrentStops));
+
+      // Reset the track value.
+      const updatedTracks = [...tracks];
+      updatedTracks[fieldIndex] = '';
+      dispatch(setTracks(updatedTracks));
+
+      dispatch(setShowLoadingBar(false));
       return;
     }
-    const updateCurrentStops = currentStops;
-    updateCurrentStops[fieldIndex] = event.target.value;
-    this.setState({
-      currentStops: updateCurrentStops,
-      showLoadingBar: true
-    });
+    const updatedCurrentStops = _.clone(currentStops);
+    updatedCurrentStops[fieldIndex] = event.target.value;
+    dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setShowLoadingBar(true));
 
-    if (this.searchCancel) {
-      // If a previous search request has been issues and not completed yet, cancel it.
-      this.searchCancel();
-    }
-    axios
-      .get(stationSearchUrl, {
-        params: {
-          q: event.target.value,
-          key: APIKey
-        },
-        cancelToken: new this.SearchCancelToken(cancel => {
-          this.searchCancel = cancel;
-        })
-      })
-      .then(
-        response => {
-          if (response.data.features.length === 0) {
-            // No results for the given query
-            onShowNotification("Couldn't find stations", "warning");
-          }
-          const searchResults = [];
-          response.data.features.forEach(singleResult => {
-            // Search results from the API
-            if (singleResult.properties.mot[currentMot])
-              searchResults.push(singleResult);
-          });
-          this.setState({
-            currentSearchResults: searchResults,
-            showLoadingBar: false
-          });
-        },
-        error => {
-          this.setState({
-            showLoadingBar: false
-          });
-          if (!axios.isCancel(error))
-            onShowNotification("Error while searching for stations", "error");
+    abortController.abort();
+    abortController = new AbortController();
+    const { signal } = abortController;
+
+    const reqUrl = `${stationSearchUrl}?q=${event.target.value}&key=${APIKey}${
+      !GRAPHHOPPER_MOTS.includes(currentMot)
+        ? `&mots=${searchMotOnly ? handleStopFinderMot(currentMot) : ''}`
+        : ''
+    }&ref_location=${to4326(center)
+      .reverse()
+      .join(',')}&limit=10`;
+
+    fetch(reqUrl, { signal })
+      .then(response => response.json())
+      .then(response => {
+        if (response.error) {
+          dispatch(showNotification("Couldn't find stations", 'warning'));
+          return;
         }
-      );
+        if (response.features.length === 0) {
+          dispatch(showNotification("Couldn't find stations", 'warning'));
+        }
+        setCurrentSearchResults(response.features);
+        dispatch(setShowLoadingBar(false));
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') {
+          // eslint-disable-next-line no-console
+          console.warn(`Abort ${reqUrl}`);
+          return;
+        }
+        // It's important to rethrow all other errors so you don't silence them!
+        // For example, any error thrown by setState(), will pass through here.
+        throw err;
+      });
+  };
+
+  const retriggerSearch = () => {
+    if (lastChangedFieldIdx === null) {
+      return;
+    }
+    searchStopsHandler(
+      {
+        target: {
+          value: elRefs.current[lastChangedFieldIdx].current.value,
+        },
+      },
+      lastChangedFieldIdx,
+    );
   };
 
   /**
@@ -298,29 +465,19 @@ class RoutingMenu extends React.Component {
    * @param event
    * @category RoutingMenu
    */
-  processHighlightedResultSelectHandler = event => {
-    const {onSetCurrentStopsGeoJSON} = this.props;
-    const {
-      currentSearchResults,
-      currentStops,
-      focusedFieldIndex,
-      currentStopsGeoJSON
-    } = this.state;
+  const processHighlightedResultSelectHandler = event => {
     const [firstSearchResult] = currentSearchResults;
-    if (event.key === "Enter" && firstSearchResult) {
+    if (event.key === 'Enter' && firstSearchResult) {
       // The user has chosen the first result by pressing 'Enter' key on keyboard
-      const updateCurrentStops = currentStops;
+      const updatedCurrentStops = currentStops;
       updateCurrentStops[focusedFieldIndex] = firstSearchResult.properties.name;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
-      this.setState({
-        currentStops: updateCurrentStops,
-        currentSearchResults: [],
-        currentStopsGeoJSON: updatedCurrentStopsGeoJSON
-      });
-      onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      dispatch(setCurrentStops(updatedCurrentStops));
+      setCurrentSearchResults([]);
+      dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     }
-    if (event.key === "Backspace") {
+    if (event.key === 'Backspace') {
       // The user has erased some of the search query. Reset everything and start all over.
       let updateCurrentSearchResults = [];
       if (event.target.value) updateCurrentSearchResults = currentSearchResults;
@@ -330,11 +487,8 @@ class RoutingMenu extends React.Component {
           updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
         }
       });
-      this.setState({
-        currentStopsGeoJSON: updatedCurrentStopsGeoJSON,
-        currentSearchResults: updateCurrentSearchResults
-      });
-      onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      setCurrentSearchResults(updateCurrentSearchResults);
+      dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     }
   };
 
@@ -343,41 +497,114 @@ class RoutingMenu extends React.Component {
    * @param searchResult The clicked search result.
    * @category RoutingMenu
    */
-  processClickedResultHandler = searchResult => {
-    const {currentStops, focusedFieldIndex, currentStopsGeoJSON} = this.state;
-    const {onSetCurrentStopsGeoJSON} = this.props;
-    const updateCurrentStops = currentStops;
-    updateCurrentStops[focusedFieldIndex] = searchResult.properties.name;
+  const processClickedResultHandler = searchResult => {
+    const updatedCurrentStops = currentStops;
+    updatedCurrentStops[focusedFieldIndex] = searchResult.properties.name;
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
-    this.setState({
-      currentStops: updateCurrentStops,
-      currentSearchResults: [],
-      currentStopsGeoJSON: updatedCurrentStopsGeoJSON
+    dispatch(setCurrentStops(updatedCurrentStops));
+
+    const updatedTracks = [...tracks];
+    updatedTracks[focusedFieldIndex] = '';
+    dispatch(setTracks(updatedTracks));
+    setCurrentSearchResults([]);
+
+    Object.keys(updatedCurrentStopsGeoJSON).forEach(key => {
+      if (key === focusedFieldIndex.toString()) {
+        updatedCurrentStopsGeoJSON[key].geometry.coordinates = to3857(
+          updatedCurrentStopsGeoJSON[key].geometry.coordinates,
+        );
+      }
     });
-    onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+  };
+
+  const changeCurrentOtherMot = evt => {
+    if (!evt) {
+      setCurrentOtherMot(null);
+    } else {
+      const { value } = evt.target;
+      handleMotChange({}, value, tracks);
+      setCurrentOtherMot(value);
+    }
+  };
+
+  const getItemStyle = (isDragging, draggableStyle) => ({
+    userSelect: 'none',
+    background: isDragging ? '#ededed' : 'white',
+    ...draggableStyle,
+  });
+
+  const onDragEnd = result => {
+    // dropped outside the list
+    if (!result.destination) {
+      return;
+    }
+
+    const updatedCurrentStops = _.clone(currentStops);
+    const [removed] = updatedCurrentStops.splice(result.source.index, 1);
+    updatedCurrentStops.splice(result.destination.index, 0, removed);
+
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+
+    const newSource = { ...updatedCurrentStopsGeoJSON[result.source.index] };
+    if (result.destination.index < result.source.index) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON)
+        .filter(k => {
+          return (
+            parseInt(k, 10) >= result.destination.index &&
+            parseInt(k, 10) < result.source.index
+          );
+        })
+        .reverse();
+      keys.forEach(k => {
+        updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+          updatedCurrentStopsGeoJSON[k];
+      });
+      updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
+    } else if (result.destination.index > result.source.index) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON).filter(
+        k =>
+          parseInt(k, 10) >= result.source.index &&
+          parseInt(k, 10) <= result.destination.index,
+      );
+      keys.forEach(k => {
+        if (parseInt(k, 10) === result.destination.index) {
+          updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
+        } else {
+          updatedCurrentStopsGeoJSON[k] =
+            updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`];
+        }
+      });
+    }
+
+    const updatedTracks = [...tracks];
+    swapFc(updatedTracks, result.source.index, result.destination.index);
+
+    dispatch(setTracks(updatedTracks));
+    dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
   /**
    * Render the component to the dom.
    * @category RoutingMenu
    */
-  render() {
-    const {
-      currentStops,
-      currentMots,
-      currentMot,
-      showLoadingBar,
-      currentSearchResults
-    } = this.state;
-    return (
-      <div className="RoutingMenu">
-        <Paper square elevation={3}>
+
+  if (!onZoomRouteClick || !onPanViaClick) {
+    return null;
+  }
+
+  return (
+    <div className="rd-routing-menu">
+      <Paper square elevation={3}>
+        <div className="rd-routing-menu-header">
           <Tabs
-            value={currentMot}
-            onChange={this.handleMotChange}
-            variant="scrollable"
-            scrollButtons="auto"
+            value={DEFAULT_MOTS.includes(currentMot) ? currentMot : false}
+            className={classes.tabs}
+            onChange={(e, mot) => {
+              handleMotChange(e, mot, tracks);
+            }}
             indicatorColor="primary"
             textColor="primary"
             aria-label="mots icons"
@@ -385,6 +612,7 @@ class RoutingMenu extends React.Component {
             {currentMots.map(singleMot => {
               return (
                 <Tab
+                  className={classes.tab}
                   key={`mot-${singleMot.name}`}
                   value={singleMot.name}
                   icon={singleMot.icon}
@@ -393,77 +621,177 @@ class RoutingMenu extends React.Component {
               );
             })}
           </Tabs>
-          <TabPanel>
-            {currentStops.map((singleStop, index) => {
-              return (
-                <SearchField
-                  key={`searchField-${index}`}
-                  index={index}
-                  addNewSearchFieldHandler={this.addNewSearchFieldHandler}
-                  currentStops={currentStops}
-                  removeSearchFieldHandler={this.removeSearchFieldHandler}
-                  searchStopsHandler={this.searchStopsHandler}
-                  singleStop={singleStop}
-                  processHighlightedResultSelectHandler={
-                    this.processHighlightedResultSelectHandler
-                  }
-                  onFieldFocusHandler={this.onFieldFocusHandler}
-                />
-              );
-            })}
-          </TabPanel>
-          {showLoadingBar ? <LinearProgress/> : null}
-        </Paper>
-        <SearchResults
-          currentSearchResults={currentSearchResults}
-          processClickedResultHandler={this.processClickedResultHandler}
-        />
-      </div>
-    );
-  }
+          <FormControl className={classes.dropDown}>
+            <Select
+              renderValue={val => (val !== '' ? val : 'Other MOTs')}
+              className={classes.select}
+              classes={{ root: classes.selectInput }}
+              labelId="rd-other-mot-label"
+              value={currentOtherMot || ''}
+              disableUnderline={!currentOtherMot}
+              displayEmpty
+              onChange={changeCurrentOtherMot}
+            >
+              {otherMots.map(mot => {
+                return (
+                  <MenuItem value={mot.name} key={`other-mot-${mot.name}`}>
+                    {mot.name}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </FormControl>
+        </div>
+        <TabPanel>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="droppable">
+              {provided => (
+                <div
+                  className="stopsContainer"
+                  // eslint-disable-next-line react/jsx-props-no-spreading
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  style={{
+                    background: 'white',
+                  }}
+                >
+                  {currentStops.map((item, index) => (
+                    <Draggable
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={`searchField-${index}`}
+                      draggableId={`searchField-${index}`}
+                      index={index}
+                    >
+                      {(prov, snpsht) => (
+                        <div
+                          ref={prov.innerRef}
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...prov.draggableProps}
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...prov.dragHandleProps}
+                          style={getItemStyle(
+                            snpsht.isDragging,
+                            prov.draggableProps.style,
+                          )}
+                        >
+                          <SearchField
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`searchField-${index}`}
+                            index={index}
+                            inputReference={elRefs.current[index]}
+                            addNewSearchFieldHandler={addNewSearchFieldHandler}
+                            currentStops={currentStops}
+                            removeSearchFieldHandler={removeSearchFieldHandler}
+                            searchStopsHandler={searchStopsHandler}
+                            singleStop={item}
+                            processHighlightedResultSelectHandler={
+                              processHighlightedResultSelectHandler
+                            }
+                            onFieldFocusHandler={onFieldFocusHandler}
+                            onPanViaClick={onPanViaClick}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+          <div className="rd-mot-checkbox">
+            <Checkbox
+              className={classes.checkbox}
+              checked={searchMotOnly}
+              onChange={() => {
+                setSearchMotOnly(!searchMotOnly);
+                retriggerSearch(lastChangedFieldIdx);
+              }}
+              color="primary"
+              inputProps={{ 'aria-label': 'use only mot' }}
+            />
+            <span>Search only selected mode of transport</span>
+          </div>
+          <div className="rd-route-buttons">
+            <Grid item xs={6}>
+              <Tooltip title="Zoom to the route">
+                <Button
+                  onClick={() => onZoomRouteClick()}
+                  aria-label="Zoom to the route"
+                  disabled={!isActiveRoute}
+                  component={isActiveRoute ? undefined : 'span'}
+                  variant="contained"
+                  color="default"
+                  classes={{
+                    root: 'rd-button-root',
+                    disabled: 'rd-button-disabled',
+                  }}
+                  startIcon={<ZoomInIcon fontSize="small" />}
+                >
+                  <Typography>Zoom to the route</Typography>
+                </Button>
+              </Tooltip>
+            </Grid>
+            <Grid item xs={6}>
+              <Tooltip title="Route information">
+                <Button
+                  onClick={() => {
+                    onDrawNewRoute(true).then(() => {
+                      dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                    });
+                  }}
+                  aria-label="Route information"
+                  disabled={!isActiveRoute}
+                  component={isActiveRoute ? undefined : 'span'}
+                  variant="contained"
+                  color="default"
+                  className={isRouteInfoOpen ? 'rd-button-active' : ''}
+                  classes={{
+                    root: 'rd-button-root',
+                    disabled: 'rd-button-disabled',
+                  }}
+                  startIcon={<InfoIcon fontSize="small" />}
+                >
+                  <Typography>Route information</Typography>
+                </Button>
+              </Tooltip>
+            </Grid>
+          </div>
+        </TabPanel>
+        {showLoadingBar ? <LinearProgress /> : null}
+      </Paper>
+      <SearchResults
+        currentSearchResults={currentSearchResults}
+        processClickedResultHandler={processClickedResultHandler}
+      />
+    </div>
+  );
 }
-
-const mapStateToProps = state => {
-  return {
-    clickLocation: state.MapReducer.clickLocation
-  };
-};
-
-const mapDispatchToProps = dispatch => {
-  return {
-    onSetCurrentMot: currentMot => dispatch(actions.setCurrentMot(currentMot)),
-    onSetCurrentStopsGeoJSON: currentStopsGeoJSON =>
-      dispatch(actions.setCurrentStopsGeoJSON(currentStopsGeoJSON)),
-    onSetClickLocation: clickLocation =>
-      dispatch(actions.setClickLocation(clickLocation)),
-    onShowNotification: (notificationMessage, notificationType) =>
-      dispatch(actions.showNotification(notificationMessage, notificationType))
-  };
-};
 
 TabPanel.propTypes = {
   children: PropTypes.node.isRequired,
   value: PropTypes.string,
-  index: PropTypes.number
+  index: PropTypes.number,
 };
 
 TabPanel.defaultProps = {
   value: null,
-  index: null
+  index: null,
 };
 
 RoutingMenu.propTypes = {
-  onSetCurrentMot: PropTypes.func.isRequired,
-  onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
-  onShowNotification: PropTypes.func.isRequired,
-  clickLocation: PropTypes.arrayOf(PropTypes.number),
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
-  stationSearchUrl: PropTypes.string.isRequired
+  stationSearchUrl: PropTypes.string.isRequired,
+  isActiveRoute: PropTypes.bool.isRequired,
+  onZoomRouteClick: PropTypes.func,
+  onPanViaClick: PropTypes.func,
+  onDrawNewRoute: PropTypes.func.isRequired,
 };
 
 RoutingMenu.defaultProps = {
-  clickLocation: null
+  onZoomRouteClick: undefined,
+  onPanViaClick: undefined,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(RoutingMenu);
+export default RoutingMenu;

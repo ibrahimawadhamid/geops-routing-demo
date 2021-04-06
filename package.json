@@ -3,22 +3,35 @@
   "description": "Sample component that uses geOps Routing API",
   "main": "build/index.js",
   "version": "0.6.6",
-  "private": false,
-  "homepage": "http://ibrahimawadhamid.github.io/geops-routing-demo",
+  "homepage": "https://geops.github.io/geops-routing-demo",
   "dependencies": {
+    "@geops/react-ui": "^1.0.8",
     "@material-ui/core": "^4.8.3",
     "@material-ui/icons": "^4.5.1",
     "@material-ui/lab": "^4.0.0-alpha.39",
-    "axios": "^0.19.1",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "@turf/combine": "^6.0.1",
+    "@turf/nearest-point-on-line": "^6.0.2",
+    "abortcontroller-polyfill": "^1.2.1",
     "lodash": "^4.17.15",
+    "mapbox-gl": "^1.7.0",
+    "node-sass": "^4.13.1",
     "ol": "^6.1.1",
     "prop-types": "^15.7.2",
+    "query-string": "^6.12.1",
+    "react": "^16.12.0",
+    "react-app-polyfill": "^1.0.6",
+    "react-beautiful-dnd": "^13.0.0",
+    "react-dom": "^16.12.0",
     "react-id-generator": "^3.0.0",
     "react-redux": "^7.1.3",
+    "react-scripts": "3.4.0",
+    "react-spatial": "^v0.2.9",
+    "recharts": "^1.8.5",
     "redux": "^4.0.5",
-    "redux-thunk": "^2.3.0",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0"
+    "redux-thunk": "^2.3.0"
   },
   "peerDependencies": {
     "react": "^16.12.0",
@@ -50,41 +63,147 @@
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-react": "^7.18.0",
     "eslint-plugin-react-hooks": "^1.7.0",
+    "fixpack": "^2.3.1",
     "gh-pages": "^2.2.0",
     "html-webpack-plugin": "^3.2.0",
-    "jest": "^24.9.0",
+    "husky": "^4.2.3",
+    "jest-canvas-mock": "^2.2.0",
     "jsdoc": "^3.6.3",
+    "lint-staged": "^10.0.7",
     "prettier": "^1.19.1",
+    "react-test-renderer": "^16.12.0",
+    "redux-mock-store": "^1.5.4",
     "style-loader": "^1.1.2",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10",
-    "webpack-dev-server": "^3.10.1"
+    "stylelint": "^13.2.0",
+    "stylelint-config-recommended-scss": "^4.2.0",
+    "stylelint-config-standard": "^20.0.0",
+    "stylelint-scss": "^3.14.2"
   },
   "scripts": {
-    "lint": "eslint src/**/* --ext .js,.jsx",
+    "build": "react-scripts build",
+    "deploy:ghpages": "gh-pages -d build",
     "docs": "./node_modules/.bin/jsdoc -c jsdoc.json",
-    "start": "webpack --watch",
-    "build": "webpack --mode production",
-    "dev": "webpack-dev-server --config example/webpack.config.js",
-    "deploy:ghpages": "gh-pages -d dist",
-    "test": "jest",
-    "test:watch": "yarn test --watch",
-    "test:coverage": "yarn test --coverage"
+    "eject": "react-scripts eject",
+    "lint": "eslint src/**/* --ext .js,.jsx",
+    "start": "react-scripts start",
+    "test": "react-scripts test  --env=jsdom --transformIgnorePatterns \"/node_modules/(?!(ol|react-spatial)/).*/\""
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ],
+    "keywords": [
+      "gis",
+      "geops",
+      "routing",
+      "openlayers",
+      "demo"
+    ]
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "browser": true,
+      "es6": true,
+      "jest": true
+    },
+    "parser": "babel-eslint",
+    "extends": [
+      "airbnb",
+      "airbnb/hooks",
+      "prettier",
+      "prettier/react"
+    ],
+    "plugins": [
+      "prettier"
+    ],
+    "rules": {
+      "linebreak-style": "Off",
+      "react/jsx-filename-extension": [
+        1,
+        {
+          "extensions": [
+            ".js",
+            ".jsx"
+          ]
+        }
+      ],
+      "react/forbid-prop-types": "Off",
+      "prettier/prettier": "error"
+    },
+    "settings": {
+      "react": {
+        "version": "detect"
+      }
+    }
+  },
+  "husky": {
+    "hooks": {
+      "post-checkout": "yarn install --frozen-lockfile",
+      "post-merge": "yarn install --frozen-lockfile",
+      "post-rebase": "yarn install --frozen-lockfile",
+      "pre-commit": "CI=true lint-staged   "
+    }
+  },
+  "keywords": [
+    "demo",
+    "geops",
+    "gis",
+    "openlayers",
+    "routing"
+  ],
+  "license": "MIT",
+  "lint-staged": {
+    "src/lang/*.json": [
+      "yarn sort"
+    ],
+    "(src|__mocks__)/**/*.js": [
+      "eslint --fix",
+      "prettier --write",
+      "yarn test --bail --findRelatedTests"
+    ],
+    "package.json": [
+      "fixpack --sortToTop name --sortToTop description --sortToTop main --sortToTop version --sortToTop private --sortToTop homepage --sortToTop dependencies --sortToTop peerDependencies --sortToTop devDependencies --sortToTop scripts"
+    ],
+    "src/**/*.{css,scss}": [
+      "stylelint --fix"
+    ]
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "singleQuote": true
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ibrahimawadhamid/geops-routing-demo.git"
+    "url": "https://github.com/geops/geops-routing-demo.git"
   },
-  "keywords": [
-    "gis",
-    "geops",
-    "routing",
-    "openlayers",
-    "demo"
-  ],
-  "author": {
-    "name": "Ibrahim Awad",
-    "email": "ibrahim.a.hamid@gmail.com"
-  },
-  "license": "MIT"
+  "stylelint": {
+    "plugins": [
+      "stylelint-scss"
+    ],
+    "extends": [
+      "stylelint-config-standard",
+      "stylelint-config-recommended-scss"
+    ],
+    "rules": {
+      "selector-pseudo-class-no-unknown": [
+        true,
+        {
+          "ignorePseudoClasses": [
+            "export"
+          ]
+        }
+      ],
+      "property-no-unknown": [
+        true
+      ]
+    }
+  }
 }

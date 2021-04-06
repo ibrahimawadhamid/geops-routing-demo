@@ -4,7 +4,7 @@
 
 Sample component that uses geOps Routing API.
 
-## Check [Demo](https://ibrahimawadhamid.github.io/geops-routing-demo/)
+## Check the [Demo](https://geops.github.io/geops-routing-demo/)
 
 ![geops-routing-demo](https://user-images.githubusercontent.com/44545113/74161255-b6119180-4c2f-11ea-98ca-10103ade48a4.gif)
 
@@ -18,7 +18,7 @@ npm i geops-routing-demo
 ```javascript
 import GeopsRoutingDemo from 'geops-routing-demo';
 ```
-### Render  
+### Render
 ```javascript
 <GeopsRoutingDemo
         mots={['rail','bus','tram']}
