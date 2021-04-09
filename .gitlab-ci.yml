@@ -63,7 +63,7 @@ deploy:
     url: https://pedestrian-routing-demo.geops.io
   when: manual
   only:
-    - master
+    - foot
   tags:
     - review-apps-public
 
