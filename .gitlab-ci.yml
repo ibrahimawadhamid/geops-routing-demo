@@ -1,4 +1,4 @@
-image: registry.geops.de/build/stretch-node-tralis:latest
+image: registry.geops.de/build/buster-node:latest
 
 before_script:
   - eval $(ssh-agent -s)
@@ -11,6 +11,7 @@ variables:
 stages:
   - build
   - review
+  - deploy
 
 build:
   stage: build
@@ -50,3 +51,20 @@ stop_review:
     action: stop
   tags:
     - review-apps-public
+
+deploy:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - rsync -av --delete build/ /var/www/pedestrian-routing-demo.geops.io/
+  environment:
+    name: prod
+    url: https://pedestrian-routing-demo.geops.io
+  when: manual
+  only:
+    - master
+  tags:
+    - review-apps-public
+
+
