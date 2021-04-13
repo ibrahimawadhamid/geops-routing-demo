@@ -103,7 +103,7 @@ class MapComponent extends Component {
           isBaseLayer: true,
           data: {
             type: 'mapbox',
-            url: `https://maps.geops.io/styles/travic/style.json?key=${APIKey}`,
+            url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
           },
         },
       ]),
