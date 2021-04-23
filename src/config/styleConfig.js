@@ -70,13 +70,22 @@ const pointStyleFunction = mot => {
 };
 */
 const floorsColor = {
+  '-2.0': 'pink',
   '-2': 'pink',
+  '-1.0': 'darkgrey',
   '-1': 'darkgrey',
+  '0.0': 'blue',
   '0': 'blue',
+  '1.0': 'yellow',
   '1': 'yellow',
+  '2.0': 'green',
   '2': 'green',
+  '3.0': 'orange',
   '3': 'orange',
+  '4.0': 'blueviolet',
   '4': 'blueviolet',
+  '0.5': 'lightblue',
+  '-0.5': 'lightgreen',
 };
 
 const pointStyleFunction = floor => {
