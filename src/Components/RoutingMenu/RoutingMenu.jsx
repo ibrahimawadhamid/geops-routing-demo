@@ -598,6 +598,9 @@ function RoutingMenu({
   return (
     <div className="rd-routing-menu">
       <Paper square elevation={3}>
+        <div style={{ height: 5 }}>
+          {showLoadingBar ? <LinearProgress /> : null}
+        </div>
         <div className="rd-routing-menu-header">
           <Tabs
             value={DEFAULT_MOTS.includes(currentMot) ? currentMot : false}
@@ -617,6 +620,7 @@ function RoutingMenu({
                   value={singleMot.name}
                   icon={singleMot.icon}
                   aria-label={singleMot.name}
+                  disabled={showLoadingBar}
                 />
               );
             })}
@@ -631,6 +635,7 @@ function RoutingMenu({
               disableUnderline={!currentOtherMot}
               displayEmpty
               onChange={changeCurrentOtherMot}
+              disabled={showLoadingBar}
             >
               {otherMots.map(mot => {
                 return (
@@ -758,7 +763,6 @@ function RoutingMenu({
             </Grid>
           </div>
         </TabPanel>
-        {showLoadingBar ? <LinearProgress /> : null}
       </Paper>
       <SearchResults
         currentSearchResults={currentSearchResults}
