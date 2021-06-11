@@ -46,7 +46,7 @@
             <div class="column is-3" id="sidebarNav">
                 <div class="sidebar">
                     <nav>
-                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#App">App</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#DEFAULT_MOTS">DEFAULT_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Global</h3><ul><li><a href="global.html#RoutingMenu">RoutingMenu</a></li><li><a href="global.html#SearchField">SearchField</a></li><li><a href="global.html#SearchResults">SearchResults</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
+                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#TrackSelect">TrackSelect</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#DEFAULT_MOTS">DEFAULT_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Global</h3><ul><li><a href="global.html#RoutingMenu">RoutingMenu</a></li><li><a href="global.html#SearchField">SearchField</a></li><li><a href="global.html#SearchResults">SearchResults</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
                     </nav>
                 </div>
             </div>
@@ -64,29 +64,39 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react';
+            <pre class="prettyprint source linenums"><code>import React, { Component, createRef } from 'react';
 import { connect } from 'react-redux';
-import { Map, View } from 'ol';
-import { toLonLat } from 'ol/proj';
-import { Layer, Vector as VectorLayer } from 'ol/layer';
-import mapboxgl from 'mapbox-gl';
+import ConfigReader from 'react-spatial/ConfigReader';
+import LayerService from 'react-spatial/LayerService';
+import Layer from 'react-spatial/layers/Layer';
+import BasicMap from 'react-spatial/components/BasicMap';
+import { Map, Feature } from 'ol';
+import { Vector as VectorLayer } from 'ol/layer';
 import _ from 'lodash/core';
+import { Point } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
-import { defaults as defaultInteractions, Translate } from 'ol/interaction';
-import axios from 'axios';
+import {
+  defaults as defaultInteractions,
+  Translate,
+  Modify,
+} from 'ol/interaction';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
+import RoutingMenu from '../RoutingMenu';
+import RouteInfosDialog from '../RouteInfosDialog';
 import {
   lineStyleFunction,
   pointStyleFunction,
 } from '../../config/styleConfig';
 import {
+  propTypeCoordinates,
   propTypeCurrentStops,
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
+import { GRAPHHOPPER_MOTS } from '../../constants';
 import { to4326 } from '../../utils';
-import './MapComponent.css';
+import './MapComponent.scss';
 import * as actions from '../../store/actions';
 
 /**
@@ -102,11 +112,27 @@ import * as actions from '../../store/actions';
  * @category Props
  */
 
+let abortController = new AbortController();
+const zoom = 6;
+
 /**
  * The only true map that shows inside the application.
  * @category Map
  */
 class MapComponent extends Component {
+  static getExtentCenter = extent => {
+    const X = extent[0] + (extent[2] - extent[0]) / 2;
+    const Y = extent[1] + (extent[3] - extent[1]) / 2;
+    return [X, Y];
+  };
+
+  static indexInGeom = (lineGeom, point) => {
+    const firstBreakIdx = lineGeom.indexOf(point[0]);
+    const secondBreakIdx = lineGeom.indexOf(point[1]);
+
+    return firstBreakIdx === secondBreakIdx - 1;
+  };
+
   /**
    * Default constructor, gets called automatically upon initialization.
    * @param {...MapComponentProps} props Props received so that the component can function properly.
@@ -114,57 +140,97 @@ class MapComponent extends Component {
    */
   constructor(props) {
     super(props);
-    this.FindRouteCancelToken = axios.CancelToken;
-    this.findRouteCancel = null;
+    const { APIKey, onSetClickLocation, olMap } = this.props;
+    this.map = olMap;
+    this.mapRef = createRef();
     this.hoveredFeature = null;
+    this.hoveredRoute = null;
+    this.initialRouteDrag = null;
     this.state = {
       hoveredStationOpen: false,
       hoveredStationName: '',
+      isActiveRoute: false,
+      hoveredPoint: null,
     };
-  }
 
-  /**
-   * Create Openlayers map (source, view, layer, etc...).
-   * Add event listener onClick to handle location selection from map.
-   * @category Map
-   */
-  componentDidMount() {
-    const { APIKey, onSetClickLocation } = this.props;
-    const center = [949042.143189, 5899715.591163];
+    this.onHighlightPoint = this.onHighlightPoint.bind(this);
+
+    this.projection = 'EPSG:3857';
+
+    const layerService = new LayerService(
+      ConfigReader.readConfig([
+        {
+          name: 'Basemap',
+          visible: true,
+          isBaseLayer: true,
+          data: {
+            type: 'mapbox',
+            url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
+          },
+        },
+      ]),
+    );
+
+    // Define route vectorLayer.
+    this.routeVectorSource = new VectorSource({
+      features: [],
+    });
+    layerService.addLayer(
+      new Layer({
+        key: 'routeLayer',
+        name: 'routeLayer',
+        olLayer: new VectorLayer({
+          zIndex: 1,
+          source: this.routeVectorSource,
+        }),
+      }),
+    );
+
+    // Define highlight vectorLayer.
+    this.highlightVectorSource = new VectorSource({});
+    layerService.addLayer(
+      new Layer({
+        key: 'highlightLayer',
+        name: 'highlightLayer',
+        olLayer: new VectorLayer({
+          zIndex: 1,
+          source: this.highlightVectorSource,
+        }),
+      }),
+    );
 
     // Define stop vectorLayer.
     this.markerVectorSource = new VectorSource({});
-    this.markerVectorLayer = new VectorLayer({
-      zIndex: 1,
-      source: this.markerVectorSource,
-    });
-    // Define route vectorLayer.
-    this.routeVectorSource = new VectorSource({});
-    this.routeVectorLayer = new VectorLayer({
-      zIndex: 0,
-      source: this.routeVectorSource,
-    });
+    layerService.addLayer(
+      new Layer({
+        key: 'markerLayer',
+        name: 'markerLayer',
+        olLayer: new VectorLayer({
+          zIndex: 1,
+          source: this.markerVectorSource,
+        }),
+      }),
+    );
+
+    this.markerVectorLayer = layerService.getLayer('markerLayer');
+    this.routeVectorLayer = layerService.getLayer('routeLayer');
+    this.layers = [...layerService.getLayers()];
 
     const translate = new Translate({
-      layers: [this.markerVectorLayer],
+      layers: [this.markerVectorLayer.olLayer],
+      hitTolerance: 3,
     });
-
-    const isItemInArray = (array, item) => {
-      for (let i = 0; i &lt; array.length; i += 1) {
-        if (array[i][0] === item[0] &amp;&amp; array[i][1] === item[1]) {
-          return i;
-        }
-      }
-      return -1;
-    };
 
     translate.on('translateend', evt => {
       const {
+        tracks,
+        onSetTracks,
         currentStops,
         currentStopsGeoJSON,
         onSetCurrentStops,
         onSetCurrentStopsGeoJSON,
       } = this.props;
+      const newTracks = _.clone(tracks);
       const newCurrentStops = _.clone(currentStops);
       const newCurentStopsGeoJSON = _.clone(currentStopsGeoJSON);
 
@@ -173,8 +239,19 @@ class MapComponent extends Component {
       if (name) {
         featureIndex = currentStops.indexOf(name);
       } else {
-        featureIndex = isItemInArray(currentStops, id.slice().reverse());
+        const isCoordPresent = el => {
+          if (!Array.isArray(el)) {
+            return false;
+          }
+          const coords = id.slice().reverse();
+          return el[0] === coords[0] &amp;&amp; el[1] === coords[1];
+        };
+        featureIndex = currentStops.findIndex(isCoordPresent);
       }
+      if (featureIndex === -1) {
+        return;
+      }
+      newTracks[featureIndex] = '';
       newCurrentStops[featureIndex] = evt.coordinate;
       newCurentStopsGeoJSON[featureIndex] = {
         type: 'FeatureCollection',
@@ -192,101 +269,208 @@ class MapComponent extends Component {
           },
         ],
       };
+      onSetTracks(newTracks);
       onSetCurrentStops(newCurrentStops);
       onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
     });
 
-    this.map = new Map({
-      target: 'map',
-      interactions: defaultInteractions().extend([translate]),
-      view: new View({
-        projection: 'EPSG:3857',
-        center,
-        zoom: 6,
-      }),
-    });
-
-    const mbMap = new mapboxgl.Map({
-      style: `https://maps.geops.io/styles/travic/style.json?key=${APIKey}`,
-      attributionControl: false,
-      boxZoom: false,
-      center: toLonLat(center),
-      container: this.map.getTargetElement(),
-      doubleClickZoom: false,
-      dragPan: false,
-      dragRotate: false,
-      interactive: false,
-      keyboard: false,
-      pitchWithRotate: false,
-      scrollZoom: false,
-      touchZoomRotate: false,
-    });
-
-    /* eslint-disable no-underscore-dangle */
-    const mbLayer = new Layer({
-      render: frameState => {
-        const canvas = mbMap.getCanvas();
-        const { viewState } = frameState;
-
-        const visible = mbLayer.getVisible();
-        canvas.style.display = visible ? 'block' : 'none';
-
-        const opacity = mbLayer.getOpacity();
-        canvas.style.opacity = opacity;
-
-        // adjust view parameters in mapbox
-        const { rotation } = viewState;
-        if (rotation) {
-          mbMap.rotateTo((-rotation * 180) / Math.PI, {
-            animate: false,
-          });
-        }
-        mbMap.jumpTo({
-          center: toLonLat(viewState.center),
-          zoom: viewState.zoom - 1,
-          animate: false,
-        });
-
-        if (mbMap._frame) {
-          mbMap._frame.cancel();
-          mbMap._frame = null;
-        }
-        mbMap._render();
-
-        return canvas;
+    const modify = new Modify({
+      source: this.routeVectorSource,
+      pixelTolerance: 4,
+      condition: () => {
+        const { currentMot } = this.props;
+        return !GRAPHHOPPER_MOTS.includes(currentMot);
+      },
+      style: () => {
+        const { currentMot } = this.props;
+        return pointStyleFunction(currentMot);
       },
     });
 
-    [mbLayer, this.markerVectorLayer, this.routeVectorLayer].forEach(l =>
-      this.map.addLayer(l),
-    );
+    modify.on('modifystart', evt => {
+      // save start point to find where to add the new HOP!
+      this.initialRouteDrag = {
+        features: evt.features.getArray(),
+        coordinate: evt.mapBrowserEvent.coordinate,
+      };
+    });
+
+    modify.on('modifyend', evt => {
+      const { features } = this.initialRouteDrag;
+      const {
+        tracks,
+        currentMot,
+        currentStops,
+        currentStopsGeoJSON,
+        onSetTracks,
+        onSetCurrentStops,
+        onSetCurrentStopsGeoJSON,
+      } = this.props;
+      const newTracks = [...tracks];
+      const updatedCurrentStops = _.clone(currentStops);
+      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+      let newHopIdx = -1;
+
+      // No drag for foot/car for now on.
+      if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
+        const flatCoords = features
+          .map(f => f.getGeometry())
+          .map(lineString => {
+            return [
+              ...lineString.getFirstCoordinate(),
+              ...lineString.getLastCoordinate(),
+            ];
+          });
+
+        const closestSegment = this.routeVectorSource
+          .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
+          .getGeometry();
+
+        const closestEdges = [
+          ...closestSegment.getFirstCoordinate(),
+          ...closestSegment.getLastCoordinate(),
+        ];
+
+        flatCoords.forEach((segment, idx) => {
+          if (
+            segment.length === closestEdges.length &amp;&amp;
+            segment.every((value, index) => {
+              return value === closestEdges[index];
+            })
+          ) {
+            newHopIdx = idx + 1;
+          }
+        });
+      }
+
+      if (newHopIdx >= 0) {
+        updatedCurrentStops.splice(
+          newHopIdx,
+          0,
+          evt.mapBrowserEvent.coordinate,
+        );
+
+        newTracks.splice(newHopIdx, 0, '');
+
+        if (updatedCurrentStopsGeoJSON[newHopIdx]) {
+          const keys = Object.keys(updatedCurrentStopsGeoJSON).reverse();
+          keys.forEach(k => {
+            if (parseInt(k, 10) >= newHopIdx) {
+              updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+                updatedCurrentStopsGeoJSON[k];
+            }
+            if (parseInt(k, 10) === newHopIdx) {
+              updatedCurrentStopsGeoJSON[newHopIdx] = {
+                type: 'FeatureCollection',
+                features: [
+                  {
+                    type: 'Feature',
+                    properties: {
+                      id: evt.mapBrowserEvent.coordinate.slice().reverse(),
+                      type: 'coordinates',
+                    },
+                    geometry: {
+                      type: 'Point',
+                      coordinates: evt.mapBrowserEvent.coordinate,
+                    },
+                  },
+                ],
+              };
+            }
+          });
+        }
+        onSetTracks(newTracks);
+        onSetCurrentStops(updatedCurrentStops);
+        onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+      }
+      this.initialRouteDrag = null;
+    });
+
+    const interactions = defaultInteractions().extend([translate, modify]);
+    interactions.getArray().forEach(interaction => {
+      this.map.addInteraction(interaction);
+    });
+
+    this.onZoomRouteClick = () => {
+      let featExtent;
+      if (this.routeVectorSource.getFeatures().length) {
+        featExtent = this.routeVectorSource.getExtent();
+      }
+
+      if (featExtent.filter(f => Number.isFinite(f)).length === 4) {
+        this.map.getView().fit(this.routeVectorSource.getExtent(), {
+          size: this.map.getSize(),
+          duration: 500,
+          padding: [50, 50, 50, 50],
+        });
+      }
+    };
+
+    this.onPanViaClick = (item, idx) => {
+      const { currentStopsGeoJSON } = this.props;
+      if (currentStopsGeoJSON &amp;&amp; currentStopsGeoJSON[idx]) {
+        const featureCoord = currentStopsGeoJSON[idx].features
+          ? currentStopsGeoJSON[idx].features[0].geometry.coordinates
+          : currentStopsGeoJSON[idx].geometry.coordinates;
+
+        this.map.getView().animate({
+          center: featureCoord,
+          duration: 500,
+          padding: [100, 100, 100, 100],
+        });
+      }
+    };
 
     this.map.on('singleclick', evt => {
-      const { isFieldFocused, currentStopsGeoJSON } = this.props;
+      const { isFieldFocused, currentStops } = this.props;
       // if one field empty or if a field is focused
-      if (
-        !currentStopsGeoJSON['0'] ||
-        !currentStopsGeoJSON['1'] ||
-        isFieldFocused
-      ) {
+      if (currentStops.includes('') || isFieldFocused) {
         onSetClickLocation(evt.coordinate);
       }
     });
     this.map.on('pointermove', evt => {
+      const { currentMot } = this.props;
+
       if (this.hoveredFeature) {
         this.hoveredFeature = null;
         this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
       }
-      this.map.forEachFeatureAtPixel(evt.pixel, feature => {
+
+      if (this.hoveredRoute) {
+        this.routeVectorLayer.olLayer.setStyle(
+          lineStyleFunction(currentMot, false),
+        );
+        this.hoveredRoute = null;
+        this.setState({
+          hoveredPoint: null,
+        });
+      }
+      const hovFeats = this.map.getFeaturesAtPixel(evt.pixel, {
+        hitTolerance: 2,
+      });
+
+      hovFeats.forEach(feature => {
         if (feature.getGeometry().getType() === 'Point') {
           this.hoveredFeature = feature;
           let name = '';
-          if (feature.get('name'))
-            name = `${feature.get('name')} - ${feature.get('country_code')}`;
-          else name = `${feature.get('id')[0]}, ${feature.get('id')[1]}`;
+          const featCountryCode = feature.get('country_code');
+          if (feature.get('name')) {
+            name = `${feature.get('name')}${
+              featCountryCode ? ` - ${featCountryCode}` : ''
+            }`;
+          } else {
+            name = `${to4326(feature.getGeometry().flatCoordinates)}`;
+          }
           this.setState({
             hoveredStationOpen: true,
             hoveredStationName: name,
+          });
+        }
+        if (feature.getGeometry().getType() === 'LineString') {
+          this.hoveredRoute = feature;
+
+          this.setState({
+            hoveredPoint: evt.coordinate,
           });
         }
         return true;
@@ -300,13 +484,13 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidUpdate(prevProps) {
-    const { currentStopsGeoJSON, currentMot } = this.props;
+    const { currentStopsGeoJSON, currentMot, tracks } = this.props;
     const currentMotChanged = currentMot &amp;&amp; currentMot !== prevProps.currentMot;
+    const tracksChanged = tracks !== prevProps.tracks;
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &amp;&amp;
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
-
-    if (currentMotChanged || currentStopsGeoJSONChanged) {
+    if (currentMotChanged || currentStopsGeoJSONChanged || tracksChanged) {
       this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
         this.markerVectorSource.addFeatures(
@@ -315,18 +499,11 @@ class MapComponent extends Component {
         this.markerVectorSource
           .getFeatures()
           .forEach(f => f.setStyle(pointStyleFunction(currentMot)));
-
-        const coordinate = this.markerVectorSource
-          .getFeatures()[0]
-          .getGeometry()
-          .getCoordinates();
-        this.map.getView().animate({
-          center: coordinate,
-          duration: 500,
-        });
       });
       // Remove the old route if exists
       this.routeVectorSource.clear();
+      this.setIsActiveRoute(false);
+
       // Draw a new route if more than 1 stop is defined
       if (Object.keys(currentStopsGeoJSON).length > 1) {
         this.drawNewRoute();
@@ -334,66 +511,130 @@ class MapComponent extends Component {
     }
   }
 
+  onMapMoved = evt => {
+    const { center, onSetCenter } = this.props;
+    const newCenter = evt.map.getView().getCenter();
+    if (center[0] !== newCenter[0] || center[1] !== newCenter[1]) {
+      onSetCenter(newCenter);
+    }
+  };
+
+  /*
+   *  Highlight a point on the route.
+   */
+  onHighlightPoint(coords) {
+    const { currentMot } = this.props;
+
+    this.highlightVectorSource.clear();
+    const feat = new Feature({
+      geometry: new Point(coords),
+    });
+    feat.setStyle(pointStyleFunction(currentMot));
+    this.highlightVectorSource.addFeatures([feat]);
+  }
+
+  onFeaturesHover(features) {
+    if (this.mapRef) {
+      this.mapRef.current.node.current.style.cursor = features.length
+        ? 'pointer'
+        : 'inherit';
+    }
+  }
+
+  setIsActiveRoute(isActiveRoute) {
+    this.setState({ isActiveRoute });
+  }
+
   /**
    * After receiving the updated stops, send a call to the routingAPI to find a suitable route between
    * two points/stations, if a route is found, it's returned and drawn to the map.
    * @category Map
    */
-  drawNewRoute = () => {
-    if (this.findRouteCancel) this.findRouteCancel();
+  drawNewRoute = useElevation => {
     const hops = [];
     const {
       currentStopsGeoJSON,
       routingUrl,
       currentMot,
       APIKey,
+      resolveHops,
       onShowNotification,
+      onSetShowLoadingBar,
+      onSetSelectedRoutes,
+      tracks,
+      isRouteInfoOpen,
     } = this.props;
-    Object.keys(currentStopsGeoJSON).forEach(key => {
+
+    onSetShowLoadingBar(true);
+
+    Object.keys(currentStopsGeoJSON).forEach((key, idx) => {
       if (currentStopsGeoJSON[key].features) {
         // If the current item is a point selected on the map, not a station.
         hops.push(
-          `@${to4326(currentStopsGeoJSON[key].features[0].properties.id)}`,
+          `${to4326(currentStopsGeoJSON[key].features[0].geometry.coordinates)
+            .slice()
+            .reverse()}`,
+        );
+      } else if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
+        hops.push(
+          `!${currentStopsGeoJSON[key].properties.uid}${
+            tracks[idx] !== null
+              ? `${tracks[idx] ? `$${tracks[idx]}` : ''}`
+              : ''
+          }`,
         );
       } else {
-        // The item selected is a station from the stations API.
-        hops.push(`!${currentStopsGeoJSON[key].properties.id}`);
+        hops.push(`${currentStopsGeoJSON[key].properties.name}`);
       }
     });
-    axios
-      .get(routingUrl, {
-        params: {
-          via: hops.join('|'),
-          mot: currentMot,
-          key: APIKey,
-          srs: '3857',
-        },
-        cancelToken: new this.FindRouteCancelToken(cancel => {
-          this.findRouteCancel = cancel;
-        }),
-      })
-      .then(
-        response => {
-          // A route was found, prepare to draw it.
-          this.routeVectorSource.clear();
-          this.routeVectorSource.addFeatures(
-            new GeoJSON().readFeatures(response.data),
-          );
-          this.routeVectorSource
-            .getFeatures()
-            .forEach(f => f.setStyle(lineStyleFunction(currentMot)));
 
-          this.map.getView().fit(this.routeVectorSource.getExtent(), {
-            size: this.map.getSize(),
-            duration: 500,
-            padding: [50, 50, 50, 50],
-          });
-        },
-        error => {
-          // No route was found.
-          if (error) onShowNotification("Couldn't find route", 'error');
-        },
-      );
+    abortController.abort();
+    abortController = new AbortController();
+    const { signal } = abortController;
+
+    const calculateElevation = !!(isRouteInfoOpen || useElevation);
+    const reqUrl =
+      `${routingUrl}?via=${hops.join(
+        '|',
+      )}&amp;mot=${currentMot}&amp;resolve-hops=${resolveHops}&amp;key=${APIKey}` +
+      `&amp;elevation=${calculateElevation ? 1 : 0}` +
+      `&amp;interpolate_elevation=${calculateElevation}` +
+      `&amp;length=true&amp;coord-radius=100.0&amp;coord-punish=1000.0`;
+
+    return fetch(reqUrl, { signal })
+      .then(response => response.json())
+      .then(response => {
+        onSetShowLoadingBar(false);
+        if (response.error) {
+          onShowNotification("Couldn't find route", 'error');
+          onSetSelectedRoutes([]);
+          return;
+        }
+        // A route was found, prepare to draw it.
+        this.routeVectorSource.clear();
+        const format = new GeoJSON({
+          dataProjection: 'EPSG:4326',
+          featureProjection: 'EPSG:3857',
+        });
+        this.routeVectorSource.addFeatures(format.readFeatures(response));
+        this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
+        onSetSelectedRoutes(this.routeVectorSource.getFeatures());
+        this.routeVectorLayer.olLayer.setStyle(
+          lineStyleFunction(currentMot, false),
+        );
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') {
+          // eslint-disable-next-line no-console
+          console.warn(`Abort ${reqUrl}`);
+          return;
+        }
+        onSetShowLoadingBar(false);
+        onSetSelectedRoutes([]);
+        // It's important to rethrow all other errors so you don't silence them!
+        // For example, any error thrown by setState(), will pass through here.
+        throw err;
+      });
   };
 
   /**
@@ -401,15 +642,61 @@ class MapComponent extends Component {
    * @category Map
    */
   render() {
-    const { hoveredStationOpen, hoveredStationName } = this.state;
+    const {
+      center,
+      mots,
+      APIKey,
+      selectedRoutes,
+      isRouteInfoOpen,
+      stationSearchUrl,
+    } = this.props;
+
+    const {
+      isActiveRoute,
+      hoveredPoint,
+      hoveredStationOpen,
+      hoveredStationName,
+    } = this.state;
+
     return (
       &lt;>
+        &lt;RoutingMenu
+          mots={mots}
+          stationSearchUrl={stationSearchUrl}
+          isActiveRoute={isActiveRoute}
+          onZoomRouteClick={this.onZoomRouteClick}
+          onPanViaClick={this.onPanViaClick}
+          onDrawNewRoute={this.drawNewRoute}
+          APIKey={APIKey}
+        />
         &lt;Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           open={hoveredStationOpen}
           message={hoveredStationName}
         />
-        &lt;div id="map" className="MapComponent" />
+        &lt;BasicMap
+          ref={this.mapRef}
+          center={center}
+          layers={this.layers}
+          onMapMoved={evt => this.onMapMoved(evt)}
+          onFeaturesHover={evt => this.onFeaturesHover(evt)}
+          zoom={zoom}
+          tabIndex={null}
+          map={this.map}
+          viewOptions={{
+            projection: this.projection,
+          }}
+        />
+        {isRouteInfoOpen &amp;&amp; selectedRoutes.length ? (
+          &lt;RouteInfosDialog
+            routes={selectedRoutes}
+            hoveredCoords={hoveredPoint}
+            onHighlightPoint={this.onHighlightPoint}
+            clearHighlightPoint={() => {
+              this.highlightVectorSource.clear();
+            }}
+          />
+        ) : null}
       &lt;/>
     );
   }
@@ -417,15 +704,23 @@ class MapComponent extends Component {
 
 const mapStateToProps = state => {
   return {
+    center: state.MapReducer.center,
+    selectedRoutes: state.MapReducer.selectedRoutes,
+    isRouteInfoOpen: state.MapReducer.isRouteInfoOpen,
     currentMot: state.MapReducer.currentMot,
     currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
     isFieldFocused: state.MapReducer.isFieldFocused,
+    resolveHops: state.MapReducer.resolveHops,
+    olMap: state.MapReducer.olMap,
+    tracks: state.MapReducer.tracks,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
+    onSetCenter: center => dispatch(actions.setCenter(center)),
+    onSetTracks: tracks => dispatch(actions.setTracks(tracks)),
     onSetCurrentStops: currentStops =>
       dispatch(actions.setCurrentStops(currentStops)),
     onSetCurrentStopsGeoJSON: currentStopsGeoJSON =>
@@ -434,20 +729,40 @@ const mapDispatchToProps = dispatch => {
       dispatch(actions.setClickLocation(clickLocation)),
     onShowNotification: (notificationMessage, notificationType) =>
       dispatch(actions.showNotification(notificationMessage, notificationType)),
+    onSetShowLoadingBar: showLoadingBar =>
+      dispatch(actions.setShowLoadingBar(showLoadingBar)),
+    onSetSelectedRoutes: selectedRoutes =>
+      dispatch(actions.setSelectedRoutes(selectedRoutes)),
   };
 };
 
+MapComponent.defaultProps = {
+  center: [47.99822, 7.84049],
+};
+
 MapComponent.propTypes = {
+  center: propTypeCoordinates,
+  selectedRoutes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
+  isRouteInfoOpen: PropTypes.bool.isRequired,
+  mots: PropTypes.arrayOf(PropTypes.string).isRequired,
+  APIKey: PropTypes.string.isRequired,
+  stationSearchUrl: PropTypes.string.isRequired,
+  onSetCenter: PropTypes.func.isRequired,
+  onSetTracks: PropTypes.func.isRequired,
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
+  onSetShowLoadingBar: PropTypes.func.isRequired,
+  onSetSelectedRoutes: PropTypes.func.isRequired,
   onSetCurrentStops: PropTypes.func.isRequired,
   onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
   currentStops: propTypeCurrentStops.isRequired,
   currentStopsGeoJSON: propTypeCurrentStopsGeoJSON.isRequired,
   isFieldFocused: PropTypes.bool.isRequired,
-  APIKey: PropTypes.string.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
+  resolveHops: PropTypes.bool.isRequired,
+  tracks: PropTypes.arrayOf(PropTypes.string).isRequired,
+  olMap: PropTypes.instanceOf(Map).isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);
@@ -466,7 +781,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);
 
 <footer class="footer">
     <div class="content has-text-centered">
-        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Thu Feb 27 2020 11:58:39 GMT+0100 (Central European Standard Time)</p>
+        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Fri May 21 2021 15:30:36 GMT+0200 (Central European Summer Time)</p>
         <p class="sidebar-created-by">
             <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
             <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>

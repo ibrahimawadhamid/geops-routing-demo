@@ -15,7 +15,7 @@ const initialState = {
   isRouteInfoOpen: false,
   dialogPosition: {
     x: 10,
-    y: 275,
+    y: 280,
   },
   olMap: new Map({
     controls: [],
