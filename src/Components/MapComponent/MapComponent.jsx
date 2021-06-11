@@ -1,5 +1,6 @@
 import React, { Component, createRef } from 'react';
 import { connect } from 'react-redux';
+import qs from 'query-string';
 import ConfigReader from 'react-spatial/ConfigReader';
 import LayerService from 'react-spatial/LayerService';
 import Layer from 'react-spatial/layers/Layer';
@@ -527,13 +528,19 @@ class MapComponent extends Component {
     const { signal } = abortController;
 
     const calculateElevation = !!(isRouteInfoOpen || useElevation);
-    const reqUrl =
+    let reqUrl =
       `${routingUrl}?via=${hops.join(
         '|',
       )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
       `&elevation=${calculateElevation ? 1 : 0}` +
       `&interpolate_elevation=${calculateElevation}` +
       `&length=true&coord-radius=100.0&coord-punish=1000.0`;
+
+    const { graph } = qs.parse(window.location.search);
+
+    if (qs.parse(window.location.search).graph) {
+      reqUrl += `&graph=${graph}`;
+    }
 
     return fetch(reqUrl, { signal })
       .then(response => response.json())
