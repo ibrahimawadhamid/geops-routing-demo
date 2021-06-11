@@ -157,11 +157,14 @@ class MapComponent extends Component {
 
     translate.on('translateend', evt => {
       const {
+        tracks,
+        onSetTracks,
         currentStops,
         currentStopsGeoJSON,
         onSetCurrentStops,
         onSetCurrentStopsGeoJSON,
       } = this.props;
+      const newTracks = _.clone(tracks);
       const newCurrentStops = _.clone(currentStops);
       const newCurentStopsGeoJSON = _.clone(currentStopsGeoJSON);
 
@@ -179,6 +182,10 @@ class MapComponent extends Component {
         };
         featureIndex = currentStops.findIndex(isCoordPresent);
       }
+      if (featureIndex === -1) {
+        return;
+      }
+      newTracks[featureIndex] = '';
       newCurrentStops[featureIndex] = evt.coordinate;
       newCurentStopsGeoJSON[featureIndex] = {
         type: 'FeatureCollection',
@@ -196,6 +203,7 @@ class MapComponent extends Component {
           },
         ],
       };
+      onSetTracks(newTracks);
       onSetCurrentStops(newCurrentStops);
       onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
     });
@@ -224,12 +232,15 @@ class MapComponent extends Component {
     modify.on('modifyend', evt => {
       const { features } = this.initialRouteDrag;
       const {
+        tracks,
         currentMot,
         currentStops,
         currentStopsGeoJSON,
+        onSetTracks,
         onSetCurrentStops,
         onSetCurrentStopsGeoJSON,
       } = this.props;
+      const newTracks = [...tracks];
       const updatedCurrentStops = _.clone(currentStops);
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       let newHopIdx = -1;
@@ -273,6 +284,8 @@ class MapComponent extends Component {
           evt.mapBrowserEvent.coordinate,
         );
 
+        newTracks.splice(newHopIdx, 0, '');
+
         if (updatedCurrentStopsGeoJSON[newHopIdx]) {
           const keys = Object.keys(updatedCurrentStopsGeoJSON).reverse();
           keys.forEach(k => {
@@ -300,7 +313,7 @@ class MapComponent extends Component {
             }
           });
         }
-
+        onSetTracks(newTracks);
         onSetCurrentStops(updatedCurrentStops);
         onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
       }
@@ -322,7 +335,7 @@ class MapComponent extends Component {
         this.map.getView().fit(this.routeVectorSource.getExtent(), {
           size: this.map.getSize(),
           duration: 500,
-          padding: [200, 200, 200, 200],
+          padding: [50, 50, 50, 50],
         });
       }
     };
@@ -405,12 +418,13 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidUpdate(prevProps) {
-    const { currentStopsGeoJSON, currentMot } = this.props;
+    const { currentStopsGeoJSON, currentMot, tracks } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
+    const tracksChanged = tracks !== prevProps.tracks;
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
-    if (currentMotChanged || currentStopsGeoJSONChanged) {
+    if (currentMotChanged || currentStopsGeoJSONChanged || tracksChanged) {
       this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
         this.markerVectorSource.addFeatures(
@@ -470,23 +484,24 @@ class MapComponent extends Component {
    * two points/stations, if a route is found, it's returned and drawn to the map.
    * @category Map
    */
-  drawNewRoute = () => {
+  drawNewRoute = useElevation => {
     const hops = [];
     const {
       currentStopsGeoJSON,
       routingUrl,
       currentMot,
       APIKey,
-      routingElevation,
       resolveHops,
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoutes,
+      tracks,
+      isRouteInfoOpen,
     } = this.props;
 
     onSetShowLoadingBar(true);
 
-    Object.keys(currentStopsGeoJSON).forEach(key => {
+    Object.keys(currentStopsGeoJSON).forEach((key, idx) => {
       if (currentStopsGeoJSON[key].features) {
         // If the current item is a point selected on the map, not a station.
         hops.push(
@@ -495,7 +510,13 @@ class MapComponent extends Component {
             .reverse()}`,
         );
       } else if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
-        hops.push(`!${currentStopsGeoJSON[key].properties.uid}`);
+        hops.push(
+          `!${currentStopsGeoJSON[key].properties.uid}${
+            tracks[idx] !== null
+              ? `${tracks[idx] ? `$${tracks[idx]}` : ''}`
+              : ''
+          }`,
+        );
       } else {
         hops.push(`${currentStopsGeoJSON[key].properties.name}`);
       }
@@ -505,11 +526,16 @@ class MapComponent extends Component {
     abortController = new AbortController();
     const { signal } = abortController;
 
-    const reqUrl = `${routingUrl}?via=${hops.join(
-      '|',
-    )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}&elevation=${routingElevation}&coord-radius=100.0&coord-punish=1000.0`;
+    const calculateElevation = !!(isRouteInfoOpen || useElevation);
+    const reqUrl =
+      `${routingUrl}?via=${hops.join(
+        '|',
+      )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
+      `&elevation=${calculateElevation ? 1 : 0}` +
+      `&interpolate_elevation=${calculateElevation}` +
+      `&length=true&coord-radius=100.0&coord-punish=1000.0`;
 
-    fetch(reqUrl, { signal })
+    return fetch(reqUrl, { signal })
       .then(response => response.json())
       .then(response => {
         onSetShowLoadingBar(false);
@@ -574,6 +600,7 @@ class MapComponent extends Component {
           isActiveRoute={isActiveRoute}
           onZoomRouteClick={this.onZoomRouteClick}
           onPanViaClick={this.onPanViaClick}
+          onDrawNewRoute={this.drawNewRoute}
           APIKey={APIKey}
         />
         <Snackbar
@@ -618,15 +645,16 @@ const mapStateToProps = state => {
     currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
     isFieldFocused: state.MapReducer.isFieldFocused,
-    routingElevation: state.MapReducer.routingElevation,
     resolveHops: state.MapReducer.resolveHops,
     olMap: state.MapReducer.olMap,
+    tracks: state.MapReducer.tracks,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     onSetCenter: center => dispatch(actions.setCenter(center)),
+    onSetTracks: tracks => dispatch(actions.setTracks(tracks)),
     onSetCurrentStops: currentStops =>
       dispatch(actions.setCurrentStops(currentStops)),
     onSetCurrentStopsGeoJSON: currentStopsGeoJSON =>
@@ -642,14 +670,19 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
+MapComponent.defaultProps = {
+  center: [47.99822, 7.84049],
+};
+
 MapComponent.propTypes = {
-  center: propTypeCoordinates.isRequired,
+  center: propTypeCoordinates,
   selectedRoutes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
   isRouteInfoOpen: PropTypes.bool.isRequired,
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
   stationSearchUrl: PropTypes.string.isRequired,
   onSetCenter: PropTypes.func.isRequired,
+  onSetTracks: PropTypes.func.isRequired,
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
   onSetShowLoadingBar: PropTypes.func.isRequired,
@@ -661,8 +694,8 @@ MapComponent.propTypes = {
   isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
-  routingElevation: PropTypes.number.isRequired,
   resolveHops: PropTypes.bool.isRequired,
+  tracks: PropTypes.arrayOf(PropTypes.string).isRequired,
   olMap: PropTypes.instanceOf(Map).isRequired,
 };
 

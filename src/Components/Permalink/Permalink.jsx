@@ -10,8 +10,8 @@ import {
   setCurrentStopsGeoJSON,
   setCurrentMot,
   setCenter,
-  setRoutingElevation,
   setResolveHops,
+  setTracks,
 } from '../../store/actions/Map';
 
 const abortController = new AbortController();
@@ -64,10 +64,16 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
 
   /* When the via is a UID */
   if (/^![a-zA-Z0-9]{16}$/.test(viaString)) {
-    reqUrl = `${stationSearchUrl}lookup/${viaString.replace('!', '')}/?key=${APIKey}`;
+    reqUrl = `${stationSearchUrl}lookup/${viaString.replace(
+      '!',
+      '',
+    )}/?key=${APIKey}`;
   } else {
     /* search for the station. Remove ! in case it's an IBNR */
-    reqUrl = `${stationSearchUrl}?q=${viaString.replace('!', '')}&key=${APIKey}`;
+    reqUrl = `${stationSearchUrl}?q=${viaString.replace(
+      '!',
+      '',
+    )}&key=${APIKey}`;
   }
 
   return fetch(reqUrl, { signal })
@@ -87,18 +93,20 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
     });
 };
 
-const compileViaString = currentStopsGeoJson => {
+const compileViaString = (currentStopsGeoJson, tracks) => {
   if (!currentStopsGeoJson || Object.keys(currentStopsGeoJson).length < 2) {
     return null;
   }
 
-  const uidStrings = Object.keys(currentStopsGeoJson).map(key => {
+  const uidStrings = Object.keys(currentStopsGeoJson).map((key, idx) => {
     if (currentStopsGeoJson[key].features) {
       return `${to4326(
         currentStopsGeoJson[key].features[0].geometry.coordinates,
       )}`;
     }
-    return `!${currentStopsGeoJson[key].properties.uid}`;
+    return `!${currentStopsGeoJson[key].properties.uid}${
+      tracks[idx] ? `$${tracks[idx]}` : ''
+    }`;
   });
   return uidStrings.join('|');
 };
@@ -107,14 +115,12 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
   const dispatch = useDispatch();
   const urlSearch = qs.parse(window.location.search);
   const center = useSelector(state => state.MapReducer.center);
+  const tracks = useSelector(state => state.MapReducer.tracks);
   const appState = useSelector(state => state.MapReducer);
   const currentMot = useSelector(state => state.MapReducer.currentMot);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
-  );
-  const routingElevation = useSelector(
-    state => state.MapReducer.routingElevation,
   );
   const resolveHops = useSelector(state => state.MapReducer.resolveHops);
   const map = appState.olMap;
@@ -150,8 +156,17 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
         newParams.via = urlSearch.via;
         const viaArray = urlSearch.via.split('|');
         const geoJsonArray = viaArray.map(viaString =>
-          getGeoJson(viaString, APIKey, stationSearchUrl),
+          getGeoJson(viaString.split('$')[0], APIKey, stationSearchUrl),
         );
+        dispatch(
+          setTracks(
+            viaArray.map(stop => {
+              const track = stop.split('$')[1];
+              return track || '';
+            }),
+          ),
+        );
+
         Promise.all(geoJsonArray).then(values => {
           dispatch(
             setCurrentStops(
@@ -175,11 +190,6 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
         });
       }
 
-      if (urlSearch.elevation) {
-        // Set elevation if defined
-        dispatch(setRoutingElevation(parseInt(urlSearch.elevation, 10)));
-      }
-
       if (urlSearch['resolve-hops']) {
         dispatch(setResolveHops(urlSearch['resolve-hops'] === 'true'));
       }
@@ -195,10 +205,9 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     [newParams.x] = center;
     [, newParams.y] = center;
     newParams.mot = currentMot;
-    newParams.elevation = parseInt(routingElevation, 10);
     newParams['resolve-hops'] = resolveHops;
     if (Object.keys(currentStopsGeoJSON).length !== 0) {
-      newParams.via = compileViaString(currentStopsGeoJSON);
+      newParams.via = compileViaString(currentStopsGeoJSON, tracks);
     }
     setParams(newParams);
   }, [
@@ -206,9 +215,9 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     currentStops,
     currentStopsGeoJSON,
     center,
-    routingElevation,
     resolveHops,
     map,
+    tracks,
   ]);
 
   return <RSPermalink map={map} params={params} />;

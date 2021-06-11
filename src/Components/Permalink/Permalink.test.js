@@ -23,13 +23,13 @@ describe('Permalink', () => {
       MapReducer: {
         center: [0, 0],
         currentMot: 'rail',
-        routingElevation: 1,
         resolveHops: false,
         currentStops: ['', ''],
         currentStopsGeoJSON: {},
         olMap: new Map({
           controls: [],
         }),
+        tracks: [null, null],
       },
     });
   });
@@ -82,10 +82,6 @@ describe('Permalink', () => {
     expect(component.props().store.getActions()[0]).toEqual({
       type: 'SET_CURRENT_MOT',
       currentMot: 'bus',
-    });
-    expect(component.props().store.getActions()[1]).toEqual({
-      type: 'SET_ROUTING_ELEVATION',
-      routingElevation: 2,
     });
     expect(component.props().store.getActions()[2]).toEqual({
       type: 'SET_RESOLVE_HOPS',

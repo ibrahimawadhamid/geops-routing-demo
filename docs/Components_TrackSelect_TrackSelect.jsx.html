@@ -5,7 +5,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>JSDoc: Components/NotificationHandler/NotificationHandler.jsx</title>
+    <title>JSDoc: Components/TrackSelect/TrackSelect.jsx</title>
 
     <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -54,7 +54,7 @@
                 <div class="content" id="main-content-wrapper">
                     <header class="page-title">
                         <p>Source</p>
-                        <h1>Components/NotificationHandler/NotificationHandler.jsx</h1>
+                        <h1>Components/TrackSelect/TrackSelect.jsx</h1>
                     </header>
                     
                     
@@ -64,129 +64,101 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import React from 'react';
-import Snackbar from '@material-ui/core/Snackbar';
-import { connect } from 'react-redux';
-import Alert from '@material-ui/lab/Alert';
+            <pre class="prettyprint source linenums"><code>import React, { useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import { showNotification } from '../../store/actions';
+import Select from '@material-ui/core/Select';
+import FormControl from '@material-ui/core/FormControl';
+import MenuItem from '@material-ui/core/MenuItem';
+import { setTracks } from '../../store/actions/Map';
+
+const propTypes = {
+  index: PropTypes.number.isRequired,
+  disabled: PropTypes.bool.isRequired,
+};
+
+const useStyles = makeStyles(theme => ({
+  wrapper: {
+    width: '12%',
+    padding: '0 10px 4px 10px',
+    [theme.breakpoints.down('xs')]: {
+      padding: '0 5px 4px 5px',
+    },
+  },
+}));
+
+const selectStyles = makeStyles(() => ({
+  select: {
+    paddingRight: '17px !important',
+  },
+  icon: {
+    width: '0.8em',
+    height: '0.8em',
+  },
+}));
 
 /**
- * The notification handler props
- * @typedef NotificationHandlerProps
- * @type {props}
- * @property {string} notificationMessage Obtained from the store, the message to be displayed. Can be any valid string.
- * @property {string} notificationType Obtained from the store, the message type (error, success, info, etc...)
- * @category Props
+ * The component that displays the track selector
  */
+function TrackSelect({ index, disabled }) {
+  const classes = useStyles();
+  const selectClasses = selectStyles();
+  const dispatch = useDispatch();
+  const tracks = useSelector(state => state.MapReducer.tracks);
+  const currentMot = useSelector(state => state.MapReducer.currentMot);
+  const currentStopsGeoJSON = useSelector(
+    state => state.MapReducer.currentStopsGeoJSON,
+  );
+  const track = useMemo(() => tracks[index], [index, tracks]);
 
-/**
- * Handles all application notification shown to the user
- * @category NotificationHandler
- */
-class NotificationHandler extends React.Component {
-  /**
-   * Default constructor. visibility is set to false by default. Controlled through state property "open"
-   * @param {...NotificationHandlerProps} props Props received so that the component can function properly.
-   * @category NotificationHandler
-   */
-  constructor(props) {
-    super(props);
-    this.state = {
-      open: false,
-    };
-  }
+  const tracksValues = useMemo(() => {
+    return currentStopsGeoJSON[index] &amp;&amp;
+      currentStopsGeoJSON[index].properties &amp;&amp;
+      currentStopsGeoJSON[index].properties.platforms &amp;&amp;
+      currentStopsGeoJSON[index].properties.platforms[currentMot]
+      ? [
+          '',
+          ...currentStopsGeoJSON[index].properties.platforms[currentMot].sort(
+            (a, b) => {
+              return parseInt(a, 10) - parseInt(b, 10);
+            },
+          ),
+        ]
+      : [];
+  }, [index, currentMot, currentStopsGeoJSON]);
 
-  /**
-   * If a new notification message is received, show it accordingly.
-   * @category NotificationHandler
-   */
-  componentDidUpdate(prevProps) {
-    const { notificationMessage } = this.props;
-    if (
-      notificationMessage &amp;&amp;
-      notificationMessage !== prevProps.notificationMessage
-    ) {
-      this.handleOpen();
-    }
-  }
-
-  /**
-   * Show the notification to the view.
-   * @category NotificationHandler
-   */
-  handleOpen = () => {
-    this.setState({
-      open: true,
-    });
-  };
-
-  /**
-   * Hide the notification from the view.
-   * @category NotificationHandler
-   */
-  handleClose = () => {
-    const { onShowNotification } = this.props;
-    this.setState({
-      open: false,
-    });
-    onShowNotification(null, 'error');
-  };
-
-  /**
-   * Render the notification to the dom.
-   * @category NotificationHandler
-   */
-  render() {
-    const { notificationMessage, notificationType } = this.props;
-    const { open } = this.state;
-    return (
-      &lt;Snackbar
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
+  return (
+    &lt;FormControl className={classes.wrapper}>
+      &lt;Select
+        classes={selectClasses}
+        renderValue={val => (val === '' ? '-' : val)}
+        labelId="rd-track-select-label"
+        value={track || ''}
+        displayEmpty
+        disabled={disabled || !tracksValues.length}
+        onChange={evt => {
+          const newTracks = [...tracks];
+          const { value } = evt.target;
+          newTracks[index] = value;
+          dispatch(setTracks(newTracks));
         }}
-        open={open}
-        autoHideDuration={6000}
-        onClose={this.handleClose}
       >
-        &lt;Alert
-          onClose={this.handleClose}
-          severity={notificationType}
-          elevation={6}
-          variant="filled"
-        >
-          {notificationMessage}
-        &lt;/Alert>
-      &lt;/Snackbar>
-    );
-  }
+        {tracksValues.map(t => {
+          return (
+            &lt;MenuItem value={t} key={`track-${t}`}>
+              {t === '' ? '-' : t}
+            &lt;/MenuItem>
+          );
+        })}
+      &lt;/Select>
+    &lt;/FormControl>
+  );
 }
 
-const mapDispatchToProps = dispatch => {
-  return {
-    onShowNotification: (notificationMessage, notificationType) =>
-      dispatch(showNotification(notificationMessage, notificationType)),
-  };
-};
+TrackSelect.propTypes = propTypes;
 
-const mapStateToProps = state => {
-  return {
-    notificationMessage: state.MapReducer.notificationMessage,
-    notificationType: state.MapReducer.notificationType,
-  };
-};
-
-NotificationHandler.propTypes = {
-  onShowNotification: PropTypes.func.isRequired,
-  notificationMessage: PropTypes.string.isRequired,
-  notificationType: PropTypes.string.isRequired,
-};
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(NotificationHandler);
+export default TrackSelect;
 </code></pre>
         </article>
     </section>
