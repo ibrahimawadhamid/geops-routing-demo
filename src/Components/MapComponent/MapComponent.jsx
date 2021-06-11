@@ -538,7 +538,7 @@ class MapComponent extends Component {
 
     const { graph } = qs.parse(window.location.search);
 
-    if (qs.parse(window.location.search).graph) {
+    if (graph) {
       reqUrl += `&graph=${graph}`;
     }
 
