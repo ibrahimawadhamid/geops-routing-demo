@@ -46,7 +46,7 @@
             <div class="column is-3" id="sidebarNav">
                 <div class="sidebar">
                     <nav>
-                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#App">App</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#DEFAULT_MOTS">DEFAULT_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Global</h3><ul><li><a href="global.html#RoutingMenu">RoutingMenu</a></li><li><a href="global.html#SearchField">SearchField</a></li><li><a href="global.html#SearchResults">SearchResults</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
+                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#TrackSelect">TrackSelect</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#DEFAULT_MOTS">DEFAULT_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Global</h3><ul><li><a href="global.html#RoutingMenu">RoutingMenu</a></li><li><a href="global.html#SearchField">SearchField</a></li><li><a href="global.html#SearchResults">SearchResults</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
                     </nav>
                 </div>
             </div>
@@ -71,27 +71,40 @@ import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
-
-import axios from 'axios';
+import Button from '@material-ui/core/Button';
+import Tooltip from '@material-ui/core/Tooltip';
+import Grid from '@material-ui/core/Grid';
+import ZoomInIcon from '@material-ui/icons/ZoomIn';
+import InfoIcon from '@material-ui/icons/Info';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
 import _ from 'lodash/core';
+
 import {
+  setTracks,
   setCurrentStops,
   setCurrentStopsGeoJSON,
   setCurrentMot,
   showNotification,
   setIsFieldFocused,
+  setShowLoadingBar,
+  setSelectedRoutes,
+  setIsRouteInfoOpen,
 } from '../../store/actions/Map';
-import './RoutingMenu.css';
-import constants from '../../constants';
-import { to3857, findMotIcon } from '../../utils';
+import './RoutingMenu.scss';
+import {
+  VALID_MOTS,
+  DEFAULT_MOTS,
+  OTHER_MOTS,
+  GRAPHHOPPER_MOTS,
+} from '../../constants';
+import { to4326, to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 
@@ -111,6 +124,15 @@ function TabPanel(props) {
   );
 }
 
+const swapFc = (input, indexA, indexB) => {
+  const temp = input[indexA];
+
+  // eslint-disable-next-line no-param-reassign
+  input[indexA] = input[indexB];
+  // eslint-disable-next-line no-param-reassign
+  input[indexB] = temp;
+};
+
 /**
  * The routing menu props
  * @typedef RoutingMenuProps
@@ -127,30 +149,45 @@ const useStyles = makeStyles(() => ({
     width: '75%',
   },
   tab: {
-    minWidth: '25%',
-    width: '25%',
+    minWidth: '33%',
+    width: '33%',
   },
   dropDown: {
     width: '25%',
     backgroundColor: 'white',
   },
-  dropDownSelected: {
-    width: '25%',
-    backgroundColor: 'lightgrey',
+  select: {
+    height: '100%',
+    textAlign: 'center',
+  },
+  selectInput: {
+    backgroundColor: 'white',
+    '&amp;:focus': {
+      backgroundColor: 'white',
+    },
   },
   checkbox: {
-    padding: '20px',
+    margin: '0px 5px 0px 13px',
   },
 }));
+
+let abortController = new AbortController();
 
 /**
  * The routing menu that controls station search
  * @category RoutingMenu
  */
-function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
+function RoutingMenu({
+  mots,
+  stationSearchUrl,
+  APIKey,
+  isActiveRoute,
+  onZoomRouteClick,
+  onPanViaClick,
+  onDrawNewRoute,
+}) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const { DEFAULT_MOTS, OTHER_MOTS } = constants;
 
   /**
    * Validate the mots provided from the props, then retrieve the icons for the valid ones.
@@ -159,7 +196,6 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const validateMots = (motsArray, validationMots) => {
-    const { VALID_MOTS } = constants;
     const currentMotsArray = [];
 
     motsArray
@@ -184,30 +220,45 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     return currentMotsArray;
   };
 
+  // Currently no 'coach' mot available for stop finder.
+  const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
+
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
+  const center = useSelector(state => state.MapReducer.center);
+  const tracks = useSelector(state => state.MapReducer.tracks);
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
+  const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
+  const isRouteInfoOpen = useSelector(
+    state => state.MapReducer.isRouteInfoOpen,
+  );
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
   );
+  const currentMot = useSelector(state => state.MapReducer.currentMot);
+  const elRefs = React.useRef([]);
+  if (elRefs.current.length !== currentStops.length) {
+    elRefs.current = Array(currentStops.length)
+      .fill()
+      .map((el, i) => elRefs.current[i] || React.createRef());
+  }
 
   const [currentMots] = useState(currentMotsVal);
-  const [currentMot, setCurrentMotState] = useState(currentMotsVal[0].name);
   const [otherMots] = useState(otherMotsVal);
+  const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
   const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
-  const [showLoadingBar, setShowLoadingBar] = useState(false);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
-  const SearchCancelToken = axios.CancelToken;
-  let searchCancel = null;
   useEffect(() => {
-    dispatch(setCurrentMot(currentMots[0].name));
+    if (isRouteInfoOpen) {
+      dispatch(setSelectedRoutes([]));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentStops]);
 
   /**
    * Update the current stops array (string array) and the GeoJSON array in the local state.
@@ -247,12 +298,15 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
         },
       ],
     };
+    const updatedTracks = [...tracks];
+    updatedTracks[updatedFocusedFieldIndex - 1] = '';
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
     updateCurrentStops(
       updatedCurrentStops,
       updatedCurrentStopsGeoJSON,
       updatedFocusedFieldIndex,
     );
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
@@ -315,11 +369,10 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @param newMot The new selected mot
    * @category RoutingMenu
    */
-  const handleMotChange = (event, newMot) => {
-    setCurrentMotState(newMot);
-    setCurrentSearchResults([]);
-
-    dispatch(setCurrentStopsGeoJSON({}));
+  const handleMotChange = (event, newMot, tracksVal) => {
+    const newTracks = [...tracksVal].map(() => '');
+    setCurrentOtherMot(null);
+    dispatch(setTracks(newTracks));
     dispatch(setCurrentMot(newMot));
   };
 
@@ -338,10 +391,27 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @param indexToInsertAt The index to insert the new search field at.
    * @category RoutingMenu
    */
-  const addNewSearchFieldHandler = indexToInsertAt => {
-    const updatedCurrentStops = currentStops;
+  const addNewSearchFieldHandler = (currStops, indexToInsertAt) => {
+    const updatedCurrentStops = _.clone(currentStops);
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStops.splice(indexToInsertAt, 0, '');
+
+    if (updatedCurrentStopsGeoJSON[indexToInsertAt]) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON)
+        .filter(k => k >= indexToInsertAt)
+        .reverse();
+      keys.forEach(k => {
+        updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+          updatedCurrentStopsGeoJSON[k];
+      });
+    }
+
+    const updatedTracks = [...tracks];
+    updatedTracks.splice(indexToInsertAt, 0, '');
+
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
   /**
@@ -351,16 +421,28 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const removeSearchFieldHandler = indexToRemoveFrom => {
-    const updatedCurrentStops = currentStops;
+    const updatedCurrentStops = _.clone(currentStops);
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStops.splice(indexToRemoveFrom, 1);
-    const updatedCurrentStopsGeoJSON = {};
-    Object.keys(currentStopsGeoJSON).forEach(key => {
-      if (key !== indexToRemoveFrom.toString()) {
-        updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
-      }
-    });
-    dispatch(setCurrentStops(updatedCurrentStops));
 
+    if (updatedCurrentStopsGeoJSON[indexToRemoveFrom]) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON);
+      keys.forEach(key => {
+        const k = parseInt(key, 10);
+        if (k === indexToRemoveFrom) {
+          delete updatedCurrentStopsGeoJSON[indexToRemoveFrom];
+        } else if (k > indexToRemoveFrom) {
+          updatedCurrentStopsGeoJSON[k - 1] = updatedCurrentStopsGeoJSON[k];
+        }
+      });
+      delete updatedCurrentStopsGeoJSON[keys.length - 1];
+    }
+
+    const updatedTracks = [...tracks];
+    updatedTracks.splice(indexToRemoveFrom, 1);
+
+    dispatch(setTracks(updatedTracks));
+    dispatch(setCurrentStops(updatedCurrentStops));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
@@ -371,62 +453,76 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
    * @category RoutingMenu
    */
   const searchStopsHandler = (event, fieldIndex) => {
+    setLastChangedFieldIdx(fieldIndex);
     // only search if text is available
     if (!event.target.value) {
       const updatedCurrentStops = currentStops;
       updatedCurrentStops[fieldIndex] = '';
       setCurrentSearchResults([]);
       dispatch(setCurrentStops(updatedCurrentStops));
-      setShowLoadingBar(false);
+
+      // Reset the track value.
+      const updatedTracks = [...tracks];
+      updatedTracks[fieldIndex] = '';
+      dispatch(setTracks(updatedTracks));
+
+      dispatch(setShowLoadingBar(false));
       return;
     }
-    const updatedCurrentStops = currentStops;
+    const updatedCurrentStops = _.clone(currentStops);
     updatedCurrentStops[fieldIndex] = event.target.value;
     dispatch(setCurrentStops(updatedCurrentStops));
-    setShowLoadingBar(true);
+    dispatch(setShowLoadingBar(true));
 
-    if (searchCancel) {
-      // If a previous search request has been issues and not completed yet, cancel it.
-      searchCancel();
-    }
-    axios
-      .get(stationSearchUrl, {
-        params: {
-          q: event.target.value,
-          key: APIKey,
-          mots: searchMotOnly ? currentMot : '',
-        },
-        cancelToken: new SearchCancelToken(cancel => {
-          searchCancel = cancel;
-        }),
+    abortController.abort();
+    abortController = new AbortController();
+    const { signal } = abortController;
+
+    const reqUrl = `${stationSearchUrl}?q=${event.target.value}&amp;key=${APIKey}${
+      !GRAPHHOPPER_MOTS.includes(currentMot)
+        ? `&amp;mots=${searchMotOnly ? handleStopFinderMot(currentMot) : ''}`
+        : ''
+    }&amp;ref_location=${to4326(center)
+      .reverse()
+      .join(',')}&amp;limit=10`;
+
+    fetch(reqUrl, { signal })
+      .then(response => response.json())
+      .then(response => {
+        if (response.error) {
+          dispatch(showNotification("Couldn't find stations", 'warning'));
+          return;
+        }
+        if (response.features.length === 0) {
+          dispatch(showNotification("Couldn't find stations", 'warning'));
+        }
+        setCurrentSearchResults(response.features);
+        dispatch(setShowLoadingBar(false));
       })
-      .then(
-        response => {
-          const searchResults = [];
-          response.data.features.forEach(singleResult => {
-            // Search results from the API
-            if (singleResult.properties.mot[currentMot])
-              searchResults.push(singleResult);
-          });
-          if (
-            response.data.features.length === 0 ||
-            searchResults.length === 0
-          ) {
-            // No results for the given query
-            // onShowNotification("Couldn't find stations", 'warning');
-            dispatch(showNotification("Couldn't find stations", 'warning'));
-          }
-          setCurrentSearchResults(searchResults);
-          setShowLoadingBar(false);
+      .catch(err => {
+        if (err.name === 'AbortError') {
+          // eslint-disable-next-line no-console
+          console.warn(`Abort ${reqUrl}`);
+          return;
+        }
+        // It's important to rethrow all other errors so you don't silence them!
+        // For example, any error thrown by setState(), will pass through here.
+        throw err;
+      });
+  };
+
+  const retriggerSearch = () => {
+    if (lastChangedFieldIdx === null) {
+      return;
+    }
+    searchStopsHandler(
+      {
+        target: {
+          value: elRefs.current[lastChangedFieldIdx].current.value,
         },
-        error => {
-          setShowLoadingBar(false);
-          if (!axios.isCancel(error))
-            dispatch(
-              showNotification('Error while searching for stations', 'error'),
-            );
-        },
-      );
+      },
+      lastChangedFieldIdx,
+    );
   };
 
   /**
@@ -473,6 +569,10 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
     dispatch(setCurrentStops(updatedCurrentStops));
+
+    const updatedTracks = [...tracks];
+    updatedTracks[focusedFieldIndex] = '';
+    dispatch(setTracks(updatedTracks));
     setCurrentSearchResults([]);
 
     Object.keys(updatedCurrentStopsGeoJSON).forEach(key => {
@@ -487,18 +587,79 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
 
   const changeCurrentOtherMot = evt => {
     if (!evt) {
-      setCurrentOtherMot(undefined);
+      setCurrentOtherMot(null);
     } else {
       const { value } = evt.target;
-      handleMotChange({}, value);
+      handleMotChange({}, value, tracks);
       setCurrentOtherMot(value);
     }
+  };
+
+  const getItemStyle = (isDragging, draggableStyle) => ({
+    userSelect: 'none',
+    background: isDragging ? '#ededed' : 'white',
+    ...draggableStyle,
+  });
+
+  const onDragEnd = result => {
+    // dropped outside the list
+    if (!result.destination) {
+      return;
+    }
+
+    const updatedCurrentStops = _.clone(currentStops);
+    const [removed] = updatedCurrentStops.splice(result.source.index, 1);
+    updatedCurrentStops.splice(result.destination.index, 0, removed);
+
+    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+
+    const newSource = { ...updatedCurrentStopsGeoJSON[result.source.index] };
+    if (result.destination.index &lt; result.source.index) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON)
+        .filter(k => {
+          return (
+            parseInt(k, 10) >= result.destination.index &amp;&amp;
+            parseInt(k, 10) &lt; result.source.index
+          );
+        })
+        .reverse();
+      keys.forEach(k => {
+        updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
+          updatedCurrentStopsGeoJSON[k];
+      });
+      updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
+    } else if (result.destination.index > result.source.index) {
+      const keys = Object.keys(updatedCurrentStopsGeoJSON).filter(
+        k =>
+          parseInt(k, 10) >= result.source.index &amp;&amp;
+          parseInt(k, 10) &lt;= result.destination.index,
+      );
+      keys.forEach(k => {
+        if (parseInt(k, 10) === result.destination.index) {
+          updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
+        } else {
+          updatedCurrentStopsGeoJSON[k] =
+            updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`];
+        }
+      });
+    }
+
+    const updatedTracks = [...tracks];
+    swapFc(updatedTracks, result.source.index, result.destination.index);
+
+    dispatch(setTracks(updatedTracks));
+    dispatch(setCurrentStops(updatedCurrentStops));
+    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
   /**
    * Render the component to the dom.
    * @category RoutingMenu
    */
+
+  if (!onZoomRouteClick || !onPanViaClick) {
+    return null;
+  }
 
   return (
     &lt;div className="rd-routing-menu">
@@ -508,7 +669,7 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
             value={DEFAULT_MOTS.includes(currentMot) ? currentMot : false}
             className={classes.tabs}
             onChange={(e, mot) => {
-              handleMotChange(e, mot);
+              handleMotChange(e, mot, tracks);
             }}
             indicatorColor="primary"
             textColor="primary"
@@ -526,17 +687,15 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
               );
             })}
           &lt;/Tabs>
-          &lt;FormControl
-            className={
-              currentMot === currentOtherMot
-                ? classes.dropDownSelected
-                : classes.dropDown
-            }
-          >
-            &lt;InputLabel id="rd-other-mot-label">Other MOTs&lt;/InputLabel>
+          &lt;FormControl className={classes.dropDown}>
             &lt;Select
+              renderValue={val => (val !== '' ? val : 'Other MOTs')}
+              className={classes.select}
+              classes={{ root: classes.selectInput }}
               labelId="rd-other-mot-label"
-              value={currentOtherMot}
+              value={currentOtherMot || ''}
+              disableUnderline={!currentOtherMot}
+              displayEmpty
               onChange={changeCurrentOtherMot}
             >
               {otherMots.map(mot => {
@@ -550,33 +709,119 @@ function RoutingMenu({ mots, stationSearchUrl, APIKey }) {
           &lt;/FormControl>
         &lt;/div>
         &lt;TabPanel>
-          {currentStops.map((singleStop, index) => {
-            return (
-              &lt;SearchField
-                // eslint-disable-next-line react/no-array-index-key
-                key={`searchField-${index}`}
-                index={index}
-                addNewSearchFieldHandler={addNewSearchFieldHandler}
-                currentStops={currentStops}
-                removeSearchFieldHandler={removeSearchFieldHandler}
-                searchStopsHandler={searchStopsHandler}
-                singleStop={singleStop}
-                processHighlightedResultSelectHandler={
-                  processHighlightedResultSelectHandler
-                }
-                onFieldFocusHandler={onFieldFocusHandler}
-              />
-            );
-          })}
+          &lt;DragDropContext onDragEnd={onDragEnd}>
+            &lt;Droppable droppableId="droppable">
+              {provided => (
+                &lt;div
+                  className="stopsContainer"
+                  // eslint-disable-next-line react/jsx-props-no-spreading
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  style={{
+                    background: 'white',
+                  }}
+                >
+                  {currentStops.map((item, index) => (
+                    &lt;Draggable
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={`searchField-${index}`}
+                      draggableId={`searchField-${index}`}
+                      index={index}
+                    >
+                      {(prov, snpsht) => (
+                        &lt;div
+                          ref={prov.innerRef}
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...prov.draggableProps}
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...prov.dragHandleProps}
+                          style={getItemStyle(
+                            snpsht.isDragging,
+                            prov.draggableProps.style,
+                          )}
+                        >
+                          &lt;SearchField
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`searchField-${index}`}
+                            index={index}
+                            inputReference={elRefs.current[index]}
+                            addNewSearchFieldHandler={addNewSearchFieldHandler}
+                            currentStops={currentStops}
+                            removeSearchFieldHandler={removeSearchFieldHandler}
+                            searchStopsHandler={searchStopsHandler}
+                            singleStop={item}
+                            processHighlightedResultSelectHandler={
+                              processHighlightedResultSelectHandler
+                            }
+                            onFieldFocusHandler={onFieldFocusHandler}
+                            onPanViaClick={onPanViaClick}
+                          />
+                        &lt;/div>
+                      )}
+                    &lt;/Draggable>
+                  ))}
+                  {provided.placeholder}
+                &lt;/div>
+              )}
+            &lt;/Droppable>
+          &lt;/DragDropContext>
           &lt;div className="rd-mot-checkbox">
             &lt;Checkbox
               className={classes.checkbox}
               checked={searchMotOnly}
-              onChange={() => setSearchMotOnly(!searchMotOnly)}
+              onChange={() => {
+                setSearchMotOnly(!searchMotOnly);
+                retriggerSearch(lastChangedFieldIdx);
+              }}
               color="primary"
               inputProps={{ 'aria-label': 'use only mot' }}
             />
             &lt;span>Search only selected mode of transport&lt;/span>
+          &lt;/div>
+          &lt;div className="rd-route-buttons">
+            &lt;Grid item xs={6}>
+              &lt;Tooltip title="Zoom to the route">
+                &lt;Button
+                  onClick={() => onZoomRouteClick()}
+                  aria-label="Zoom to the route"
+                  disabled={!isActiveRoute}
+                  component={isActiveRoute ? undefined : 'span'}
+                  variant="contained"
+                  color="default"
+                  classes={{
+                    root: 'rd-button-root',
+                    disabled: 'rd-button-disabled',
+                  }}
+                  startIcon={&lt;ZoomInIcon fontSize="small" />}
+                >
+                  &lt;Typography>Zoom to the route&lt;/Typography>
+                &lt;/Button>
+              &lt;/Tooltip>
+            &lt;/Grid>
+            &lt;Grid item xs={6}>
+              &lt;Tooltip title="Route information">
+                &lt;Button
+                  onClick={() => {
+                    onDrawNewRoute(true).then(() => {
+                      dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                    });
+                  }}
+                  aria-label="Route information"
+                  disabled={!isActiveRoute}
+                  component={isActiveRoute ? undefined : 'span'}
+                  variant="contained"
+                  color="default"
+                  className={isRouteInfoOpen ? 'rd-button-active' : ''}
+                  classes={{
+                    root: 'rd-button-root',
+                    disabled: 'rd-button-disabled',
+                  }}
+                  startIcon={&lt;InfoIcon fontSize="small" />}
+                >
+                  &lt;Typography>Route information&lt;/Typography>
+                &lt;/Button>
+              &lt;/Tooltip>
+            &lt;/Grid>
           &lt;/div>
         &lt;/TabPanel>
         {showLoadingBar ? &lt;LinearProgress /> : null}
@@ -604,6 +849,15 @@ RoutingMenu.propTypes = {
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
   stationSearchUrl: PropTypes.string.isRequired,
+  isActiveRoute: PropTypes.bool.isRequired,
+  onZoomRouteClick: PropTypes.func,
+  onPanViaClick: PropTypes.func,
+  onDrawNewRoute: PropTypes.func.isRequired,
+};
+
+RoutingMenu.defaultProps = {
+  onZoomRouteClick: undefined,
+  onPanViaClick: undefined,
 };
 
 export default RoutingMenu;
@@ -622,7 +876,7 @@ export default RoutingMenu;
 
 <footer class="footer">
     <div class="content has-text-centered">
-        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Thu Feb 27 2020 11:58:39 GMT+0100 (Central European Standard Time)</p>
+        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Fri May 21 2021 15:30:36 GMT+0200 (Central European Summer Time)</p>
         <p class="sidebar-created-by">
             <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
             <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>

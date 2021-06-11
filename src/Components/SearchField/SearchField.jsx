@@ -1,5 +1,5 @@
-import React from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
@@ -12,15 +12,19 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
+import TrackSelect from '../TrackSelect';
 import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused } from '../../store/actions/Map';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   gridContainer: {
     width: '100%',
     padding: '0px 0px 0px 20px',
     boxSizing: 'unset',
+    [theme.breakpoints.down('xs')]: {
+      padding: '0px 0px 0px 5px',
+    },
   },
   button: {
     color: 'black',
@@ -30,7 +34,11 @@ const useStyles = makeStyles(() => ({
     },
   },
   fieldWrapper: {
-    maxWidth: '75%',
+    maxWidth: '58%',
+    marginLeft: '5px',
+    [theme.breakpoints.down('sm')]: {
+      maxWidth: '50%',
+    },
   },
   buttonWrapper: {
     maxWidth: '26px',
@@ -44,6 +52,7 @@ const useStyles = makeStyles(() => ({
 function SearchField(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
   const {
     index,
     addNewSearchFieldHandler,
@@ -62,6 +71,10 @@ function SearchField(props) {
   let fieldRightIcon = null;
 
   const formatSingleStop = val => (Array.isArray(val) ? to4326(val) : val);
+  const isStationName = useMemo(
+    () => typeof singleStop === 'string' && singleStop !== '',
+    [singleStop],
+  );
 
   const addNextHopDisabled =
     currentStops[index] === '' ||
@@ -86,7 +99,7 @@ function SearchField(props) {
         <Tooltip title="Add Hop">
           <IconButton
             onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-            disabled={addNextHopDisabled}
+            disabled={addNextHopDisabled || showLoadingBar}
             className={classes.button}
             aria-label="Add Hop"
             size="small"
@@ -130,7 +143,7 @@ function SearchField(props) {
         <Grid item xs={1} className={classes.buttonWrapper}>
           <Tooltip title="Add Hop">
             <IconButton
-              disabled={addNextHopDisabled}
+              disabled={addNextHopDisabled || showLoadingBar}
               onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
               className={classes.button}
               aria-label="addHop"
@@ -147,6 +160,7 @@ function SearchField(props) {
               className={classes.button}
               aria-label="removeHop"
               size="small"
+              disabled={showLoadingBar}
             >
               <RemoveCircleOutlineIcon fontSize="small" />
             </IconButton>
@@ -192,6 +206,7 @@ function SearchField(props) {
           }}
         />
       </Grid>
+      <TrackSelect index={index} disabled={!isStationName} />
       {fieldRightIcon}
     </Grid>
   );

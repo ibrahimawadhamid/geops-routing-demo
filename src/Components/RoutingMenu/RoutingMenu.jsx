@@ -21,6 +21,7 @@ import nextId from 'react-id-generator';
 import _ from 'lodash/core';
 
 import {
+  setTracks,
   setCurrentStops,
   setCurrentStopsGeoJSON,
   setCurrentMot,
@@ -57,6 +58,15 @@ function TabPanel(props) {
   );
 }
 
+const swapFc = (input, indexA, indexB) => {
+  const temp = input[indexA];
+
+  // eslint-disable-next-line no-param-reassign
+  input[indexA] = input[indexB];
+  // eslint-disable-next-line no-param-reassign
+  input[indexB] = temp;
+};
+
 /**
  * The routing menu props
  * @typedef RoutingMenuProps
@@ -82,6 +92,7 @@ const useStyles = makeStyles(() => ({
   },
   select: {
     height: '100%',
+    textAlign: 'center',
   },
   selectInput: {
     backgroundColor: 'white',
@@ -107,6 +118,7 @@ function RoutingMenu({
   isActiveRoute,
   onZoomRouteClick,
   onPanViaClick,
+  onDrawNewRoute,
 }) {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -142,10 +154,14 @@ function RoutingMenu({
     return currentMotsArray;
   };
 
+  // Currently no 'coach' mot available for stop finder.
+  const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
+
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
   const center = useSelector(state => state.MapReducer.center);
+  const tracks = useSelector(state => state.MapReducer.tracks);
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
@@ -156,7 +172,6 @@ function RoutingMenu({
     state => state.MapReducer.currentStopsGeoJSON,
   );
   const currentMot = useSelector(state => state.MapReducer.currentMot);
-
   const elRefs = React.useRef([]);
   if (elRefs.current.length !== currentStops.length) {
     elRefs.current = Array(currentStops.length)
@@ -217,12 +232,15 @@ function RoutingMenu({
         },
       ],
     };
+    const updatedTracks = [...tracks];
+    updatedTracks[updatedFocusedFieldIndex - 1] = '';
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
     updateCurrentStops(
       updatedCurrentStops,
       updatedCurrentStopsGeoJSON,
       updatedFocusedFieldIndex,
     );
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
 
@@ -285,8 +303,10 @@ function RoutingMenu({
    * @param newMot The new selected mot
    * @category RoutingMenu
    */
-  const handleMotChange = (event, newMot) => {
+  const handleMotChange = (event, newMot, tracksVal) => {
+    const newTracks = [...tracksVal].map(() => '');
     setCurrentOtherMot(null);
+    dispatch(setTracks(newTracks));
     dispatch(setCurrentMot(newMot));
   };
 
@@ -320,6 +340,10 @@ function RoutingMenu({
       });
     }
 
+    const updatedTracks = [...tracks];
+    updatedTracks.splice(indexToInsertAt, 0, '');
+
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStops(updatedCurrentStops));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
@@ -348,6 +372,10 @@ function RoutingMenu({
       delete updatedCurrentStopsGeoJSON[keys.length - 1];
     }
 
+    const updatedTracks = [...tracks];
+    updatedTracks.splice(indexToRemoveFrom, 1);
+
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStops(updatedCurrentStops));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
@@ -366,6 +394,12 @@ function RoutingMenu({
       updatedCurrentStops[fieldIndex] = '';
       setCurrentSearchResults([]);
       dispatch(setCurrentStops(updatedCurrentStops));
+
+      // Reset the track value.
+      const updatedTracks = [...tracks];
+      updatedTracks[fieldIndex] = '';
+      dispatch(setTracks(updatedTracks));
+
       dispatch(setShowLoadingBar(false));
       return;
     }
@@ -380,11 +414,11 @@ function RoutingMenu({
 
     const reqUrl = `${stationSearchUrl}?q=${event.target.value}&key=${APIKey}${
       !GRAPHHOPPER_MOTS.includes(currentMot)
-        ? `&mots=${searchMotOnly ? currentMot : ''}`
+        ? `&mots=${searchMotOnly ? handleStopFinderMot(currentMot) : ''}`
         : ''
     }&ref_location=${to4326(center)
       .reverse()
-      .join(',')}`;
+      .join(',')}&limit=10`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
@@ -469,6 +503,10 @@ function RoutingMenu({
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
     dispatch(setCurrentStops(updatedCurrentStops));
+
+    const updatedTracks = [...tracks];
+    updatedTracks[focusedFieldIndex] = '';
+    dispatch(setTracks(updatedTracks));
     setCurrentSearchResults([]);
 
     Object.keys(updatedCurrentStopsGeoJSON).forEach(key => {
@@ -486,7 +524,7 @@ function RoutingMenu({
       setCurrentOtherMot(null);
     } else {
       const { value } = evt.target;
-      handleMotChange({}, value);
+      handleMotChange({}, value, tracks);
       setCurrentOtherMot(value);
     }
   };
@@ -540,6 +578,10 @@ function RoutingMenu({
       });
     }
 
+    const updatedTracks = [...tracks];
+    swapFc(updatedTracks, result.source.index, result.destination.index);
+
+    dispatch(setTracks(updatedTracks));
     dispatch(setCurrentStops(updatedCurrentStops));
     dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
   };
@@ -552,15 +594,19 @@ function RoutingMenu({
   if (!onZoomRouteClick || !onPanViaClick) {
     return null;
   }
+
   return (
     <div className="rd-routing-menu">
       <Paper square elevation={3}>
+        <div style={{ height: 5 }}>
+          {showLoadingBar ? <LinearProgress /> : null}
+        </div>
         <div className="rd-routing-menu-header">
           <Tabs
             value={DEFAULT_MOTS.includes(currentMot) ? currentMot : false}
             className={classes.tabs}
             onChange={(e, mot) => {
-              handleMotChange(e, mot);
+              handleMotChange(e, mot, tracks);
             }}
             indicatorColor="primary"
             textColor="primary"
@@ -574,6 +620,7 @@ function RoutingMenu({
                   value={singleMot.name}
                   icon={singleMot.icon}
                   aria-label={singleMot.name}
+                  disabled={showLoadingBar}
                 />
               );
             })}
@@ -588,6 +635,7 @@ function RoutingMenu({
               disableUnderline={!currentOtherMot}
               displayEmpty
               onChange={changeCurrentOtherMot}
+              disabled={showLoadingBar}
             >
               {otherMots.map(mot => {
                 return (
@@ -604,6 +652,7 @@ function RoutingMenu({
             <Droppable droppableId="droppable">
               {provided => (
                 <div
+                  className="stopsContainer"
                   // eslint-disable-next-line react/jsx-props-no-spreading
                   {...provided.droppableProps}
                   ref={provided.innerRef}
@@ -675,6 +724,7 @@ function RoutingMenu({
                   onClick={() => onZoomRouteClick()}
                   aria-label="Zoom to the route"
                   disabled={!isActiveRoute}
+                  component={isActiveRoute ? undefined : 'span'}
                   variant="contained"
                   color="default"
                   classes={{
@@ -691,10 +741,13 @@ function RoutingMenu({
               <Tooltip title="Route information">
                 <Button
                   onClick={() => {
-                    dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                    onDrawNewRoute(true).then(() => {
+                      dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                    });
                   }}
                   aria-label="Route information"
                   disabled={!isActiveRoute}
+                  component={isActiveRoute ? undefined : 'span'}
                   variant="contained"
                   color="default"
                   className={isRouteInfoOpen ? 'rd-button-active' : ''}
@@ -710,7 +763,6 @@ function RoutingMenu({
             </Grid>
           </div>
         </TabPanel>
-        {showLoadingBar ? <LinearProgress /> : null}
       </Paper>
       <SearchResults
         currentSearchResults={currentSearchResults}
@@ -738,6 +790,7 @@ RoutingMenu.propTypes = {
   isActiveRoute: PropTypes.bool.isRequired,
   onZoomRouteClick: PropTypes.func,
   onPanViaClick: PropTypes.func,
+  onDrawNewRoute: PropTypes.func.isRequired,
 };
 
 RoutingMenu.defaultProps = {

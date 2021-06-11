@@ -46,7 +46,7 @@
             <div class="column is-3" id="sidebarNav">
                 <div class="sidebar">
                     <nav>
-                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#App">App</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#DEFAULT_MOTS">DEFAULT_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Global</h3><ul><li><a href="global.html#RoutingMenu">RoutingMenu</a></li><li><a href="global.html#SearchField">SearchField</a></li><li><a href="global.html#SearchResults">SearchResults</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
+                        <h2><a href="index.html">Home</a></h2><div class="category"><h3>Global</h3><ul><li><a href="global.html#App">App</a></li><li><a href="global.html#TrackSelect">TrackSelect</a></li></ul></div><div class="category"><h2>Constants</h2><h3>Global</h3><ul><li><a href="global.html#DEFAULT_MOTS">DEFAULT_MOTS</a></li></ul></div><div class="category"><h2>Map</h2><h3>Classes</h3><ul><li><a href="MapComponent.html">MapComponent</a></li></ul></div><div class="category"><h2>NotificationHandler</h2><h3>Classes</h3><ul><li><a href="NotificationHandler.html">NotificationHandler</a></li></ul></div><div class="category"><h2>Props</h2><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>RoutingMenu</h2><h3>Global</h3><ul><li><a href="global.html#RoutingMenu">RoutingMenu</a></li><li><a href="global.html#SearchField">SearchField</a></li><li><a href="global.html#SearchResults">SearchResults</a></li></ul></div><div class="category"><h2>Utils</h2><h3>Global</h3><ul><li><a href="global.html#findMotIcon">findMotIcon</a></li></ul></div>
                     </nav>
                 </div>
             </div>
@@ -64,14 +64,13 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from 'react';
-import { Provider } from 'react-redux';
+            <pre class="prettyprint source linenums"><code>import React from 'react';
 import PropTypes from 'prop-types';
-import store from '../../store/store';
+import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import MapComponent from '../MapComponent';
-import RoutingMenu from '../RoutingMenu';
+import Permalink from '../Permalink';
 import NotificationHandler from '../NotificationHandler';
-import constants from '../../constants';
+import { VALID_MOTS } from '../../constants';
 
 const propTypes = {
   routingUrl: PropTypes.string,
@@ -80,10 +79,25 @@ const propTypes = {
 };
 
 const defaultProps = {
-  mots: constants.VALID_MOTS,
+  mots: VALID_MOTS,
   routingUrl: 'https://api.geops.io/routing/v1/',
   stationSearchUrl: 'https://api.geops.io/stops/v1/',
 };
+
+const fontSize = '1rem';
+const color = '#515151';
+const theme = createMuiTheme({
+  typography: {
+    body: { fontSize },
+    button: { fontSize },
+    h1: { fontSize: '1.2rem', color },
+    h2: { fontSize, color },
+    h3: { fontSize, color },
+    h4: { fontSize, color },
+    h5: { fontSize, color },
+    h6: { fontSize, color },
+  },
+});
 
 /**
  * Root component of the application that holds all other sub-components.
@@ -93,33 +107,23 @@ const defaultProps = {
  */
 function App(props) {
   const { mots, routingUrl, stationSearchUrl } = props;
-  const [apiKey, setApiKey] = useState(null);
+  const apiKey = process.env.REACT_APP_API_KEY;
 
-  useEffect(() => {
-    fetch('https://developer.geops.io/publickey')
-      .then(response => response.json())
-      .then(data => {
-        setApiKey(data.key);
-      })
-      .catch(() => {
-        console.error('Request to get the apiKey failed');
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (!apiKey) {
-    return null;
-  }
   return (
-    &lt;Provider store={store}>
-      &lt;RoutingMenu
+    &lt;ThemeProvider theme={theme}>
+      &lt;Permalink
         mots={mots}
-        stationSearchUrl={stationSearchUrl}
         APIKey={apiKey}
+        stationSearchUrl={stationSearchUrl}
       />
-      &lt;MapComponent mots={mots} routingUrl={routingUrl} APIKey={apiKey} />
+      &lt;MapComponent
+        mots={mots}
+        routingUrl={routingUrl}
+        APIKey={apiKey}
+        stationSearchUrl={stationSearchUrl}
+      />
       &lt;NotificationHandler />
-    &lt;/Provider>
+    &lt;/ThemeProvider>
   );
 }
 
@@ -142,7 +146,7 @@ export default App;
 
 <footer class="footer">
     <div class="content has-text-centered">
-        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Thu Feb 27 2020 11:58:39 GMT+0100 (Central European Standard Time)</p>
+        <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Fri May 21 2021 15:30:36 GMT+0200 (Central European Summer Time)</p>
         <p class="sidebar-created-by">
             <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
             <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
