@@ -19,7 +19,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const floors = ['-4.0', '-3.0', '-2.0', '-1.0', '0.0', '1.0', '2.0', '3.0', '4.0', ''];
+const floors = ['-4', '-3', '-2', '-1', '0', '1', '2', '3', '4', ''];
 /**
  * The component that displays the floor selector
  */
