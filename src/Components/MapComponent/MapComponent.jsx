@@ -1,5 +1,6 @@
 import React, { Component, createRef } from 'react';
 import { connect } from 'react-redux';
+import qs from 'query-string';
 import ConfigReader from 'react-spatial/ConfigReader';
 import LayerService from 'react-spatial/LayerService';
 import Layer from 'react-spatial/layers/Layer';
@@ -195,6 +196,7 @@ class MapComponent extends Component {
       if (featureIndex === -1) {
         return;
       }
+
       if (typeof newCurrentStops[featureIndex] === 'string') {
         const stopFloor = newCurrentStops[featureIndex].match(FLOOR_REGEX);
 
@@ -583,7 +585,7 @@ class MapComponent extends Component {
     abortController = new AbortController();
     const { signal } = abortController;
 
-    const reqUrl = `${routingUrl}?via=${hops.join(
+    let reqUrl = `${routingUrl}?via=${hops.join(
       '|',
     )}&barrierefrei=${searchMode === SEARCH_MODES[1]}`;
     // const calculateElevation = !!(isRouteInfoOpen || useElevation);
@@ -594,6 +596,12 @@ class MapComponent extends Component {
     //   `&elevation=${calculateElevation ? 1 : 0}` +
     //   `&interpolate_elevation=${calculateElevation}` +
     //   `&length=true&coord-radius=100.0&coord-punish=1000.0`;
+
+    const { graph } = qs.parse(window.location.search);
+
+    if (graph) {
+      reqUrl += `&graph=${graph}`;
+    }
 
     return fetch(reqUrl, { signal })
       .then(response => response.json())

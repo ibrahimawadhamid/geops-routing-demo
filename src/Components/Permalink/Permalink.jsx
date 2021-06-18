@@ -11,9 +11,7 @@ import {
   setCurrentMot,
   setCenter,
   setFloorInfo,
-  /*
-  setResolveHops,
-  */
+  // setResolveHops,
   setTracks,
 } from '../../store/actions/Map';
 
@@ -225,7 +223,6 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       })
       .join(',');
 
-    // newParams.mot = currentMot;
     // newParams.mot = currentMot;
     // newParams['resolve-hops'] = resolveHops;
     if (Object.keys(currentStopsGeoJSON).length !== 0) {

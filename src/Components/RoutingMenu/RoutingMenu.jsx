@@ -130,6 +130,7 @@ function RoutingMenu({
   // isActiveRoute,
   onZoomRouteClick,
   onPanViaClick,
+  // onDrawNewRoute,
 }) {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -159,11 +160,14 @@ function RoutingMenu({
     return currentMotsArray;
   };
 
+  // Currently no 'coach' mot available for stop finder.
+  // const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
+
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
-  // const center = useSelector(state => state.MapReducer.center);
   const floorInfo = useSelector(state => state.MapReducer.floorInfo);
+  // const center = useSelector(state => state.MapReducer.center);
   const tracks = useSelector(state => state.MapReducer.tracks);
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
