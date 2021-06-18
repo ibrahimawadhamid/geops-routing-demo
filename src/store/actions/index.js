@@ -13,4 +13,5 @@ export {
   setDialogPosition,
   setDialogSize,
   setSearchMode,
+  setTracks,
 } from './Map';

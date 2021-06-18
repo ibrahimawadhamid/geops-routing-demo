@@ -12,7 +12,7 @@ describe('map reducer', () => {
       currentStopsGeoJSON: {},
       dialogPosition: {
         x: 10,
-        y: 190,
+        y: 280,
       },
       dialogSize: {
         height: 550,
@@ -24,7 +24,6 @@ describe('map reducer', () => {
       isFieldFocused: false,
       showLoadingBar: false,
       resolveHops: false,
-      routingElevation: 1,
       selectedRoutes: [],
     };
     Object.keys(test).forEach(state => {

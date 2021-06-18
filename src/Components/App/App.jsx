@@ -1,7 +1,6 @@
 import React from 'react';
-import { Provider } from 'react-redux';
 import PropTypes from 'prop-types';
-import store from '../../store/store';
+import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import MapComponent from '../MapComponent';
 import Permalink from '../Permalink';
 import NotificationHandler from '../NotificationHandler';
@@ -21,6 +20,21 @@ const defaultProps = {
   stationSearchUrl: 'https://api.geops.io/stops/dev/',
 };
 
+const fontSize = '1rem';
+const color = '#515151';
+const theme = createMuiTheme({
+  typography: {
+    body: { fontSize },
+    button: { fontSize },
+    h1: { fontSize: '1.2rem', color },
+    h2: { fontSize, color },
+    h3: { fontSize, color },
+    h4: { fontSize, color },
+    h5: { fontSize, color },
+    h6: { fontSize, color },
+  },
+});
+
 /**
  * Root component of the application that holds all other sub-components.
  * @param {string[]} mots List of mots to be available (ex: ['bus', 'train'])
@@ -32,7 +46,7 @@ function App(props) {
   const apiKey = process.env.REACT_APP_API_KEY;
 
   return (
-    <Provider store={store}>
+    <ThemeProvider theme={theme}>
       <Permalink
         mots={mots}
         APIKey={apiKey}
@@ -45,7 +59,7 @@ function App(props) {
         stationSearchUrl={stationSearchUrl}
       />
       <NotificationHandler />
-    </Provider>
+    </ThemeProvider>
   );
 }
 

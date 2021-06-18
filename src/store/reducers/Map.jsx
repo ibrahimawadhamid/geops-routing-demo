@@ -18,7 +18,7 @@ const initialState = {
   isRouteInfoOpen: false,
   dialogPosition: {
     x: 10,
-    y: 190,
+    y: 280,
   },
   dialogSize: {
     height: 550,
@@ -27,9 +27,9 @@ const initialState = {
   olMap: new Map({
     controls: [],
   }),
-  routingElevation: 1,
   resolveHops: false,
   searchMode: SEARCH_MODES[0],
+  tracks: [null, null],
 };
 
 const setCenter = (state, action) => {
@@ -167,9 +167,9 @@ const setDialogSize = (state, action) => {
   };
 };
 
-const setRoutingElevation = (state, action) => {
+const setResolveHops = (state, action) => {
   const updatedState = {
-    routingElevation: action.routingElevation,
+    resolveHops: action.resolveHops,
   };
   return {
     ...state,
@@ -177,9 +177,9 @@ const setRoutingElevation = (state, action) => {
   };
 };
 
-const setResolveHops = (state, action) => {
+const setTracks = (state, action) => {
   const updatedState = {
-    resolveHops: action.resolveHops,
+    tracks: action.tracks,
   };
   return {
     ...state,
@@ -225,12 +225,12 @@ const reducer = (state = initialState, action) => {
       return setDialogPosition(state, action);
     case actionTypes.SET_DIALOG_SIZE:
       return setDialogSize(state, action);
-    case actionTypes.SET_ROUTING_ELEVATION:
-      return setRoutingElevation(state, action);
-    case actionTypes.SET_RESOLVE_HOPS:
-      return setResolveHops(state, action);
     case actionTypes.SET_SEARCH_MODE:
       return setSearchMode(state, action);
+    case actionTypes.SET_RESOLVE_HOPS:
+      return setResolveHops(state, action);
+    case actionTypes.SET_TRACKS:
+      return setTracks(state, action);
     default:
       return state;
   }
