@@ -163,7 +163,7 @@ const lineStyleFunction = (mot, isHovered, floor) => {
   if (mot === 'footGeops') {
     const floorColor = floorsColor[floor];
     const stroke = floorColor && floorColor.length ? floorColor : 'blue';
-    return lineStyler([[stroke, isHovered ? 5 : 7]]);
+    return lineStyler([[stroke, isHovered ? 5 : 7, [1, 10]]]);
   }
   if (mot === 'car') {
     return isHovered ? carLineHoveredStyle : carLineStyle;
