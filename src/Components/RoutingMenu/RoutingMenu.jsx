@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-// import Checkbox from '@material-ui/core/Checkbox';
+import Checkbox from '@material-ui/core/Checkbox';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -10,13 +10,11 @@ import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import LinearProgress from '@material-ui/core/LinearProgress';
-/*
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 import Grid from '@material-ui/core/Grid';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import InfoIcon from '@material-ui/icons/Info';
-*/
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
@@ -27,26 +25,23 @@ import {
   setCurrentStops,
   setCurrentStopsGeoJSON,
   setCurrentMot,
-  // showNotification,
+  showNotification,
   setFloorInfo,
   setIsFieldFocused,
   setShowLoadingBar,
   setSelectedRoutes,
   setSearchMode,
-  // setIsRouteInfoOpen,
+  setIsRouteInfoOpen,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
 import {
+  VALID_MOTS,
   DEFAULT_MOTS,
   OTHER_MOTS,
   SEARCH_MODES,
-  // GRAPHHOPPER_MOTS
+  GRAPHHOPPER_MOTS,
 } from '../../constants';
-import {
-  // to4326,
-  to3857,
-  findMotIcon,
-} from '../../utils';
+import { to4326, to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 
@@ -117,7 +112,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-// let abortController = new AbortController();
+let abortController = new AbortController();
 
 /**
  * The routing menu that controls station search
@@ -125,12 +120,12 @@ const useStyles = makeStyles(() => ({
  */
 function RoutingMenu({
   mots,
-  // stationSearchUrl,
-  // APIKey,
-  // isActiveRoute,
+  stationSearchUrl,
+  APIKey,
+  isActiveRoute,
   onZoomRouteClick,
   onPanViaClick,
-  // onDrawNewRoute,
+  onDrawNewRoute,
 }) {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -157,17 +152,23 @@ function RoutingMenu({
           });
         }
       });
+    if (currentMotsArray.length === 0) {
+      currentMotsArray.push({
+        name: VALID_MOTS[0],
+        icon: findMotIcon(VALID_MOTS[0]),
+      });
+    }
     return currentMotsArray;
   };
 
   // Currently no 'coach' mot available for stop finder.
-  // const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
+  const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
 
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
 
   const floorInfo = useSelector(state => state.MapReducer.floorInfo);
-  // const center = useSelector(state => state.MapReducer.center);
+  const center = useSelector(state => state.MapReducer.center);
   const tracks = useSelector(state => state.MapReducer.tracks);
   const clickLocation = useSelector(state => state.MapReducer.clickLocation);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
@@ -190,9 +191,9 @@ function RoutingMenu({
 
   const [currentMots] = useState(currentMotsVal);
   const [otherMots] = useState(otherMotsVal);
-  const [, setLastChangedFieldIdx] = useState(null);
+  const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
-  // const [searchMotOnly, setSearchMotOnly] = React.useState(true);
+  const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
@@ -423,7 +424,7 @@ function RoutingMenu({
     // const updatedFloorInfo = _.clone(floorInfo);
     // console.log('before', updatedFloorInfo);
     updatedCurrentStops.forEach((stop, idx) => {
-      if (typeof stop === 'string' && stop !== '') {
+      if (typeof stop === 'string' && stop !== '' && stop.includes(',')) {
         // Convert the string to point and filter floor info
         const coords = stop.split(',');
         const newPoint = coords.includes(0) ? [] : to3857(coords);
@@ -459,7 +460,7 @@ function RoutingMenu({
     // Need to be supported when add/remove stop later on.
     // console.log('search setFloorInfo', updatedFloorInfo);
     // dispatch(setFloorInfo(updatedFloorInfo));
-    /*
+
     abortController.abort();
     abortController = new AbortController();
     const { signal } = abortController;
@@ -495,10 +496,8 @@ function RoutingMenu({
         // For example, any error thrown by setState(), will pass through here.
         throw err;
       });
-    */
   };
 
-  /*
   const retriggerSearch = () => {
     if (lastChangedFieldIdx === null) {
       return;
@@ -512,7 +511,6 @@ function RoutingMenu({
       lastChangedFieldIdx,
     );
   };
-  */
 
   /**
    * The user makes changes to the current search. Either select the first result,
@@ -703,25 +701,27 @@ function RoutingMenu({
               </Select>
             </FormControl>
           ) : null}
-          <FormControl className={classes.dropDown}>
-            <Select
-              renderValue={val => val}
-              className={classes.select}
-              classes={{ root: classes.selectInput }}
-              labelId="rd-other-mot-label"
-              value={searchMode}
-              disableUnderline
-              onChange={evt => dispatch(setSearchMode(evt.target.value))}
-            >
-              {SEARCH_MODES.map(option => {
-                return (
-                  <MenuItem value={option} key={option}>
-                    {option}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
+          {currentMot === 'footGeops' ? (
+            <FormControl className={classes.dropDown}>
+              <Select
+                renderValue={val => val}
+                className={classes.select}
+                classes={{ root: classes.selectInput }}
+                labelId="rd-other-mot-label"
+                value={searchMode}
+                disableUnderline
+                onChange={evt => dispatch(setSearchMode(evt.target.value))}
+              >
+                {SEARCH_MODES.map(option => {
+                  return (
+                    <MenuItem value={option} key={option}>
+                      {option}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          ) : null}
         </div>
         <TabPanel>
           <DragDropContext onDragEnd={onDragEnd}>
@@ -762,9 +762,9 @@ function RoutingMenu({
                             inputReference={elRefs.current[index]}
                             addNewSearchFieldHandler={addNewSearchFieldHandler}
                             currentStops={currentStops}
+                            currentMot={currentMot}
                             removeSearchFieldHandler={removeSearchFieldHandler}
                             searchStopsHandler={searchStopsHandler}
-                            // searchStopsHandler={() => {}}
                             singleStop={item}
                             processHighlightedResultSelectHandler={
                               processHighlightedResultSelectHandler
@@ -781,7 +781,6 @@ function RoutingMenu({
               )}
             </Droppable>
           </DragDropContext>
-          {/*
           <div className="rd-mot-checkbox">
             <Checkbox
               className={classes.checkbox}
@@ -795,8 +794,6 @@ function RoutingMenu({
             />
             <span>Search only selected mode of transport</span>
           </div>
-          */}
-          {/*
           <div className="rd-route-buttons">
             <Grid item xs={6}>
               <Tooltip title="Zoom to the route">
@@ -817,32 +814,33 @@ function RoutingMenu({
                 </Button>
               </Tooltip>
             </Grid>
-            <Grid item xs={6}>
-              <Tooltip title="Route information">
-                <Button
-                  onClick={() => {
-                    onDrawNewRoute(true).then(() => {
-                      dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
-                    });
-                  }}
-                  aria-label="Route information"
-                  disabled={!isActiveRoute}
-                  component={isActiveRoute ? undefined : 'span'}
-                  variant="contained"
-                  color="default"
-                  className={isRouteInfoOpen ? 'rd-button-active' : ''}
-                  classes={{
-                    root: 'rd-button-root',
-                    disabled: 'rd-button-disabled',
-                  }}
-                  startIcon={<InfoIcon fontSize="small" />}
-                >
-                  <Typography>Route information</Typography>
-                </Button>
-              </Tooltip>
-            </Grid>
+            {currentMot !== 'footGeops' ? (
+              <Grid item xs={6}>
+                <Tooltip title="Route information">
+                  <Button
+                    onClick={() => {
+                      onDrawNewRoute(true).then(() => {
+                        dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                      });
+                    }}
+                    aria-label="Route information"
+                    disabled={!isActiveRoute}
+                    component={isActiveRoute ? undefined : 'span'}
+                    variant="contained"
+                    color="default"
+                    className={isRouteInfoOpen ? 'rd-button-active' : ''}
+                    classes={{
+                      root: 'rd-button-root',
+                      disabled: 'rd-button-disabled',
+                    }}
+                    startIcon={<InfoIcon fontSize="small" />}
+                  >
+                    <Typography>Route information</Typography>
+                  </Button>
+                </Tooltip>
+              </Grid>
+            ) : null}
           </div>
-          */}
         </TabPanel>
       </Paper>
       <SearchResults

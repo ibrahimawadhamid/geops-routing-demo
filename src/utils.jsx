@@ -20,6 +20,9 @@ export const findMotIcon = name => {
     case 'foot':
       result = <DirectionsWalkIcon />;
       break;
+    case 'footGeops':
+      result = <DirectionsWalkIcon />;
+      break;
     default:
       result = <DirectionsBusIcon />;
       break;

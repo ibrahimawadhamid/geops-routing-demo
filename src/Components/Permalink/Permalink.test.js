@@ -84,11 +84,9 @@ describe('Permalink', () => {
       type: 'SET_CURRENT_MOT',
       currentMot: 'bus',
     });
-    /*
     expect(component.props().store.getActions()[2]).toEqual({
       type: 'SET_RESOLVE_HOPS',
       resolveHops: true,
     });
-    */
   });
 });

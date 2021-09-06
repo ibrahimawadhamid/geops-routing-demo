@@ -5,8 +5,8 @@ import * as types from '../actions/actionTypes';
 describe('map reducer', () => {
   it('should return the initial state', () => {
     const test = {
-      center: [828061.159762, 5933753.540488],
-      currentMot: 'foot',
+      center: [949042.143189, 5899715.591163],
+      currentMot: 'rail',
       floorInfo: [null, null],
       currentStops: ['', ''],
       currentStopsGeoJSON: {},

@@ -293,14 +293,14 @@ function RouteInfosDialog({
             />
           )}
           <Tooltip
-            cursor={hoveredPoint ? true : 'auto'}
+            cursor={hoveredPoint ? true : false}
             position={
               hoveredPoint
                 ? {
                     x: getTooltipX(hoveredPoint.distance, length),
                     y: getTooltipY(hoveredPoint.alt, maxAltitude),
                   }
-                : 'auto'
+                : null
             }
             content={content =>
               hoveredCoords

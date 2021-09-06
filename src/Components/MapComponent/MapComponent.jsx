@@ -14,7 +14,7 @@ import { Vector as VectorSource } from 'ol/source';
 import {
   defaults as defaultInteractions,
   Translate,
-  // Modify,
+  Modify,
 } from 'ol/interaction';
 import PropTypes from 'prop-types';
 import InfoIcon from '@material-ui/icons/Info';
@@ -32,7 +32,7 @@ import {
   propTypeCurrentStops,
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
-import { GRAPHHOPPER_MOTS, SEARCH_MODES } from '../../constants';
+import { GRAPHHOPPER_MOTS } from '../../constants';
 import { to4326 } from '../../utils';
 import './MapComponent.scss';
 import * as actions from '../../store/actions';
@@ -43,6 +43,7 @@ import * as actions from '../../store/actions';
  * @type {props}
  * @property {string} APIKey key obtained from geOps that enables you to used the previous API services.
  * @property {string} routingUrl The API routing url to be used for navigation.
+ * @property {string} pedestrianRoutingUrl The API routing url to be used for pedestrian navigation.
  * @property {string} currentMot The current selected mot by user, example 'bus'.
  * @property {Object} currentStopsGeoJSON The current stops defined by user in geojson format inside a dictionary, key is the stop index(order) and the value is the geoJSON itself.
  * @property {function} onShowNotification A store action that can be dispatched, takes the notification message and type as arguments.
@@ -51,7 +52,7 @@ import * as actions from '../../store/actions';
  */
 
 let abortController = new AbortController();
-const zoom = 17;
+const zoom = 6;
 
 /**
  * The only true map that shows inside the application.
@@ -229,7 +230,6 @@ class MapComponent extends Component {
       onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
     });
 
-    /*
     const modify = new Modify({
       source: this.routeVectorSource,
       pixelTolerance: 4,
@@ -341,12 +341,8 @@ class MapComponent extends Component {
       }
       this.initialRouteDrag = null;
     });
-    */
 
-    const interactions = defaultInteractions().extend([
-      translate,
-      // modify,
-    ]);
+    const interactions = defaultInteractions().extend([translate, modify]);
     interactions.getArray().forEach(interaction => {
       this.map.addInteraction(interaction);
     });
@@ -389,15 +385,25 @@ class MapComponent extends Component {
       }
     });
     this.map.on('pointermove', evt => {
+      const { currentMot } = this.props;
+
       if (this.hoveredFeature) {
         this.hoveredFeature = null;
         this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
       }
 
       if (this.hoveredRoute) {
-        this.routeVectorSource
-          .getFeatures()
-          .forEach(f => f.setStyle(lineStyleFunction(f.get('floor'), true)));
+        if (currentMot === 'footGeops') {
+          this.routeVectorSource
+            .getFeatures()
+            .forEach(f =>
+              f.setStyle(lineStyleFunction(currentMot, true, f.get('floor'))),
+            );
+        } else {
+          this.routeVectorLayer.olLayer.setStyle(
+            lineStyleFunction(currentMot, false),
+          );
+        }
         this.hoveredRoute = null;
         this.setState({
           hoveredPoint: null,
@@ -430,11 +436,6 @@ class MapComponent extends Component {
           )
         ) {
           this.hoveredRoute = feature;
-          /*
-          this.routeVectorSource
-            .getFeatures()
-            .forEach(f => f.setStyle(lineStyleFunction(f.get('floor')), true));
-          */
 
           this.setState({
             hoveredPoint: evt.coordinate,
@@ -477,14 +478,20 @@ class MapComponent extends Component {
         this.markerVectorSource.addFeatures(
           new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
         );
-        this.markerVectorSource.getFeatures().forEach((f, idx) => {
-          let floor = '0';
-          if (floorInfo[idx]) {
-            const floorNb = floorInfo[idx].match(FLOOR_REGEX_CAPTURE);
-            floor = floorNb ? floorNb[1] : '0';
-          }
-          f.setStyle(pointStyleFunction(floor));
-        });
+        if (currentMot === 'footGeops') {
+          this.markerVectorSource.getFeatures().forEach((f, idx) => {
+            let floor = '0';
+            if (floorInfo[idx]) {
+              const floorNb = floorInfo[idx].match(FLOOR_REGEX_CAPTURE);
+              floor = floorNb ? floorNb[1] : '0';
+            }
+            f.setStyle(pointStyleFunction(currentMot, floor));
+          });
+        } else {
+          this.markerVectorSource
+            .getFeatures()
+            .forEach(f => f.setStyle(pointStyleFunction(currentMot)));
+        }
       });
       // Remove the old route if exists
       this.routeVectorSource.clear();
@@ -536,21 +543,21 @@ class MapComponent extends Component {
    * two points/stations, if a route is found, it's returned and drawn to the map.
    * @category Map
    */
-  // drawNewRoute = (useElevation) => {
-  drawNewRoute = () => {
+  drawNewRoute = useElevation => {
     const hops = [];
     const {
       currentStopsGeoJSON,
       routingUrl,
+      pedestrianRoutingUrl,
       currentMot,
-      // APIKey,
+      APIKey,
+      resolveHops,
       floorInfo,
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoutes,
-      searchMode,
       tracks,
-      // isRouteInfoOpen,
+      isRouteInfoOpen,
     } = this.props;
 
     onSetShowLoadingBar(true);
@@ -563,7 +570,7 @@ class MapComponent extends Component {
           `${to4326(currentStopsGeoJSON[key].features[0].geometry.coordinates)
             .slice()
             .reverse()}${
-            floorInfo[idx] !== null
+            floorInfo && floorInfo[idx] !== null
               ? `${floorInfo[idx] ? `$${floorInfo[idx]}` : ''}`
               : ''
           }`,
@@ -585,17 +592,15 @@ class MapComponent extends Component {
     abortController = new AbortController();
     const { signal } = abortController;
 
-    let reqUrl = `${routingUrl}?via=${hops.join(
-      '|',
-    )}&barrierefrei=${searchMode === SEARCH_MODES[1]}`;
-    // const calculateElevation = !!(isRouteInfoOpen || useElevation);
-    // const reqUrl =
-    //   `${routingUrl}?via=${hops.join(
-    //     '|',
-    //   )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
-    //   `&elevation=${calculateElevation ? 1 : 0}` +
-    //   `&interpolate_elevation=${calculateElevation}` +
-    //   `&length=true&coord-radius=100.0&coord-punish=1000.0`;
+    const calculateElevation = !!(isRouteInfoOpen || useElevation);
+    let reqUrl =
+      `${currentMot === 'footGeops' ? pedestrianRoutingUrl : routingUrl}` +
+      `?via=${hops.join(
+        '|',
+      )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
+      `&elevation=${calculateElevation ? 1 : 0}` +
+      `&interpolate_elevation=${calculateElevation}` +
+      `&length=true&coord-radius=100.0&coord-punish=1000.0`;
 
     const { graph } = qs.parse(window.location.search);
 
@@ -620,18 +625,18 @@ class MapComponent extends Component {
         });
         this.routeVectorSource.addFeatures(format.readFeatures(response));
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
-        // !
-        // onSetSelectedRoute(this.routeVectorSource.getFeatures()[0]);
 
         this.routeVectorSource
           .getFeatures()
-          .forEach(f => f.setStyle(lineStyleFunction(f.get('floor'), false)));
-        /*
+          .forEach(f =>
+            f.setStyle(lineStyleFunction(currentMot, false, f.get('floor'))),
+          );
+
         onSetSelectedRoutes(this.routeVectorSource.getFeatures());
+
         this.routeVectorLayer.olLayer.setStyle(
           lineStyleFunction(currentMot, false),
         );
-        */
       })
       .catch(err => {
         if (err.name === 'AbortError') {
@@ -655,6 +660,7 @@ class MapComponent extends Component {
     const {
       center,
       mots,
+      currentMot,
       APIKey,
       selectedRoutes,
       isRouteInfoOpen,
@@ -698,20 +704,23 @@ class MapComponent extends Component {
             projection: this.projection,
           }}
         />
-        <IconButton
-          onClick={() => this.setState({ isInfoOpen: !isInfoOpen })}
-          className="rd-info-button"
-          aria-label="Information"
-          size="big"
-        >
-          <InfoIcon fontSize="big" color="primary" />
-        </IconButton>
+        {currentMot === 'footGeops' ? (
+          <IconButton
+            onClick={() => this.setState({ isInfoOpen: !isInfoOpen })}
+            className="rd-info-button"
+            aria-label="Information"
+          >
+            <InfoIcon color="primary" />
+          </IconButton>
+        ) : null}
         {isInfoOpen ? (
           <PlanInfosDialog
             onClose={() => this.setState({ isInfoOpen: false })}
           />
         ) : null}
-        {isRouteInfoOpen && selectedRoutes.length ? (
+        {isRouteInfoOpen &&
+        selectedRoutes.length &&
+        currentMot !== 'footGeops' ? (
           <RouteInfosDialog
             routes={selectedRoutes}
             hoveredCoords={hoveredPoint}
@@ -763,12 +772,13 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-MapComponent.defaultProps = {};
+MapComponent.defaultProps = {
+  center: [47.99822, 7.84049],
+};
 
 MapComponent.propTypes = {
-  center: propTypeCoordinates.isRequired,
+  center: propTypeCoordinates,
   floorInfo: PropTypes.arrayOf(PropTypes.string).isRequired,
-  // selectedRoute: PropTypes.instanceOf(Feature),
   selectedRoutes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
   isRouteInfoOpen: PropTypes.bool.isRequired,
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -786,8 +796,9 @@ MapComponent.propTypes = {
   currentStopsGeoJSON: propTypeCurrentStopsGeoJSON.isRequired,
   isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
+  pedestrianRoutingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
-  // resolveHops: PropTypes.bool.isRequired,
+  resolveHops: PropTypes.bool.isRequired,
   tracks: PropTypes.arrayOf(PropTypes.string).isRequired,
   olMap: PropTypes.instanceOf(Map).isRequired,
   searchMode: PropTypes.string.isRequired,

@@ -11,7 +11,7 @@ import {
   setCurrentMot,
   setCenter,
   setFloorInfo,
-  // setResolveHops,
+  setResolveHops,
   setTracks,
 } from '../../store/actions/Map';
 
@@ -48,7 +48,7 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
           {
             type: 'Feature',
             properties: {
-              id: coords3857.slice().reverse(),
+              id: coords3857,
               type: 'coordinates',
             },
             geometry: {
@@ -118,15 +118,13 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
   const center = useSelector(state => state.MapReducer.center);
   const tracks = useSelector(state => state.MapReducer.tracks);
   const appState = useSelector(state => state.MapReducer);
-  // const currentMot = useSelector(state => state.MapReducer.currentMot);
+  const currentMot = useSelector(state => state.MapReducer.currentMot);
   const floorInfo = useSelector(state => state.MapReducer.floorInfo);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
   );
-  /*
   const resolveHops = useSelector(state => state.MapReducer.resolveHops);
-  */
   const map = appState.olMap;
   const [params, setParams] = useState({});
 
@@ -198,11 +196,9 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
         });
       }
 
-      /*
       if (urlSearch['resolve-hops']) {
         dispatch(setResolveHops(urlSearch['resolve-hops'] === 'true'));
       }
-      */
     }
     setParams(newParams);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -223,19 +219,19 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       })
       .join(',');
 
-    // newParams.mot = currentMot;
-    // newParams['resolve-hops'] = resolveHops;
+    newParams.mot = currentMot;
+    newParams['resolve-hops'] = resolveHops;
     if (Object.keys(currentStopsGeoJSON).length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON, tracks);
     }
     setParams(newParams);
   }, [
-    // currentMot,
+    currentMot,
     floorInfo,
     currentStops,
     currentStopsGeoJSON,
     center,
-    // resolveHops,
+    resolveHops,
     map,
     tracks,
   ]);

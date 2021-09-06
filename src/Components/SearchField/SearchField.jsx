@@ -58,6 +58,7 @@ function SearchField(props) {
     index,
     addNewSearchFieldHandler,
     currentStops,
+    currentMot,
     removeSearchFieldHandler,
     searchStopsHandler,
     singleStop,
@@ -95,7 +96,6 @@ function SearchField(props) {
       </Tooltip>
     );
     searchFieldLabel = 'Start';
-    /*
     fieldRightIcon = (
       <Grid item xs={1} className={classes.buttonWrapper}>
         <Tooltip title="Add Hop">
@@ -111,8 +111,6 @@ function SearchField(props) {
         </Tooltip>
       </Grid>
     );
-    */
-    fieldRightIcon = null;
   } else if (index === currentStops.length - 1) {
     fieldLeftIcon = (
       <Tooltip title="Pan to the feature">
@@ -210,8 +208,12 @@ function SearchField(props) {
           }}
         />
       </Grid>
-      <FloorSelect index={index} />
-      <TrackSelect index={index} disabled={!isStationName} />
+      {currentMot === 'footGeops' || currentMot === 'foot' ? (
+        <FloorSelect index={index} />
+      ) : null}
+      {currentMot !== 'footGeops' && currentMot !== 'foot' ? (
+        <TrackSelect index={index} disabled={!isStationName} />
+      ) : null}
       {fieldRightIcon}
     </Grid>
   );
@@ -221,6 +223,7 @@ SearchField.propTypes = {
   index: PropTypes.number.isRequired,
   addNewSearchFieldHandler: PropTypes.func.isRequired,
   currentStops: propTypeCurrentStops,
+  currentMot: PropTypes.string.isRequired,
   removeSearchFieldHandler: PropTypes.func.isRequired,
   searchStopsHandler: PropTypes.func.isRequired,
   singleStop: PropTypes.oneOfType([
