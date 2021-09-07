@@ -85,7 +85,7 @@
     "docs": "./node_modules/.bin/jsdoc -c jsdoc.json",
     "eject": "react-scripts eject",
     "format": "prettier --write 'src/**/*.js' && eslint 'src/**/*.js' --fix",
-    "lint": "eslint src/**/* --ext .js,.jsx",
+    "lint": "eslint src/**/*.js src/**/*.jsx",
     "start": "react-scripts start",
     "test": "react-scripts test  --env=jsdom --transformIgnorePatterns \"/node_modules/(?!(ol|react-spatial)/).*/\""
   },
