@@ -293,7 +293,7 @@ function RouteInfosDialog({
             />
           )}
           <Tooltip
-            cursor={hoveredPoint ? true : false}
+            cursor={!!hoveredPoint}
             position={
               hoveredPoint
                 ? {
