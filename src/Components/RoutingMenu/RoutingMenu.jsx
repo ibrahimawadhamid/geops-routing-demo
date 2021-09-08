@@ -813,32 +813,30 @@ function RoutingMenu({
                 </Button>
               </Tooltip>
             </Grid>
-            {currentMot !== 'foot' ? (
-              <Grid item xs={6}>
-                <Tooltip title="Route information">
-                  <Button
-                    onClick={() => {
-                      onDrawNewRoute(true).then(() => {
-                        dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
-                      });
-                    }}
-                    aria-label="Route information"
-                    disabled={!isActiveRoute}
-                    component={isActiveRoute ? undefined : 'span'}
-                    variant="contained"
-                    color="default"
-                    className={isRouteInfoOpen ? 'rd-button-active' : ''}
-                    classes={{
-                      root: 'rd-button-root',
-                      disabled: 'rd-button-disabled',
-                    }}
-                    startIcon={<InfoIcon fontSize="small" />}
-                  >
-                    <Typography>Route information</Typography>
-                  </Button>
-                </Tooltip>
-              </Grid>
-            ) : null}
+            <Grid item xs={6}>
+              <Tooltip title="Route information">
+                <Button
+                  onClick={() => {
+                    onDrawNewRoute(true).then(() => {
+                      dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                    });
+                  }}
+                  aria-label="Route information"
+                  disabled={!isActiveRoute}
+                  component={isActiveRoute ? undefined : 'span'}
+                  variant="contained"
+                  color="default"
+                  className={isRouteInfoOpen ? 'rd-button-active' : ''}
+                  classes={{
+                    root: 'rd-button-root',
+                    disabled: 'rd-button-disabled',
+                  }}
+                  startIcon={<InfoIcon fontSize="small" />}
+                >
+                  <Typography>Route information</Typography>
+                </Button>
+              </Tooltip>
+            </Grid>
           </div>
         </TabPanel>
       </Paper>

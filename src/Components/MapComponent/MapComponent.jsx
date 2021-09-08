@@ -708,7 +708,7 @@ class MapComponent extends Component {
             onClose={() => this.setState({ isInfoOpen: false })}
           />
         ) : null}
-        {isRouteInfoOpen && selectedRoutes.length && currentMot !== 'foot' ? (
+        {isRouteInfoOpen && selectedRoutes.length ? (
           <RouteInfosDialog
             routes={selectedRoutes}
             hoveredCoords={hoveredPoint}
