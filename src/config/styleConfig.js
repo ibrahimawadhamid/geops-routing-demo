@@ -102,7 +102,7 @@ const pointStyleFunction = (mot, floor) => {
   if (mot === 'bus') {
     return busPointStyle;
   }
-  if (mot === 'footGeops') {
+  if (mot === 'foot') {
     return pedestrianGeopsPointStyle(floor);
   }
   return othersPointStyle;
@@ -115,7 +115,7 @@ const lineStyleFunction = (mot, isHovered, floor) => {
   if (mot === 'bus') {
     return isHovered ? busLineHoveredStyle : busLineStyle;
   }
-  if (mot === 'footGeops') {
+  if (mot === 'foot') {
     const floorColor = floorsColor[floor];
     const stroke = floorColor && floorColor.length ? floorColor : 'blue';
     return lineStyler([[stroke, isHovered ? 5 : 7, [1, 10]]]);

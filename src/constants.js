@@ -3,7 +3,7 @@
  * @type {string[]}
  * @category Constants
  */
-export const DEFAULT_MOTS = ['rail', 'bus', 'footGeops'];
+export const DEFAULT_MOTS = ['rail', 'bus', 'foot'];
 
 export const OTHER_MOTS = [
   'tram',

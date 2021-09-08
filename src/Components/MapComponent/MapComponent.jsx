@@ -385,7 +385,7 @@ class MapComponent extends Component {
       }
 
       if (this.hoveredRoute) {
-        if (currentMot === 'footGeops') {
+        if (currentMot === 'foot') {
           this.routeVectorSource
             .getFeatures()
             .forEach(f =>
@@ -470,7 +470,7 @@ class MapComponent extends Component {
         this.markerVectorSource.addFeatures(
           new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
         );
-        if (currentMot === 'footGeops') {
+        if (currentMot === 'foot') {
           this.markerVectorSource.getFeatures().forEach((f, idx) => {
             let floor = '0';
             if (floorInfo[idx]) {
@@ -584,7 +584,7 @@ class MapComponent extends Component {
 
     const calculateElevation = !!(isRouteInfoOpen || useElevation);
     let reqUrl =
-      `${currentMot === 'footGeops' ? pedestrianRoutingUrl : routingUrl}` +
+      `${currentMot === 'foot' ? pedestrianRoutingUrl : routingUrl}` +
       `?via=${hops.join(
         '|',
       )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
@@ -694,7 +694,7 @@ class MapComponent extends Component {
             projection: this.projection,
           }}
         />
-        {currentMot === 'footGeops' ? (
+        {currentMot === 'foot' ? (
           <IconButton
             onClick={() => this.setState({ isInfoOpen: !isInfoOpen })}
             className="rd-info-button"
@@ -708,9 +708,7 @@ class MapComponent extends Component {
             onClose={() => this.setState({ isInfoOpen: false })}
           />
         ) : null}
-        {isRouteInfoOpen &&
-        selectedRoutes.length &&
-        currentMot !== 'footGeops' ? (
+        {isRouteInfoOpen && selectedRoutes.length && currentMot !== 'foot' ? (
           <RouteInfosDialog
             routes={selectedRoutes}
             hoveredCoords={hoveredPoint}

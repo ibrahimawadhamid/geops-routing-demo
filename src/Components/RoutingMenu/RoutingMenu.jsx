@@ -700,7 +700,7 @@ function RoutingMenu({
               </Select>
             </FormControl>
           ) : null}
-          {currentMot === 'footGeops' ? (
+          {currentMot === 'foot' ? (
             <FormControl className={classes.dropDown}>
               <Select
                 renderValue={val => val}
@@ -813,7 +813,7 @@ function RoutingMenu({
                 </Button>
               </Tooltip>
             </Grid>
-            {currentMot !== 'footGeops' ? (
+            {currentMot !== 'foot' ? (
               <Grid item xs={6}>
                 <Tooltip title="Route information">
                   <Button

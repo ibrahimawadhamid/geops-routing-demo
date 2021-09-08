@@ -17,7 +17,7 @@ export const findMotIcon = name => {
     case 'rail':
       result = <DirectionsRailwayIcon />;
       break;
-    case 'footGeops':
+    case 'foot':
       result = <DirectionsWalkIcon />;
       break;
     default:

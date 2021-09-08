@@ -13,9 +13,9 @@ describe('utils', () => {
         <DirectionsBusIcon />
       </span>,
     );
-    icon = findMotIcon('footGeops');
+    icon = findMotIcon('foot');
     expect(icon).toEqual(
-      <span title="FootGeops">
+      <span title="Foot">
         <DirectionsWalkIcon />
       </span>,
     );
