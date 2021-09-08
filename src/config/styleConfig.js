@@ -33,26 +33,6 @@ const busLineHoveredStyle = lineStyler([
   ['yellow', 4],
 ]);
 
-const pedestrianLineStyle = lineStyler([
-  ['rgb(96, 186, 219)', 6],
-  ['rgb(173, 216, 230)', 3],
-]);
-
-const pedestrianLineHoveredStyle = lineStyler([
-  ['rgb(96, 186, 219)', 7],
-  ['rgb(173, 216, 230)', 4],
-]);
-
-const carLineStyle = lineStyler([
-  ['grey', 6],
-  ['darkgrey', 3],
-]);
-
-const carLineHoveredStyle = lineStyler([
-  ['grey', 7],
-  ['darkgrey', 4],
-]);
-
 const othersLineStyle = lineStyler([
   ['darkblue', 6],
   ['blue', 3],
@@ -68,14 +48,6 @@ const railPointStyle = new Style({
     radius: 7,
     fill: new Fill({ color: 'red' }),
     stroke: new Stroke({ color: 'darkred', width: 2 }),
-  }),
-});
-
-const pedestrianPointStyle = new Style({
-  image: new Circle({
-    radius: 3,
-    fill: new Fill({ color: 'rgb(173, 216, 230)' }),
-    stroke: new Stroke({ color: 'rgb(96, 186, 219)', width: 2 }),
   }),
 });
 
@@ -107,14 +79,6 @@ const pedestrianGeopsPointStyle = floor => {
   });
 };
 
-const carPointStyle = new Style({
-  image: new Circle({
-    radius: 3,
-    fill: new Fill({ color: 'darkgrey' }),
-    stroke: new Stroke({ color: 'grey', width: 2 }),
-  }),
-});
-
 const busPointStyle = new Style({
   image: new Circle({
     radius: 7,
@@ -138,14 +102,8 @@ const pointStyleFunction = (mot, floor) => {
   if (mot === 'bus') {
     return busPointStyle;
   }
-  if (mot === 'foot') {
-    return pedestrianPointStyle;
-  }
   if (mot === 'footGeops') {
     return pedestrianGeopsPointStyle(floor);
-  }
-  if (mot === 'car') {
-    return carPointStyle;
   }
   return othersPointStyle;
 };
@@ -157,16 +115,10 @@ const lineStyleFunction = (mot, isHovered, floor) => {
   if (mot === 'bus') {
     return isHovered ? busLineHoveredStyle : busLineStyle;
   }
-  if (mot === 'foot') {
-    return isHovered ? pedestrianLineHoveredStyle : pedestrianLineStyle;
-  }
   if (mot === 'footGeops') {
     const floorColor = floorsColor[floor];
     const stroke = floorColor && floorColor.length ? floorColor : 'blue';
     return lineStyler([[stroke, isHovered ? 5 : 7, [1, 10]]]);
-  }
-  if (mot === 'car') {
-    return isHovered ? carLineHoveredStyle : carLineStyle;
   }
   return isHovered ? othersLineHoveredStyle : othersLineStyle;
 };

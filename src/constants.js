@@ -6,19 +6,15 @@
 export const DEFAULT_MOTS = ['rail', 'bus', 'footGeops'];
 
 export const OTHER_MOTS = [
-  'foot', // Graphhopper
   'tram',
   'coach',
   'subway',
   'gondola',
   'funicular',
   'ferry',
-  'car',
 ];
 
 export const VALID_MOTS = [...DEFAULT_MOTS, ...OTHER_MOTS];
-
-export const GRAPHHOPPER_MOTS = ['foot', 'car'];
 
 export const SEARCH_MODES = ['default', 'barrier-free'];
 

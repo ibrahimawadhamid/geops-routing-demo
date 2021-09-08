@@ -32,7 +32,6 @@ import {
   propTypeCurrentStops,
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
-import { GRAPHHOPPER_MOTS } from '../../constants';
 import { to4326 } from '../../utils';
 import './MapComponent.scss';
 import * as actions from '../../store/actions';
@@ -233,10 +232,6 @@ class MapComponent extends Component {
     const modify = new Modify({
       source: this.routeVectorSource,
       pixelTolerance: 4,
-      condition: () => {
-        const { currentMot } = this.props;
-        return !GRAPHHOPPER_MOTS.includes(currentMot);
-      },
       style: () => {
         const { currentMot } = this.props;
         return pointStyleFunction(currentMot);
@@ -255,7 +250,6 @@ class MapComponent extends Component {
       const { features } = this.initialRouteDrag;
       const {
         tracks,
-        currentMot,
         currentStops,
         currentStopsGeoJSON,
         onSetTracks,
@@ -267,37 +261,35 @@ class MapComponent extends Component {
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       let newHopIdx = -1;
 
-      // No drag for foot/car for now on.
-      if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
-        const flatCoords = features
-          .map(f => f.getGeometry())
-          .map(lineString => {
-            return [
-              ...lineString.getFirstCoordinate(),
-              ...lineString.getLastCoordinate(),
-            ];
-          });
-
-        const closestSegment = this.routeVectorSource
-          .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
-          .getGeometry();
-
-        const closestEdges = [
-          ...closestSegment.getFirstCoordinate(),
-          ...closestSegment.getLastCoordinate(),
-        ];
-
-        flatCoords.forEach((segment, idx) => {
-          if (
-            segment.length === closestEdges.length &&
-            segment.every((value, index) => {
-              return value === closestEdges[index];
-            })
-          ) {
-            newHopIdx = idx + 1;
-          }
+      // Drag
+      const flatCoords = features
+        .map(f => f.getGeometry())
+        .map(lineString => {
+          return [
+            ...lineString.getFirstCoordinate(),
+            ...lineString.getLastCoordinate(),
+          ];
         });
-      }
+
+      const closestSegment = this.routeVectorSource
+        .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
+        .getGeometry();
+
+      const closestEdges = [
+        ...closestSegment.getFirstCoordinate(),
+        ...closestSegment.getLastCoordinate(),
+      ];
+
+      flatCoords.forEach((segment, idx) => {
+        if (
+          segment.length === closestEdges.length &&
+          segment.every((value, index) => {
+            return value === closestEdges[index];
+          })
+        ) {
+          newHopIdx = idx + 1;
+        }
+      });
 
       if (newHopIdx >= 0) {
         updatedCurrentStops.splice(
@@ -575,7 +567,7 @@ class MapComponent extends Component {
               : ''
           }`,
         );
-      } else if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
+      } else {
         hops.push(
           `!${currentStopsGeoJSON[key].properties.uid}${
             tracks[idx] !== null
@@ -583,8 +575,6 @@ class MapComponent extends Component {
               : ''
           }`,
         );
-      } else {
-        hops.push(`${currentStopsGeoJSON[key].properties.name}`);
       }
     });
 
