@@ -11,9 +11,6 @@
     height: 100%;
 
     .rd-dialog-container {
-      height: 100%;
-      width: 100%;
-
       .rd-dialog-header {
         line-height: 50px;
         height: 50px;
@@ -37,10 +34,6 @@
         height: calc(100% - 50px);
         font-size: 12px;
         width: 100%;
-
-        span {
-          padding-left: 65px;
-        }
       }
     }
   }

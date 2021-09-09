@@ -17,11 +17,8 @@ import {
   Modify,
 } from 'ol/interaction';
 import PropTypes from 'prop-types';
-import InfoIcon from '@material-ui/icons/Info';
 import Snackbar from '@material-ui/core/Snackbar';
-import IconButton from '@material-ui/core/IconButton';
 import RoutingMenu, { FLOOR_REGEX, FLOOR_REGEX_CAPTURE } from '../RoutingMenu';
-import PlanInfosDialog from '../PlanInfosDialog';
 import RouteInfosDialog from '../RouteInfosDialog';
 import {
   lineStyleFunction,
@@ -88,7 +85,6 @@ class MapComponent extends Component {
       hoveredStationOpen: false,
       hoveredStationName: '',
       isActiveRoute: false,
-      isInfoOpen: false,
       hoveredPoint: null,
     };
 
@@ -650,7 +646,6 @@ class MapComponent extends Component {
     const {
       center,
       mots,
-      currentMot,
       APIKey,
       selectedRoutes,
       isRouteInfoOpen,
@@ -658,7 +653,6 @@ class MapComponent extends Component {
     } = this.props;
 
     const {
-      isInfoOpen,
       isActiveRoute,
       hoveredPoint,
       hoveredStationOpen,
@@ -694,20 +688,6 @@ class MapComponent extends Component {
             projection: this.projection,
           }}
         />
-        {currentMot === 'foot' ? (
-          <IconButton
-            onClick={() => this.setState({ isInfoOpen: !isInfoOpen })}
-            className="rd-info-button"
-            aria-label="Information"
-          >
-            <InfoIcon color="primary" />
-          </IconButton>
-        ) : null}
-        {isInfoOpen ? (
-          <PlanInfosDialog
-            onClose={() => this.setState({ isInfoOpen: false })}
-          />
-        ) : null}
         {isRouteInfoOpen && selectedRoutes.length ? (
           <RouteInfosDialog
             routes={selectedRoutes}
