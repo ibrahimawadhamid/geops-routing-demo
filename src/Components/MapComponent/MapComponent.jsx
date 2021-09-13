@@ -1,9 +1,8 @@
-import React, { Component, createRef } from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import qs from 'query-string';
-import ConfigReader from 'react-spatial/ConfigReader';
 import LayerService from 'react-spatial/LayerService';
-import Layer from 'react-spatial/layers/Layer';
+import { Layer, MapboxLayer } from 'mobility-toolbox-js/ol';
 import BasicMap from 'react-spatial/components/BasicMap';
 import { Map, Feature } from 'ol';
 import { Vector as VectorLayer } from 'ol/layer';
@@ -20,6 +19,7 @@ import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import RoutingMenu, { FLOOR_REGEX, FLOOR_REGEX_CAPTURE } from '../RoutingMenu';
 import RouteInfosDialog from '../RouteInfosDialog';
+import LevelLayer from '../../layers/LevelLayer';
 import {
   lineStyleFunction,
   pointStyleFunction,
@@ -77,7 +77,6 @@ class MapComponent extends Component {
     super(props);
     const { APIKey, onSetClickLocation, olMap } = this.props;
     this.map = olMap;
-    this.mapRef = createRef();
     this.hoveredFeature = null;
     this.hoveredRoute = null;
     this.initialRouteDrag = null;
@@ -92,19 +91,38 @@ class MapComponent extends Component {
 
     this.projection = 'EPSG:3857';
 
-    const layerService = new LayerService(
-      ConfigReader.readConfig([
-        {
-          name: 'Basemap',
-          visible: true,
-          isBaseLayer: true,
-          data: {
-            type: 'mapbox',
-            url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
+    const dataLayer = new MapboxLayer({
+      name: 'Basemap',
+      visible: true,
+      isBaseLayer: true,
+      url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
+    });
+
+    const layerService = new LayerService([dataLayer]);
+
+    // Define LevelLayer
+    const geschosseLayer = new Layer({
+      name: 'ch.sbb.geschosse',
+      visible: true,
+    });
+
+    geschosseLayer.children = [-4, -3, -2, -1, 0, '2D', 1, 2, 3, 4].map(
+      level => {
+        window[`level${level}`] = new LevelLayer({
+          name: `ch.sbb.geschosse${level}`,
+          visible: level === '2D',
+          mapboxLayer: dataLayer,
+          styleLayersFilter: ({ metadata }) =>
+            metadata && metadata['geops.filter'],
+          level,
+          properties: {
+            radioGroup: 'ch.sbb.geschosse-layer',
           },
-        },
-      ]),
+        });
+        return window[`level${level}`];
+      },
     );
+    layerService.addLayer(geschosseLayer);
 
     // Define route vectorLayer.
     this.routeVectorSource = new VectorSource({
@@ -515,8 +533,8 @@ class MapComponent extends Component {
   }
 
   onFeaturesHover(features) {
-    if (this.mapRef) {
-      this.mapRef.current.node.current.style.cursor = features.length
+    if (this.map.getTargetElement()) {
+      this.map.getTargetElement().style.cursor = features.length
         ? 'pointer'
         : 'inherit';
     }
@@ -676,7 +694,6 @@ class MapComponent extends Component {
           message={hoveredStationName}
         />
         <BasicMap
-          ref={this.mapRef}
           center={center}
           layers={this.layers}
           onMapMoved={evt => this.onMapMoved(evt)}
