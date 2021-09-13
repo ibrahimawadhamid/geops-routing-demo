@@ -115,7 +115,7 @@ class MapComponent extends Component {
       level => {
         window[`level${level}`] = new LevelLayer({
           name: `ch.sbb.geschosse${level}`,
-          visible: level === -1,
+          visible: level === '2D',
           mapboxLayer: dataLayer,
           styleLayersFilter: ({ metadata }) =>
             metadata && metadata['geops.filter'],
