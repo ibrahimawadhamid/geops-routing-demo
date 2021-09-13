@@ -13,7 +13,7 @@ const propTypes = {
 
 const useStyles = makeStyles(() => ({
   wrapper: {
-    width: '20%',
+    width: '12%',
     paddingLeft: '20px',
     paddingBottom: '4px',
   },
@@ -32,7 +32,7 @@ function FloorSelect({ index }) {
   return (
     <FormControl className={classes.wrapper}>
       <Select
-        renderValue={val => (val === '' ? 'No Floor' : val)}
+        renderValue={val => (val === '' ? '-' : val)}
         labelId="rd-floor-select-label"
         value={floor}
         displayEmpty
@@ -46,7 +46,7 @@ function FloorSelect({ index }) {
         {floors.map(fl => {
           return (
             <MenuItem value={fl} key={`floor-${fl}`}>
-              {fl === '' ? 'No Floor' : fl}
+              {fl === '' ? '-' : fl}
             </MenuItem>
           );
         })}
