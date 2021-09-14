@@ -671,6 +671,7 @@ class MapComponent extends Component {
     const {
       center,
       mots,
+      currentMot,
       APIKey,
       selectedRoutes,
       isRouteInfoOpen,
@@ -722,7 +723,9 @@ class MapComponent extends Component {
             }}
           />
         ) : null}
-        <FloorSwitcher />
+        {currentMot === 'foot' && this.map.getView().getZoom() >= 14 ? (
+          <FloorSwitcher />
+        ) : null}
       </>
     );
   }
