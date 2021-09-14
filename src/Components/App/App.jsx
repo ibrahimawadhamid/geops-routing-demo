@@ -11,7 +11,6 @@ const { api = 'v1' } = qs.parse(window.location.search);
 
 const propTypes = {
   routingUrl: PropTypes.string,
-  pedestrianRoutingUrl: PropTypes.string,
   stationSearchUrl: PropTypes.string,
   mots: PropTypes.arrayOf(PropTypes.string),
 };
@@ -19,7 +18,6 @@ const propTypes = {
 const defaultProps = {
   mots: VALID_MOTS,
   routingUrl: `https://api.geops.io/routing/${api}/`,
-  pedestrianRoutingUrl: `https://api.geops.io/routing/dev/`,
   stationSearchUrl: `https://api.geops.io/stops/${api}/`,
 };
 
@@ -42,11 +40,10 @@ const theme = createMuiTheme({
  * Root component of the application that holds all other sub-components.
  * @param {string[]} mots List of mots to be available (ex: ['bus', 'train'])
  * @param {string} routingUrl The API routing url to be used for navigation.
- * @param {string} pedestrianRoutingUrl The API routing url to be used for pedestrian navigation.
  * @param {string} stationSearchUrl The API station search URL to be used for searching for stations.
  */
 function App(props) {
-  const { mots, routingUrl, pedestrianRoutingUrl, stationSearchUrl } = props;
+  const { mots, routingUrl, stationSearchUrl } = props;
   const apiKey = process.env.REACT_APP_API_KEY;
 
   return (
@@ -59,7 +56,6 @@ function App(props) {
       <MapComponent
         mots={mots}
         routingUrl={routingUrl}
-        pedestrianRoutingUrl={pedestrianRoutingUrl}
         APIKey={apiKey}
         stationSearchUrl={stationSearchUrl}
       />
