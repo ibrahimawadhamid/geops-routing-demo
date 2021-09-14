@@ -19,7 +19,7 @@ const propTypes = {
 const defaultProps = {
   mots: VALID_MOTS,
   routingUrl: `https://api.geops.io/routing/${api}/`,
-  pedestrianRoutingUrl: `https://walking.geops.io/routing`,
+  pedestrianRoutingUrl: `https://api.geops.io/routing/dev/`,
   stationSearchUrl: `https://api.geops.io/stops/${api}/`,
 };
 
