@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import Checkbox from '@material-ui/core/Checkbox';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -161,7 +160,11 @@ function RoutingMenu({
   };
 
   // Currently no 'coach' mot available for stop finder.
-  const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
+  const handleStopFinderMot = mot => {
+    if (mot === 'coach') return 'bus';
+    if (mot === 'foot' || mot === 'car') return '';
+    return mot;
+  };
 
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
@@ -192,7 +195,6 @@ function RoutingMenu({
   const [otherMots] = useState(otherMotsVal);
   const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
-  const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
@@ -466,9 +468,9 @@ function RoutingMenu({
 
     const reqUrl = `${stationSearchUrl}?q=${
       event.target.value
-    }&key=${APIKey}${`&mots=${
-      searchMotOnly ? handleStopFinderMot(currentMot) : ''
-    }`}&ref_location=${to4326(center)
+    }&key=${APIKey}${`&mots=${handleStopFinderMot(
+      currentMot,
+    )}`}&ref_location=${to4326(center)
       .reverse()
       .join(',')}&limit=10`;
 
@@ -780,19 +782,6 @@ function RoutingMenu({
               )}
             </Droppable>
           </DragDropContext>
-          <div className="rd-mot-checkbox">
-            <Checkbox
-              className={classes.checkbox}
-              checked={searchMotOnly}
-              onChange={() => {
-                setSearchMotOnly(!searchMotOnly);
-                retriggerSearch(lastChangedFieldIdx);
-              }}
-              color="primary"
-              inputProps={{ 'aria-label': 'use only mot' }}
-            />
-            <span>Search only selected mode of transport</span>
-          </div>
           <div className="rd-route-buttons">
             <Grid item xs={6}>
               <Tooltip title="Zoom to the route">

@@ -39,7 +39,6 @@ import * as actions from '../../store/actions';
  * @type {props}
  * @property {string} APIKey key obtained from geOps that enables you to used the previous API services.
  * @property {string} routingUrl The API routing url to be used for navigation.
- * @property {string} pedestrianRoutingUrl The API routing url to be used for pedestrian navigation.
  * @property {string} currentMot The current selected mot by user, example 'bus'.
  * @property {Object} currentStopsGeoJSON The current stops defined by user in geojson format inside a dictionary, key is the stop index(order) and the value is the geoJSON itself.
  * @property {function} onShowNotification A store action that can be dispatched, takes the notification message and type as arguments.
@@ -75,7 +74,13 @@ class MapComponent extends Component {
    */
   constructor(props) {
     super(props);
-    const { APIKey, onSetClickLocation, olMap, activeFloor, layerService } = this.props;
+    const {
+      APIKey,
+      onSetClickLocation,
+      olMap,
+      activeFloor,
+      layerService,
+    } = this.props;
     this.map = olMap;
     this.hoveredFeature = null;
     this.hoveredRoute = null;
@@ -95,7 +100,7 @@ class MapComponent extends Component {
       name: 'Basemap',
       visible: true,
       isBaseLayer: true,
-      url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
+      url: `https://maps.geops.io/styles/base_bright_v2/style.json?key=${APIKey}`,
     });
 
     layerService.addLayer(dataLayer);
@@ -553,7 +558,6 @@ class MapComponent extends Component {
     const {
       currentStopsGeoJSON,
       routingUrl,
-      pedestrianRoutingUrl,
       currentMot,
       APIKey,
       resolveHops,
@@ -597,7 +601,7 @@ class MapComponent extends Component {
 
     const calculateElevation = !!(isRouteInfoOpen || useElevation);
     let reqUrl =
-      `${currentMot === 'foot' ? pedestrianRoutingUrl : routingUrl}` +
+      `${routingUrl}` +
       `?via=${hops.join(
         '|',
       )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
@@ -784,7 +788,6 @@ MapComponent.propTypes = {
   currentStopsGeoJSON: propTypeCurrentStopsGeoJSON.isRequired,
   isFieldFocused: PropTypes.bool.isRequired,
   routingUrl: PropTypes.string.isRequired,
-  pedestrianRoutingUrl: PropTypes.string.isRequired,
   currentMot: PropTypes.string.isRequired,
   resolveHops: PropTypes.bool.isRequired,
   tracks: PropTypes.arrayOf(PropTypes.string).isRequired,

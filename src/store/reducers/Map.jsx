@@ -44,16 +44,6 @@ const setCenter = (state, action) => {
   };
 };
 
-const setActiveFloor = (state, action) => {
-  const updatedState = {
-    activeFloor: action.activeFloor,
-  };
-  return {
-    ...state,
-    ...updatedState,
-  };
-};
-
 const setFloorInfo = (state, action) => {
   const updatedState = {
     floorInfo: action.floorInfo,

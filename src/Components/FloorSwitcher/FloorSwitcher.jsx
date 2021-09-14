@@ -54,7 +54,6 @@ class FloorSwitcher extends PureComponent {
 
   componentDidUpdate(prevProps) {
     const { center, map, dispatchShowNotification } = this.props;
-    const { floors } = this.state;
 
     if (prevProps.center !== center) {
       abortController.abort();
@@ -85,7 +84,6 @@ class FloorSwitcher extends PureComponent {
               'warning',
             );
           }
-          console.log(response.properties.availableLevels);
           this.setState({ floors: response.properties.availableLevels });
         })
         .catch(err => {
@@ -103,11 +101,8 @@ class FloorSwitcher extends PureComponent {
 
   selectFloor(floor) {
     const { dispatchSetActiveFloor, layerService } = this.props;
-    console.log(floor);
-    const layer = layerService.getLayer(`ch.sbb.geschosse${floor}`);
-    // layer.setVisible(true);
 
-    layerService.getLayer(`ch.sbb.geschosse`).children.forEach((layer) => {
+    layerService.getLayer(`ch.sbb.geschosse`).children.forEach(layer => {
       layer.setVisible(layer.key === `ch.sbb.geschosse${floor}`);
     });
 
@@ -172,8 +167,6 @@ class FloorSwitcher extends PureComponent {
     // if (isAppWidthSmallerThanS) {
     //   return this.renderMobilePicker(floors);
     // }
-
-    console.log('floors', floors, 'activeFloor', activeFloor);
 
     return (
       <ol className="tm-floor-switcher">
