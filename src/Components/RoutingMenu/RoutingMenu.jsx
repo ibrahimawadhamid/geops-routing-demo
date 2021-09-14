@@ -161,7 +161,11 @@ function RoutingMenu({
   };
 
   // Currently no 'coach' mot available for stop finder.
-  const handleStopFinderMot = mot => (mot === 'coach' ? 'bus' : mot);
+  const handleStopFinderMot = (mot) => {
+    if (mot === 'coach') return 'bus';
+    if (mot === 'foot' || mot === 'car') return '';
+    return mot;
+  };
 
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
