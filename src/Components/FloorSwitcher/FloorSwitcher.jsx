@@ -125,7 +125,7 @@ class FloorSwitcher extends PureComponent {
     let nextFloor = null;
 
     for (let i = 0; i < floors.length; i += 1) {
-      if (floors[i].name === selectedFloor.name) {
+      if (floors[i] === selectedFloor) {
         prevFloor = i > 0 ? floors[i - 1] : null;
         nextFloor = i < floors.length - 1 ? floors[i + 1] : null;
         break;
@@ -173,7 +173,7 @@ class FloorSwitcher extends PureComponent {
     return (
       <ol className="tm-floor-switcher">
         {floors.map(floor => (
-          <li key={floor.name}>
+          <li key={floor}>
             <FloorButton
               active={!!(activeFloor && floor === activeFloor)}
               floor={floor}

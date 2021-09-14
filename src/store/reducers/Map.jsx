@@ -5,7 +5,7 @@ import { SEARCH_MODES } from '../../constants';
 
 const initialState = {
   center: [949042.143189, 5899715.591163],
-  activeFloor: 0,
+  activeFloor: '0',
   currentMot: 'rail',
   floorInfo: [null, null],
   currentStops: ['', ''],
@@ -37,6 +37,16 @@ const initialState = {
 const setCenter = (state, action) => {
   const updatedState = {
     center: action.center,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
+const setActiveFloor = (state, action) => {
+  const updatedState = {
+    activeFloor: action.activeFloor,
   };
   return {
     ...state,
@@ -203,6 +213,8 @@ const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
       return setCenter(state, action);
+    case actionTypes.SET_ACTIVE_FLOOR:
+      return setActiveFloor(state, action);
     case actionTypes.SET_FLOOR_INFO:
       return setFloorInfo(state, action);
     case actionTypes.SET_CURRENT_STOPS:
