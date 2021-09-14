@@ -208,7 +208,9 @@ function SearchField(props) {
           }}
         />
       </Grid>
-      {currentMot === 'foot' ? <FloorSelect index={index} /> : null}
+      {currentMot === 'foot' ? (
+        <FloorSelect index={index} singleStop={singleStop} />
+      ) : null}
       {currentMot !== 'foot' ? (
         <TrackSelect index={index} disabled={!isStationName} />
       ) : null}

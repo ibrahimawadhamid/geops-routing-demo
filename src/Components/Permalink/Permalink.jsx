@@ -213,7 +213,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     newParams.floorInfo = floorInfo
       .map(f => {
         if (f) {
-          return f.replace('$', '');
+          return f.toString().replace('$', '');
         }
         return '';
       })

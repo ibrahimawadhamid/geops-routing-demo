@@ -492,7 +492,9 @@ class MapComponent extends Component {
           this.markerVectorSource.getFeatures().forEach((f, idx) => {
             let floor = '0';
             if (floorInfo[idx]) {
-              const floorNb = floorInfo[idx].match(FLOOR_REGEX_CAPTURE);
+              const floorNb = floorInfo[idx]
+                .toString()
+                .match(FLOOR_REGEX_CAPTURE);
               floor = floorNb ? floorNb[1] : '0';
             }
             f.setStyle(pointStyleFunction(currentMot, floor));
