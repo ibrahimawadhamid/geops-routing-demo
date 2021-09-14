@@ -192,7 +192,6 @@ function RoutingMenu({
   const [otherMots] = useState(otherMotsVal);
   const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
-  const [searchMotOnly, setSearchMotOnly] = React.useState(true);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
@@ -466,8 +465,7 @@ function RoutingMenu({
 
     const reqUrl = `${stationSearchUrl}?q=${
       event.target.value
-    }&key=${APIKey}${`&mots=${
-      searchMotOnly ? handleStopFinderMot(currentMot) : ''
+    }&key=${APIKey}${`&mots=${handleStopFinderMot(currentMot)
     }`}&ref_location=${to4326(center)
       .reverse()
       .join(',')}&limit=10`;
@@ -780,19 +778,6 @@ function RoutingMenu({
               )}
             </Droppable>
           </DragDropContext>
-          <div className="rd-mot-checkbox">
-            <Checkbox
-              className={classes.checkbox}
-              checked={searchMotOnly}
-              onChange={() => {
-                setSearchMotOnly(!searchMotOnly);
-                retriggerSearch(lastChangedFieldIdx);
-              }}
-              color="primary"
-              inputProps={{ 'aria-label': 'use only mot' }}
-            />
-            <span>Search only selected mode of transport</span>
-          </div>
           <div className="rd-route-buttons">
             <Grid item xs={6}>
               <Tooltip title="Zoom to the route">
