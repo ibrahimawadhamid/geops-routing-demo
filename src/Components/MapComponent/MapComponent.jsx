@@ -95,7 +95,7 @@ class MapComponent extends Component {
       name: 'Basemap',
       visible: true,
       isBaseLayer: true,
-      url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
+      url: `https://maps.geops.io/styles/base_bright_v2/style.json?key=${APIKey}`,
     });
 
     layerService.addLayer(dataLayer);
