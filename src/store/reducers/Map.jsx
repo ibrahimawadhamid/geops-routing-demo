@@ -1,9 +1,11 @@
 import { Map } from 'ol';
+import LayerService from 'react-spatial/LayerService';
 import * as actionTypes from '../actions/actionTypes';
 import { SEARCH_MODES } from '../../constants';
 
 const initialState = {
   center: [949042.143189, 5899715.591163],
+  activeFloor: 0,
   currentMot: 'rail',
   floorInfo: [null, null],
   currentStops: ['', ''],
@@ -29,11 +31,22 @@ const initialState = {
   resolveHops: false,
   searchMode: SEARCH_MODES[0],
   tracks: [null, null],
+  layerService: new LayerService([]),
 };
 
 const setCenter = (state, action) => {
   const updatedState = {
     center: action.center,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
+const setActiveFloor = (state, action) => {
+  const updatedState = {
+    activeFloor: action.activeFloor,
   };
   return {
     ...state,

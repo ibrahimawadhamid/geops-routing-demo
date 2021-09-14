@@ -7,6 +7,13 @@ export const setCenter = center => {
   };
 };
 
+export const setActiveFloor = activeFloor => {
+  return {
+    type: actionTypes.SET_ACTIVE_FLOOR,
+    activeFloor,
+  };
+};
+
 export const setFloorInfo = floorInfo => {
   return {
     type: actionTypes.SET_FLOOR_INFO,

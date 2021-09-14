@@ -1,5 +1,6 @@
 export {
   setCenter,
+  setActiveFloor,
   setFloorInfo,
   setCurrentStops,
   setCurrentStopsGeoJSON,

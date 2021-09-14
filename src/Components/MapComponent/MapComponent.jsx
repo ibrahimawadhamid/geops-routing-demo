@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import qs from 'query-string';
-import LayerService from 'react-spatial/LayerService';
 import { Layer, MapboxLayer } from 'mobility-toolbox-js/ol';
 import BasicMap from 'react-spatial/components/BasicMap';
 import { Map, Feature } from 'ol';
@@ -19,6 +18,7 @@ import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import RoutingMenu, { FLOOR_REGEX, FLOOR_REGEX_CAPTURE } from '../RoutingMenu';
 import RouteInfosDialog from '../RouteInfosDialog';
+import FloorSwitcher from '../FloorSwitcher';
 import LevelLayer from '../../layers/LevelLayer';
 import {
   lineStyleFunction,
@@ -75,7 +75,7 @@ class MapComponent extends Component {
    */
   constructor(props) {
     super(props);
-    const { APIKey, onSetClickLocation, olMap } = this.props;
+    const { APIKey, onSetClickLocation, olMap, activeFloor, layerService } = this.props;
     this.map = olMap;
     this.hoveredFeature = null;
     this.hoveredRoute = null;
@@ -98,7 +98,7 @@ class MapComponent extends Component {
       url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
     });
 
-    const layerService = new LayerService([dataLayer]);
+    layerService.addLayer(dataLayer);
 
     // Define LevelLayer
     const geschosseLayer = new Layer({
@@ -108,9 +108,9 @@ class MapComponent extends Component {
 
     geschosseLayer.children = [-4, -3, -2, -1, 0, '2D', 1, 2, 3, 4].map(
       level => {
-        window[`level${level}`] = new LevelLayer({
+        return new LevelLayer({
           name: `ch.sbb.geschosse${level}`,
-          visible: level === '2D',
+          visible: level === activeFloor,
           mapboxLayer: dataLayer,
           styleLayersFilter: ({ metadata }) =>
             metadata && metadata['geops.filter'],
@@ -119,7 +119,6 @@ class MapComponent extends Component {
             radioGroup: 'ch.sbb.geschosse-layer',
           },
         });
-        return window[`level${level}`];
       },
     );
     layerService.addLayer(geschosseLayer);
@@ -715,6 +714,7 @@ class MapComponent extends Component {
             }}
           />
         ) : null}
+        <FloorSwitcher />
       </>
     );
   }
@@ -723,6 +723,7 @@ class MapComponent extends Component {
 const mapStateToProps = state => {
   return {
     center: state.MapReducer.center,
+    activeFloor: state.MapReducer.activeFloor,
     floorInfo: state.MapReducer.floorInfo,
     selectedRoute: state.MapReducer.selectedRoute,
     selectedRoutes: state.MapReducer.selectedRoutes,
@@ -735,6 +736,7 @@ const mapStateToProps = state => {
     olMap: state.MapReducer.olMap,
     searchMode: state.MapReducer.searchMode,
     tracks: state.MapReducer.tracks,
+    layerService: state.MapReducer.layerService,
   };
 };
 
@@ -763,6 +765,7 @@ MapComponent.defaultProps = {
 
 MapComponent.propTypes = {
   center: propTypeCoordinates,
+  activeFloor: PropTypes.string.isRequired,
   floorInfo: PropTypes.arrayOf(PropTypes.string).isRequired,
   selectedRoutes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
   isRouteInfoOpen: PropTypes.bool.isRequired,
@@ -787,6 +790,7 @@ MapComponent.propTypes = {
   tracks: PropTypes.arrayOf(PropTypes.string).isRequired,
   olMap: PropTypes.instanceOf(Map).isRequired,
   searchMode: PropTypes.string.isRequired,
+  layerService: PropTypes.object.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);
