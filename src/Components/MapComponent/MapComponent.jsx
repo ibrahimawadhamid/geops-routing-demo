@@ -609,7 +609,7 @@ class MapComponent extends Component {
       `&elevation=${calculateElevation ? 1 : 0}` +
       `&interpolate_elevation=${calculateElevation}` +
       `&length=true&coord-radius=100.0&coord-punish=1000.0` +
-      `&barrierefrei=${searchMode === 'barrier-free' ? 'true': 'false'}`;
+      `&barrierefrei=${searchMode === 'barrier-free' ? 'true' : 'false'}`;
 
     const { graph } = qs.parse(window.location.search);
 
