@@ -74,7 +74,13 @@ class MapComponent extends Component {
    */
   constructor(props) {
     super(props);
-    const { APIKey, onSetClickLocation, olMap, activeFloor, layerService } = this.props;
+    const {
+      APIKey,
+      onSetClickLocation,
+      olMap,
+      activeFloor,
+      layerService,
+    } = this.props;
     this.map = olMap;
     this.hoveredFeature = null;
     this.hoveredRoute = null;

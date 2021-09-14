@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import Checkbox from '@material-ui/core/Checkbox';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -161,7 +160,7 @@ function RoutingMenu({
   };
 
   // Currently no 'coach' mot available for stop finder.
-  const handleStopFinderMot = (mot) => {
+  const handleStopFinderMot = mot => {
     if (mot === 'coach') return 'bus';
     if (mot === 'foot' || mot === 'car') return '';
     return mot;
@@ -469,8 +468,9 @@ function RoutingMenu({
 
     const reqUrl = `${stationSearchUrl}?q=${
       event.target.value
-    }&key=${APIKey}${`&mots=${handleStopFinderMot(currentMot)
-    }`}&ref_location=${to4326(center)
+    }&key=${APIKey}${`&mots=${handleStopFinderMot(
+      currentMot,
+    )}`}&ref_location=${to4326(center)
       .reverse()
       .join(',')}&limit=10`;
 

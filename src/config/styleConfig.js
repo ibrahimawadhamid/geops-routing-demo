@@ -70,7 +70,6 @@ const floorsColor = {
   '3': '#023E8A',
   '4.0': '#03045E',
   '4': '#03045E',
-
 };
 
 const pedestrianGeopsPointStyle = floor => {
