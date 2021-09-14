@@ -565,6 +565,7 @@ class MapComponent extends Component {
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoutes,
+      searchMode,
       tracks,
       isRouteInfoOpen,
     } = this.props;
@@ -607,7 +608,8 @@ class MapComponent extends Component {
       )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
       `&elevation=${calculateElevation ? 1 : 0}` +
       `&interpolate_elevation=${calculateElevation}` +
-      `&length=true&coord-radius=100.0&coord-punish=1000.0`;
+      `&length=true&coord-radius=100.0&coord-punish=1000.0` +
+      `&barrierefrei=${searchMode === 'barrier-free' ? 'true': 'false'}`;
 
     const { graph } = qs.parse(window.location.search);
 
