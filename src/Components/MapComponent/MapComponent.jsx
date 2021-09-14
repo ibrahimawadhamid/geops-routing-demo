@@ -582,7 +582,7 @@ class MapComponent extends Component {
           `${to4326(currentStopsGeoJSON[key].features[0].geometry.coordinates)
             .slice()
             .reverse()}${
-            floorInfo && floorInfo[idx] !== null
+            floorInfo && floorInfo[idx] !== null && floorInfo[idx] !== '-'
               ? `${floorInfo[idx] ? `$${floorInfo[idx]}` : ''}`
               : ''
           }`,

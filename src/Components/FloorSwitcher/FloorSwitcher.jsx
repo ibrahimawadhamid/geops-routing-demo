@@ -48,7 +48,7 @@ class FloorSwitcher extends PureComponent {
     super(props);
 
     this.state = {
-      floors: [-4, -3, -2, -1, 0, '2D', 1, 2, 3, 4],
+      floors: ['-4', '-3', '-2', '-1', '0', '2D', '1', '2', '3', '4'],
     };
   }
 
@@ -84,7 +84,9 @@ class FloorSwitcher extends PureComponent {
               'warning',
             );
           }
-          this.setState({ floors: response.properties.availableLevels });
+          this.setState({
+            floors: response.properties.availableLevels.join().split(','),
+          });
         })
         .catch(err => {
           if (err.name === 'AbortError') {

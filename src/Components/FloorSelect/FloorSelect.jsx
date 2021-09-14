@@ -64,7 +64,8 @@ function FloorSelect({ index, singleStop }) {
               showNotification("Couldn't find available levels", 'warning'),
             );
           }
-          setFloors(response.properties.availableLevels);
+          // Use String levels
+          setFloors(response.properties.availableLevels.join().split(','));
         })
         .catch(err => {
           if (err.name === 'AbortError') {
