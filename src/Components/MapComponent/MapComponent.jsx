@@ -16,7 +16,7 @@ import {
 } from 'ol/interaction';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
-import RoutingMenu, { FLOOR_REGEX, FLOOR_REGEX_CAPTURE } from '../RoutingMenu';
+import RoutingMenu, { FLOOR_REGEX } from '../RoutingMenu';
 import RouteInfosDialog from '../RouteInfosDialog';
 import FloorSwitcher from '../FloorSwitcher';
 import LevelLayer from '../../layers/LevelLayer';
@@ -407,7 +407,14 @@ class MapComponent extends Component {
           this.routeVectorSource
             .getFeatures()
             .forEach(f =>
-              f.setStyle(lineStyleFunction(currentMot, true, f.get('floor'))),
+              f.setStyle(
+                lineStyleFunction(
+                  currentMot,
+                  true,
+                  f.get('floor'),
+                  activeFloor,
+                ),
+              ),
             );
         } else {
           this.routeVectorLayer.olLayer.setStyle(
@@ -468,6 +475,7 @@ class MapComponent extends Component {
       floorInfo,
       searchMode,
       tracks,
+      activeFloor,
     } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
     const tracksChanged = tracks !== prevProps.tracks;
@@ -476,12 +484,14 @@ class MapComponent extends Component {
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
+    const activeFloorChanged = activeFloor !== prevProps.activeFloor;
     if (
       floorInfoChanged ||
       currentMotChanged ||
       currentStopsGeoJSONChanged ||
       searchModeChanged ||
-      tracksChanged
+      tracksChanged ||
+      activeFloorChanged
     ) {
       this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
@@ -490,14 +500,9 @@ class MapComponent extends Component {
         );
         if (currentMot === 'foot') {
           this.markerVectorSource.getFeatures().forEach((f, idx) => {
-            let floor = '0';
-            if (floorInfo[idx]) {
-              const floorNb = floorInfo[idx]
-                .toString()
-                .match(FLOOR_REGEX_CAPTURE);
-              floor = floorNb ? floorNb[1] : '0';
-            }
-            f.setStyle(pointStyleFunction(currentMot, floor));
+            f.setStyle(
+              pointStyleFunction(currentMot, floorInfo[idx], activeFloor),
+            );
           });
         } else {
           this.markerVectorSource
@@ -570,6 +575,7 @@ class MapComponent extends Component {
       searchMode,
       tracks,
       isRouteInfoOpen,
+      activeFloor,
     } = this.props;
 
     onSetShowLoadingBar(true);
@@ -640,7 +646,9 @@ class MapComponent extends Component {
         this.routeVectorSource
           .getFeatures()
           .forEach(f =>
-            f.setStyle(lineStyleFunction(currentMot, false, f.get('floor'))),
+            f.setStyle(
+              lineStyleFunction(currentMot, false, f.get('floor'), activeFloor),
+            ),
           );
 
         onSetSelectedRoutes(this.routeVectorSource.getFeatures());

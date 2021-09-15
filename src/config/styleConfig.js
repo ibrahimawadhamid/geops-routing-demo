@@ -1,4 +1,10 @@
+/* eslint-disable no-restricted-globals */
 import { Style, Circle, Stroke, Fill } from 'ol/style';
+
+// Convert '0.0' to '0'
+const cleanFloor = floor => {
+  return !isNaN(floor) ? parseInt(floor, 10).toString() : floor;
+};
 
 const lineStyler = lineStyle => {
   return lineStyle.map(
@@ -52,31 +58,37 @@ const railPointStyle = new Style({
 });
 
 const floorsColor = {
-  '-4.0': '#CAF0F8',
   '-4': '#CAF0F8',
-  '-3.0': '#ADE8F4',
   '-3': '#ADE8F4',
-  '-2.0': '#90E0EF',
   '-2': '#90E0EF',
-  '-1.0': '#48CAE4',
   '-1': '#48CAE4',
-  '0.0': '#00B4D8',
   '0': '#00B4D8',
-  '1.0': '#0096C7',
   '1': '#0096C7',
-  '2.0': '#0077B6',
   '2': '#0077B6',
-  '3.0': '#023E8A',
   '3': '#023E8A',
-  '4.0': '#03045E',
   '4': '#03045E',
 };
 
-const pedestrianGeopsPointStyle = floor => {
+const floorsColorGrey = {
+  '-4': '#E6E6E6',
+  '-3': '#D8D8D8',
+  '-2': '#CACACA',
+  '-1': '#A7A7A7',
+  '0': '#848484',
+  '1': '#747474',
+  '2': '#646464',
+  '3': '#434343',
+  '4': '#222222',
+};
+
+const pedestrianGeopsPointStyle = (floor, activeFloor) => {
+  const f = cleanFloor(floor);
+  const floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
+
   return new Style({
     image: new Circle({
       radius: 8,
-      fill: new Fill({ color: floorsColor[floor] }),
+      fill: new Fill({ color: floorColor }),
     }),
   });
 };
@@ -97,7 +109,7 @@ const othersPointStyle = new Style({
   }),
 });
 
-const pointStyleFunction = (mot, floor) => {
+const pointStyleFunction = (mot, floor, activeFloor) => {
   if (mot === 'rail') {
     return railPointStyle;
   }
@@ -105,12 +117,12 @@ const pointStyleFunction = (mot, floor) => {
     return busPointStyle;
   }
   if (mot === 'foot') {
-    return pedestrianGeopsPointStyle(floor);
+    return pedestrianGeopsPointStyle(floor, activeFloor);
   }
   return othersPointStyle;
 };
 
-const lineStyleFunction = (mot, isHovered, floor) => {
+const lineStyleFunction = (mot, isHovered, floor, activeFloor) => {
   if (mot === 'rail') {
     return isHovered ? railLineHoveredStyle : railLineStyle;
   }
@@ -118,7 +130,8 @@ const lineStyleFunction = (mot, isHovered, floor) => {
     return isHovered ? busLineHoveredStyle : busLineStyle;
   }
   if (mot === 'foot') {
-    const floorColor = floorsColor[floor];
+    const f = cleanFloor(floor);
+    const floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
     const stroke = floorColor && floorColor.length ? floorColor : 'blue';
     return lineStyler([[stroke, isHovered ? 5 : 7, [1, 10]]]);
   }
