@@ -1,4 +1,10 @@
+/* eslint-disable no-restricted-globals */
 import { Style, Circle, Stroke, Fill } from 'ol/style';
+
+// Convert '0.0' to '0'
+const cleanFloor = floor => {
+  return !isNaN(floor) ? parseInt(floor, 10).toString() : floor;
+};
 
 const lineStyler = lineStyle => {
   return lineStyle.map(
@@ -33,26 +39,6 @@ const busLineHoveredStyle = lineStyler([
   ['yellow', 4],
 ]);
 
-const pedestrianLineStyle = lineStyler([
-  ['rgb(96, 186, 219)', 6],
-  ['rgb(173, 216, 230)', 3],
-]);
-
-const pedestrianLineHoveredStyle = lineStyler([
-  ['rgb(96, 186, 219)', 7],
-  ['rgb(173, 216, 230)', 4],
-]);
-
-const carLineStyle = lineStyler([
-  ['grey', 6],
-  ['darkgrey', 3],
-]);
-
-const carLineHoveredStyle = lineStyler([
-  ['grey', 7],
-  ['darkgrey', 4],
-]);
-
 const othersLineStyle = lineStyler([
   ['darkblue', 6],
   ['blue', 3],
@@ -71,21 +57,41 @@ const railPointStyle = new Style({
   }),
 });
 
-const pedestrianPointStyle = new Style({
-  image: new Circle({
-    radius: 3,
-    fill: new Fill({ color: 'rgb(173, 216, 230)' }),
-    stroke: new Stroke({ color: 'rgb(96, 186, 219)', width: 2 }),
-  }),
-});
+const floorsColor = {
+  '-4': '#CAF0F8',
+  '-3': '#ADE8F4',
+  '-2': '#90E0EF',
+  '-1': '#48CAE4',
+  '0': '#00B4D8',
+  '1': '#0096C7',
+  '2': '#0077B6',
+  '3': '#023E8A',
+  '4': '#03045E',
+};
 
-const carPointStyle = new Style({
-  image: new Circle({
-    radius: 3,
-    fill: new Fill({ color: 'darkgrey' }),
-    stroke: new Stroke({ color: 'grey', width: 2 }),
-  }),
-});
+const floorsColorGrey = {
+  '-4': '#E6E6E6',
+  '-3': '#D8D8D8',
+  '-2': '#CACACA',
+  '-1': '#A7A7A7',
+  '0': '#848484',
+  '1': '#747474',
+  '2': '#646464',
+  '3': '#434343',
+  '4': '#222222',
+};
+
+const pedestrianGeopsPointStyle = (floor, activeFloor) => {
+  const f = cleanFloor(floor);
+  const floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
+
+  return new Style({
+    image: new Circle({
+      radius: 8,
+      fill: new Fill({ color: floorColor }),
+    }),
+  });
+};
 
 const busPointStyle = new Style({
   image: new Circle({
@@ -103,7 +109,7 @@ const othersPointStyle = new Style({
   }),
 });
 
-const pointStyleFunction = mot => {
+const pointStyleFunction = (mot, floor, activeFloor) => {
   if (mot === 'rail') {
     return railPointStyle;
   }
@@ -111,15 +117,12 @@ const pointStyleFunction = mot => {
     return busPointStyle;
   }
   if (mot === 'foot') {
-    return pedestrianPointStyle;
-  }
-  if (mot === 'car') {
-    return carPointStyle;
+    return pedestrianGeopsPointStyle(floor, activeFloor);
   }
   return othersPointStyle;
 };
 
-const lineStyleFunction = (mot, isHovered) => {
+const lineStyleFunction = (mot, isHovered, floor, activeFloor) => {
   if (mot === 'rail') {
     return isHovered ? railLineHoveredStyle : railLineStyle;
   }
@@ -127,10 +130,10 @@ const lineStyleFunction = (mot, isHovered) => {
     return isHovered ? busLineHoveredStyle : busLineStyle;
   }
   if (mot === 'foot') {
-    return isHovered ? pedestrianLineHoveredStyle : pedestrianLineStyle;
-  }
-  if (mot === 'car') {
-    return isHovered ? carLineHoveredStyle : carLineStyle;
+    const f = cleanFloor(floor);
+    const floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
+    const stroke = floorColor && floorColor.length ? floorColor : 'blue';
+    return lineStyler([[stroke, 7, [1, 10]]]);
   }
   return isHovered ? othersLineHoveredStyle : othersLineStyle;
 };

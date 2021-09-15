@@ -25,6 +25,7 @@ describe('Permalink', () => {
         currentMot: 'rail',
         resolveHops: false,
         currentStops: ['', ''],
+        floorInfo: [null, null],
         currentStopsGeoJSON: {},
         olMap: new Map({
           controls: [],

@@ -3,6 +3,34 @@ import mapReducer from './Map';
 import * as types from '../actions/actionTypes';
 
 describe('map reducer', () => {
+  it('should return the initial state', () => {
+    const test = {
+      center: [949042.143189, 5899715.591163],
+      currentMot: 'rail',
+      floorInfo: [null, null],
+      currentStops: ['', ''],
+      currentStopsGeoJSON: {},
+      dialogPosition: {
+        x: 10,
+        y: 280,
+      },
+      dialogSize: {
+        height: 550,
+        width: 500,
+      },
+      clickLocation: null,
+      notificationMessage: '',
+      notificationType: 'info',
+      isFieldFocused: false,
+      showLoadingBar: false,
+      resolveHops: false,
+      selectedRoutes: [],
+    };
+    Object.keys(test).forEach(state => {
+      expect(mapReducer(undefined, {})[state]).toEqual(test[state]);
+    });
+  });
+
   it('should handle SET_CURRENT_MOT first time', () => {
     expect(
       mapReducer(

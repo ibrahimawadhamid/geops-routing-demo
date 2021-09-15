@@ -1,5 +1,7 @@
 export {
   setCenter,
+  setActiveFloor,
+  setFloorInfo,
   setCurrentStops,
   setCurrentStopsGeoJSON,
   setCurrentMot,
@@ -10,5 +12,7 @@ export {
   setSelectedRoutes,
   setIsRouteInfoOpen,
   setDialogPosition,
+  setDialogSize,
+  setSearchMode,
   setTracks,
 } from './Map';

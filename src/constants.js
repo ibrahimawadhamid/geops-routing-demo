@@ -12,12 +12,11 @@ export const OTHER_MOTS = [
   'gondola',
   'funicular',
   'ferry',
-  'car',
 ];
 
 export const VALID_MOTS = [...DEFAULT_MOTS, ...OTHER_MOTS];
 
-export const GRAPHHOPPER_MOTS = ['foot', 'car'];
+export const SEARCH_MODES = ['default', 'barrier-free'];
 
 export const ROUTING_BASE_URL = 'https://api.geops.io/routing/';
 

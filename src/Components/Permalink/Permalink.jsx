@@ -10,6 +10,7 @@ import {
   setCurrentStopsGeoJSON,
   setCurrentMot,
   setCenter,
+  setFloorInfo,
   setResolveHops,
   setTracks,
 } from '../../store/actions/Map';
@@ -118,6 +119,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
   const tracks = useSelector(state => state.MapReducer.tracks);
   const appState = useSelector(state => state.MapReducer);
   const currentMot = useSelector(state => state.MapReducer.currentMot);
+  const floorInfo = useSelector(state => state.MapReducer.floorInfo);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
@@ -149,6 +151,10 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
         const newMot = mots.find(mot => mot === urlSearch.mot) || mots[0];
         newParams.mot = newMot;
         dispatch(setCurrentMot(newMot));
+      }
+
+      if (urlSearch.floorInfo) {
+        dispatch(setFloorInfo(urlSearch.floorInfo.split(',')));
       }
 
       if (urlSearch.via) {
@@ -204,6 +210,15 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     newParams.z = map.getView().getZoom();
     [newParams.x] = center;
     [, newParams.y] = center;
+    newParams.floorInfo = floorInfo
+      .map(f => {
+        if (f) {
+          return f.toString().replace('$', '');
+        }
+        return '';
+      })
+      .join(',');
+
     newParams.mot = currentMot;
     newParams['resolve-hops'] = resolveHops;
     if (Object.keys(currentStopsGeoJSON).length !== 0) {
@@ -212,6 +227,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     setParams(newParams);
   }, [
     currentMot,
+    floorInfo,
     currentStops,
     currentStopsGeoJSON,
     center,

@@ -1,9 +1,7 @@
-import React, { Component, createRef } from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import qs from 'query-string';
-import ConfigReader from 'react-spatial/ConfigReader';
-import LayerService from 'react-spatial/LayerService';
-import Layer from 'react-spatial/layers/Layer';
+import { Layer, MapboxLayer } from 'mobility-toolbox-js/ol';
 import BasicMap from 'react-spatial/components/BasicMap';
 import { Map, Feature } from 'ol';
 import { Vector as VectorLayer } from 'ol/layer';
@@ -18,8 +16,10 @@ import {
 } from 'ol/interaction';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
-import RoutingMenu from '../RoutingMenu';
+import RoutingMenu, { FLOOR_REGEX } from '../RoutingMenu';
 import RouteInfosDialog from '../RouteInfosDialog';
+import FloorSwitcher from '../FloorSwitcher';
+import LevelLayer from '../../layers/LevelLayer';
 import {
   lineStyleFunction,
   pointStyleFunction,
@@ -29,7 +29,6 @@ import {
   propTypeCurrentStops,
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
-import { GRAPHHOPPER_MOTS } from '../../constants';
 import { to4326 } from '../../utils';
 import './MapComponent.scss';
 import * as actions from '../../store/actions';
@@ -75,9 +74,14 @@ class MapComponent extends Component {
    */
   constructor(props) {
     super(props);
-    const { APIKey, onSetClickLocation, olMap } = this.props;
+    const {
+      APIKey,
+      onSetClickLocation,
+      olMap,
+      activeFloor,
+      layerService,
+    } = this.props;
     this.map = olMap;
-    this.mapRef = createRef();
     this.hoveredFeature = null;
     this.hoveredRoute = null;
     this.initialRouteDrag = null;
@@ -92,19 +96,37 @@ class MapComponent extends Component {
 
     this.projection = 'EPSG:3857';
 
-    const layerService = new LayerService(
-      ConfigReader.readConfig([
-        {
-          name: 'Basemap',
-          visible: true,
-          isBaseLayer: true,
-          data: {
-            type: 'mapbox',
-            url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
+    const dataLayer = new MapboxLayer({
+      name: 'Basemap',
+      visible: true,
+      isBaseLayer: true,
+      url: `https://maps.geops.io/styles/base_bright_v2/style.json?key=${APIKey}`,
+    });
+
+    layerService.addLayer(dataLayer);
+
+    // Define LevelLayer
+    const geschosseLayer = new Layer({
+      name: 'ch.sbb.geschosse',
+      visible: true,
+    });
+
+    geschosseLayer.children = [-4, -3, -2, -1, 0, '2D', 1, 2, 3, 4].map(
+      level => {
+        return new LevelLayer({
+          name: `ch.sbb.geschosse${level}`,
+          visible: level === activeFloor,
+          mapboxLayer: dataLayer,
+          styleLayersFilter: ({ metadata }) =>
+            metadata && metadata['geops.filter'],
+          level,
+          properties: {
+            radioGroup: 'ch.sbb.geschosse-layer',
           },
-        },
-      ]),
+        });
+      },
     );
+    layerService.addLayer(geschosseLayer);
 
     // Define route vectorLayer.
     this.routeVectorSource = new VectorSource({
@@ -174,20 +196,36 @@ class MapComponent extends Component {
       if (name) {
         featureIndex = currentStops.indexOf(name);
       } else {
-        const isCoordPresent = el => {
-          if (!Array.isArray(el)) {
-            return false;
+        const isCoordPresent = element => {
+          let el;
+          let coords;
+          if (!Array.isArray(element)) {
+            el = element.split(',');
+            coords = to4326(id.slice().reverse());
+          } else {
+            el = element;
+            coords = id.slice().reverse();
           }
-          const coords = id.slice().reverse();
           return el[0] === coords[0] && el[1] === coords[1];
         };
         featureIndex = currentStops.findIndex(isCoordPresent);
       }
+
       if (featureIndex === -1) {
         return;
       }
+
+      if (typeof newCurrentStops[featureIndex] === 'string') {
+        const stopFloor = newCurrentStops[featureIndex].match(FLOOR_REGEX);
+
+        newCurrentStops[featureIndex] = `${to4326(evt.coordinate).join(
+          ',',
+        )}${stopFloor || ''}`;
+      } else {
+        newCurrentStops[featureIndex] = evt.coordinate;
+      }
+
       newTracks[featureIndex] = '';
-      newCurrentStops[featureIndex] = evt.coordinate;
       newCurentStopsGeoJSON[featureIndex] = {
         type: 'FeatureCollection',
         features: [
@@ -212,10 +250,6 @@ class MapComponent extends Component {
     const modify = new Modify({
       source: this.routeVectorSource,
       pixelTolerance: 4,
-      condition: () => {
-        const { currentMot } = this.props;
-        return !GRAPHHOPPER_MOTS.includes(currentMot);
-      },
       style: () => {
         const { currentMot } = this.props;
         return pointStyleFunction(currentMot);
@@ -234,7 +268,6 @@ class MapComponent extends Component {
       const { features } = this.initialRouteDrag;
       const {
         tracks,
-        currentMot,
         currentStops,
         currentStopsGeoJSON,
         onSetTracks,
@@ -246,37 +279,35 @@ class MapComponent extends Component {
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       let newHopIdx = -1;
 
-      // No drag for foot/car for now on.
-      if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
-        const flatCoords = features
-          .map(f => f.getGeometry())
-          .map(lineString => {
-            return [
-              ...lineString.getFirstCoordinate(),
-              ...lineString.getLastCoordinate(),
-            ];
-          });
-
-        const closestSegment = this.routeVectorSource
-          .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
-          .getGeometry();
-
-        const closestEdges = [
-          ...closestSegment.getFirstCoordinate(),
-          ...closestSegment.getLastCoordinate(),
-        ];
-
-        flatCoords.forEach((segment, idx) => {
-          if (
-            segment.length === closestEdges.length &&
-            segment.every((value, index) => {
-              return value === closestEdges[index];
-            })
-          ) {
-            newHopIdx = idx + 1;
-          }
+      // Drag
+      const flatCoords = features
+        .map(f => f.getGeometry())
+        .map(lineString => {
+          return [
+            ...lineString.getFirstCoordinate(),
+            ...lineString.getLastCoordinate(),
+          ];
         });
-      }
+
+      const closestSegment = this.routeVectorSource
+        .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
+        .getGeometry();
+
+      const closestEdges = [
+        ...closestSegment.getFirstCoordinate(),
+        ...closestSegment.getLastCoordinate(),
+      ];
+
+      flatCoords.forEach((segment, idx) => {
+        if (
+          segment.length === closestEdges.length &&
+          segment.every((value, index) => {
+            return value === closestEdges[index];
+          })
+        ) {
+          newHopIdx = idx + 1;
+        }
+      });
 
       if (newHopIdx >= 0) {
         updatedCurrentStops.splice(
@@ -321,7 +352,7 @@ class MapComponent extends Component {
       this.initialRouteDrag = null;
     });
 
-    const interactions = defaultInteractions().extend([translate, modify]);
+    const interactions = defaultInteractions().extend([modify, translate]);
     interactions.getArray().forEach(interaction => {
       this.map.addInteraction(interaction);
     });
@@ -363,54 +394,7 @@ class MapComponent extends Component {
         onSetClickLocation(evt.coordinate);
       }
     });
-    this.map.on('pointermove', evt => {
-      const { currentMot } = this.props;
-
-      if (this.hoveredFeature) {
-        this.hoveredFeature = null;
-        this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
-      }
-
-      if (this.hoveredRoute) {
-        this.routeVectorLayer.olLayer.setStyle(
-          lineStyleFunction(currentMot, false),
-        );
-        this.hoveredRoute = null;
-        this.setState({
-          hoveredPoint: null,
-        });
-      }
-      const hovFeats = this.map.getFeaturesAtPixel(evt.pixel, {
-        hitTolerance: 2,
-      });
-
-      hovFeats.forEach(feature => {
-        if (feature.getGeometry().getType() === 'Point') {
-          this.hoveredFeature = feature;
-          let name = '';
-          const featCountryCode = feature.get('country_code');
-          if (feature.get('name')) {
-            name = `${feature.get('name')}${
-              featCountryCode ? ` - ${featCountryCode}` : ''
-            }`;
-          } else {
-            name = `${to4326(feature.getGeometry().flatCoordinates)}`;
-          }
-          this.setState({
-            hoveredStationOpen: true,
-            hoveredStationName: name,
-          });
-        }
-        if (feature.getGeometry().getType() === 'LineString') {
-          this.hoveredRoute = feature;
-
-          this.setState({
-            hoveredPoint: evt.coordinate,
-          });
-        }
-        return true;
-      });
-    });
+    this.initialize();
   }
 
   /**
@@ -419,21 +403,47 @@ class MapComponent extends Component {
    * @category Map
    */
   componentDidUpdate(prevProps) {
-    const { currentStopsGeoJSON, currentMot, tracks } = this.props;
+    const {
+      currentStopsGeoJSON,
+      currentMot,
+      floorInfo,
+      searchMode,
+      tracks,
+      activeFloor,
+      layerService,
+    } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
     const tracksChanged = tracks !== prevProps.tracks;
+    const floorInfoChanged = floorInfo !== prevProps.floorInfo;
+    const searchModeChanged = searchMode !== prevProps.searchMode;
     const currentStopsGeoJSONChanged =
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
-    if (currentMotChanged || currentStopsGeoJSONChanged || tracksChanged) {
+    const activeFloorChanged = activeFloor !== prevProps.activeFloor;
+    if (
+      floorInfoChanged ||
+      currentMotChanged ||
+      currentStopsGeoJSONChanged ||
+      searchModeChanged ||
+      tracksChanged ||
+      activeFloorChanged
+    ) {
       this.markerVectorSource.clear();
       Object.keys(currentStopsGeoJSON).forEach(key => {
         this.markerVectorSource.addFeatures(
           new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
         );
-        this.markerVectorSource
-          .getFeatures()
-          .forEach(f => f.setStyle(pointStyleFunction(currentMot)));
+        if (currentMot === 'foot') {
+          this.markerVectorSource.getFeatures().forEach((f, idx) => {
+            f.setStyle(
+              pointStyleFunction(currentMot, floorInfo[idx], activeFloor),
+            );
+          });
+        } else {
+          this.markerVectorSource
+            .getFeatures()
+            .forEach(f => f.setStyle(pointStyleFunction(currentMot)));
+        }
       });
       // Remove the old route if exists
       this.routeVectorSource.clear();
@@ -442,6 +452,18 @@ class MapComponent extends Component {
       // Draw a new route if more than 1 stop is defined
       if (Object.keys(currentStopsGeoJSON).length > 1) {
         this.drawNewRoute();
+      }
+
+      if (
+        currentMot &&
+        currentMot !== prevProps.currentMot &&
+        !layerService.getLayer(`ch.sbb.geschosse2D`).visible
+      ) {
+        // Switch back to 2D floor layer
+        layerService.getLayer(`ch.sbb.geschosse`).children.forEach(layer => {
+          layer.setVisible(false);
+        });
+        layerService.getLayer(`ch.sbb.geschosse2D`).setVisible(true);
       }
     }
   }
@@ -469,8 +491,8 @@ class MapComponent extends Component {
   }
 
   onFeaturesHover(features) {
-    if (this.mapRef) {
-      this.mapRef.current.node.current.style.cursor = features.length
+    if (this.map.getTargetElement()) {
+      this.map.getTargetElement().style.cursor = features.length
         ? 'pointer'
         : 'inherit';
     }
@@ -493,24 +515,32 @@ class MapComponent extends Component {
       currentMot,
       APIKey,
       resolveHops,
+      floorInfo,
       onShowNotification,
       onSetShowLoadingBar,
       onSetSelectedRoutes,
+      searchMode,
       tracks,
       isRouteInfoOpen,
+      activeFloor,
     } = this.props;
 
     onSetShowLoadingBar(true);
 
+    // find the index and use this instead.
     Object.keys(currentStopsGeoJSON).forEach((key, idx) => {
       if (currentStopsGeoJSON[key].features) {
         // If the current item is a point selected on the map, not a station.
         hops.push(
           `${to4326(currentStopsGeoJSON[key].features[0].geometry.coordinates)
             .slice()
-            .reverse()}`,
+            .reverse()}${
+            floorInfo && floorInfo[idx] !== null
+              ? `${floorInfo[idx] ? `$${floorInfo[idx]}` : ''}`
+              : ''
+          }`,
         );
-      } else if (!GRAPHHOPPER_MOTS.includes(currentMot)) {
+      } else {
         hops.push(
           `!${currentStopsGeoJSON[key].properties.uid}${
             tracks[idx] !== null
@@ -518,8 +548,6 @@ class MapComponent extends Component {
               : ''
           }`,
         );
-      } else {
-        hops.push(`${currentStopsGeoJSON[key].properties.name}`);
       }
     });
 
@@ -529,12 +557,14 @@ class MapComponent extends Component {
 
     const calculateElevation = !!(isRouteInfoOpen || useElevation);
     let reqUrl =
-      `${routingUrl}?via=${hops.join(
+      `${routingUrl}` +
+      `?via=${hops.join(
         '|',
       )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
       `&elevation=${calculateElevation ? 1 : 0}` +
       `&interpolate_elevation=${calculateElevation}` +
-      `&length=true&coord-radius=100.0&coord-punish=1000.0`;
+      `&length=true&coord-radius=100.0&coord-punish=1000.0` +
+      `&barrierefrei=${searchMode === 'barrier-free' ? 'true' : 'false'}`;
 
     const { graph } = qs.parse(window.location.search);
 
@@ -559,7 +589,17 @@ class MapComponent extends Component {
         });
         this.routeVectorSource.addFeatures(format.readFeatures(response));
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
+
+        this.routeVectorSource
+          .getFeatures()
+          .forEach(f =>
+            f.setStyle(
+              lineStyleFunction(currentMot, false, f.get('floor'), activeFloor),
+            ),
+          );
+
         onSetSelectedRoutes(this.routeVectorSource.getFeatures());
+
         this.routeVectorLayer.olLayer.setStyle(
           lineStyleFunction(currentMot, false),
         );
@@ -578,6 +618,76 @@ class MapComponent extends Component {
       });
   };
 
+  initialize() {
+    this.map.on('pointermove', evt => {
+      const { currentMot, activeFloor } = this.props;
+
+      if (this.hoveredFeature) {
+        this.hoveredFeature = null;
+        this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
+      }
+
+      if (this.hoveredRoute) {
+        if (currentMot === 'foot') {
+          this.routeVectorSource
+            .getFeatures()
+            .forEach(f =>
+              f.setStyle(
+                lineStyleFunction(
+                  currentMot,
+                  true,
+                  f.get('floor'),
+                  activeFloor,
+                ),
+              ),
+            );
+        } else {
+          this.routeVectorLayer.olLayer.setStyle(
+            lineStyleFunction(currentMot, false),
+          );
+        }
+        this.hoveredRoute = null;
+        this.setState({
+          hoveredPoint: null,
+        });
+      }
+      const hovFeats = this.map.getFeaturesAtPixel(evt.pixel, {
+        hitTolerance: 2,
+      });
+
+      hovFeats.forEach(feature => {
+        if (feature.getGeometry().getType() === 'Point') {
+          this.hoveredFeature = feature;
+          let name = '';
+          const featCountryCode = feature.get('country_code');
+          if (feature.get('name')) {
+            name = `${feature.get('name')}${
+              featCountryCode ? ` - ${featCountryCode}` : ''
+            }`;
+          } else {
+            name = `${to4326(feature.getGeometry().flatCoordinates)}`;
+          }
+          this.setState({
+            hoveredStationOpen: true,
+            hoveredStationName: name,
+          });
+        }
+        if (
+          ['MultiLineString', 'LineString'].includes(
+            feature.getGeometry().getType(),
+          )
+        ) {
+          this.hoveredRoute = feature;
+
+          this.setState({
+            hoveredPoint: evt.coordinate,
+          });
+        }
+        return true;
+      });
+    });
+  }
+
   /**
    * Render the map component to the dom
    * @category Map
@@ -586,6 +696,7 @@ class MapComponent extends Component {
     const {
       center,
       mots,
+      currentMot,
       APIKey,
       selectedRoutes,
       isRouteInfoOpen,
@@ -616,7 +727,6 @@ class MapComponent extends Component {
           message={hoveredStationName}
         />
         <BasicMap
-          ref={this.mapRef}
           center={center}
           layers={this.layers}
           onMapMoved={evt => this.onMapMoved(evt)}
@@ -638,6 +748,9 @@ class MapComponent extends Component {
             }}
           />
         ) : null}
+        {currentMot === 'foot' && this.map.getView().getZoom() >= 14 ? (
+          <FloorSwitcher />
+        ) : null}
       </>
     );
   }
@@ -646,6 +759,9 @@ class MapComponent extends Component {
 const mapStateToProps = state => {
   return {
     center: state.MapReducer.center,
+    activeFloor: state.MapReducer.activeFloor,
+    floorInfo: state.MapReducer.floorInfo,
+    selectedRoute: state.MapReducer.selectedRoute,
     selectedRoutes: state.MapReducer.selectedRoutes,
     isRouteInfoOpen: state.MapReducer.isRouteInfoOpen,
     currentMot: state.MapReducer.currentMot,
@@ -654,7 +770,9 @@ const mapStateToProps = state => {
     isFieldFocused: state.MapReducer.isFieldFocused,
     resolveHops: state.MapReducer.resolveHops,
     olMap: state.MapReducer.olMap,
+    searchMode: state.MapReducer.searchMode,
     tracks: state.MapReducer.tracks,
+    layerService: state.MapReducer.layerService,
   };
 };
 
@@ -683,6 +801,8 @@ MapComponent.defaultProps = {
 
 MapComponent.propTypes = {
   center: propTypeCoordinates,
+  activeFloor: PropTypes.string.isRequired,
+  floorInfo: PropTypes.arrayOf(PropTypes.string).isRequired,
   selectedRoutes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
   isRouteInfoOpen: PropTypes.bool.isRequired,
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -704,6 +824,8 @@ MapComponent.propTypes = {
   resolveHops: PropTypes.bool.isRequired,
   tracks: PropTypes.arrayOf(PropTypes.string).isRequired,
   olMap: PropTypes.instanceOf(Map).isRequired,
+  searchMode: PropTypes.string.isRequired,
+  layerService: PropTypes.object.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

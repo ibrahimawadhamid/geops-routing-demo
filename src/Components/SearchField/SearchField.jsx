@@ -12,6 +12,7 @@ import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
+import FloorSelect from '../FloorSelect';
 import TrackSelect from '../TrackSelect';
 import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
@@ -57,6 +58,7 @@ function SearchField(props) {
     index,
     addNewSearchFieldHandler,
     currentStops,
+    currentMot,
     removeSearchFieldHandler,
     searchStopsHandler,
     singleStop,
@@ -206,7 +208,12 @@ function SearchField(props) {
           }}
         />
       </Grid>
-      <TrackSelect index={index} disabled={!isStationName} />
+      {currentMot === 'foot' ? (
+        <FloorSelect index={index} singleStop={singleStop} />
+      ) : null}
+      {currentMot !== 'foot' ? (
+        <TrackSelect index={index} disabled={!isStationName} />
+      ) : null}
       {fieldRightIcon}
     </Grid>
   );
@@ -216,6 +223,7 @@ SearchField.propTypes = {
   index: PropTypes.number.isRequired,
   addNewSearchFieldHandler: PropTypes.func.isRequired,
   currentStops: propTypeCurrentStops,
+  currentMot: PropTypes.string.isRequired,
   removeSearchFieldHandler: PropTypes.func.isRequired,
   searchStopsHandler: PropTypes.func.isRequired,
   singleStop: PropTypes.oneOfType([

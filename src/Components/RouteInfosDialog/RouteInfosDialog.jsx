@@ -204,7 +204,9 @@ function RouteInfosDialog({
     const yArray = everyNth(coords, 3, 1);
     const altitudesArray = everyNth(coords, 3, 2).map(el => Math.round(el));
     const surfaceElevation = [].concat(
-      ...routes.map(r => r.get('surface_elevations').map(el => Math.round(el))),
+      ...routes.map(r =>
+        (r.get('surface_elevations') || []).map(el => Math.round(el)),
+      ),
     );
     setMinAltitude(Math.min(...surfaceElevation.concat(altitudesArray)));
     setMaxAltitude(Math.max(...surfaceElevation.concat(altitudesArray)));
@@ -293,14 +295,14 @@ function RouteInfosDialog({
             />
           )}
           <Tooltip
-            cursor={hoveredPoint ? true : 'auto'}
+            cursor={!!hoveredPoint}
             position={
               hoveredPoint
                 ? {
                     x: getTooltipX(hoveredPoint.distance, length),
                     y: getTooltipY(hoveredPoint.alt, maxAltitude),
                   }
-                : 'auto'
+                : null
             }
             content={content =>
               hoveredCoords
