@@ -10,7 +10,7 @@ import { setFloorInfo, showNotification } from '../../store/actions/Map';
 
 const propTypes = {
   index: PropTypes.number.isRequired,
-  singleStop: PropTypes.object,
+  singleStop: PropTypes.array, // array of coordinate
 };
 
 const defaultProps = {
@@ -25,8 +25,6 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-let abortController = new AbortController();
-
 /**
  * The component that displays the floor selector
  */
@@ -38,10 +36,9 @@ function FloorSelect({ index, singleStop }) {
   const [floors, setFloors] = useState(['0']);
 
   useEffect(() => {
+    const abortController = new AbortController();
     // Coordinate
     if (Array.isArray(singleStop)) {
-      abortController.abort();
-      abortController = new AbortController();
       const { signal } = abortController;
 
       const reqUrl = `https://walking.geops.io/availableLevels?point=${to4326(
@@ -63,6 +60,7 @@ function FloorSelect({ index, singleStop }) {
             dispatch(
               showNotification("Couldn't find available levels", 'warning'),
             );
+            return;
           }
           // Use String levels
           setFloors(response.properties.availableLevels.join().split(','));
@@ -78,6 +76,9 @@ function FloorSelect({ index, singleStop }) {
           throw err;
         });
     }
+    return () => {
+      abortController.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [singleStop]);
 
