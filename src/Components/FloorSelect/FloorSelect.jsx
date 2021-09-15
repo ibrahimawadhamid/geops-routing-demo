@@ -48,7 +48,7 @@ function FloorSelect({ index, singleStop }) {
         singleStop,
       )
         .reverse()
-        .join(',')}&distance=0.01`;
+        .join(',')}&distance=0.03`;
 
       fetch(reqUrl, { signal })
         .then(response => response.json())
