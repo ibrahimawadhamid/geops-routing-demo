@@ -352,7 +352,7 @@ class MapComponent extends Component {
       this.initialRouteDrag = null;
     });
 
-    const interactions = defaultInteractions().extend([translate, modify]);
+    const interactions = defaultInteractions().extend([modify, translate]);
     interactions.getArray().forEach(interaction => {
       this.map.addInteraction(interaction);
     });
