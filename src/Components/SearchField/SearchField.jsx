@@ -163,15 +163,17 @@ function SearchField(props) {
         </Grid>
         <Grid item xs={1} className={classes.buttonWrapper}>
           <Tooltip title="Remove Hop">
-            <IconButton
-              onClick={() => removeSearchFieldHandler(index)}
-              className={classes.button}
-              aria-label="removeHop"
-              size="small"
-              disabled={showLoadingBar}
-            >
-              <RemoveCircleOutlineIcon fontSize="small" />
-            </IconButton>
+            <span>
+              <IconButton
+                onClick={() => removeSearchFieldHandler(index)}
+                className={classes.button}
+                aria-label="removeHop"
+                size="small"
+                disabled={showLoadingBar}
+              >
+                <RemoveCircleOutlineIcon fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         </Grid>
       </>

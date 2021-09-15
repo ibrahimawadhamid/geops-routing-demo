@@ -94,18 +94,18 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
     });
 };
 
-const compileViaString = (currentStopsGeoJson, tracks) => {
-  if (!currentStopsGeoJson || Object.keys(currentStopsGeoJson).length < 2) {
+const compileViaString = (currentStopsGeoJson = [], tracks) => {
+  if (!currentStopsGeoJson || currentStopsGeoJson.length < 2) {
     return null;
   }
 
-  const uidStrings = Object.keys(currentStopsGeoJson).map((key, idx) => {
-    if (currentStopsGeoJson[key].features) {
+  const uidStrings = currentStopsGeoJson.map((val, idx) => {
+    if (currentStopsGeoJson[idx].features) {
       return `${to4326(
-        currentStopsGeoJson[key].features[0].geometry.coordinates,
+        currentStopsGeoJson[idx].features[0].geometry.coordinates,
       )}`;
     }
-    return `!${currentStopsGeoJson[key].properties.uid}${
+    return `!${currentStopsGeoJson[idx].properties.uid}${
       tracks[idx] ? `$${tracks[idx]}` : ''
     }`;
   });
@@ -187,12 +187,8 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
               }),
             ),
           );
-          const geoJsonObject = {};
-          values
-            .filter(stop => !!stop)
-            // eslint-disable-next-line no-return-assign
-            .forEach((stop, idx) => (geoJsonObject[`${idx}`] = stop));
-          dispatch(setCurrentStopsGeoJSON(geoJsonObject));
+          const newCurrentStopsGeoJSON = [...values.filter(stop => !!stop)];
+          dispatch(setCurrentStopsGeoJSON(newCurrentStopsGeoJSON));
         });
       }
 
@@ -221,7 +217,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
 
     newParams.mot = currentMot;
     newParams['resolve-hops'] = resolveHops;
-    if (Object.keys(currentStopsGeoJSON).length !== 0) {
+    if (currentStopsGeoJSON.length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON, tracks);
     }
     setParams(newParams);

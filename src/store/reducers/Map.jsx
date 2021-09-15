@@ -9,7 +9,7 @@ const initialState = {
   currentMot: 'rail',
   floorInfo: ['0', '0'],
   currentStops: ['', ''],
-  currentStopsGeoJSON: {},
+  currentStopsGeoJSON: [],
   clickLocation: null,
   notificationMessage: '',
   notificationType: 'info',
@@ -75,6 +75,9 @@ const setCurrentStops = (state, action) => {
 };
 
 const setCurrentStopsGeoJSON = (state, action) => {
+  if (!Array.isArray(action.currentStopsGeoJSON)) {
+    debugger;
+  }
   const updatedState = {
     currentStopsGeoJSON: action.currentStopsGeoJSON,
   };

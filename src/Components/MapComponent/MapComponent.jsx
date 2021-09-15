@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import qs from 'query-string';
 import { Layer, MapboxLayer } from 'mobility-toolbox-js/ol';
@@ -6,7 +6,7 @@ import BasicMap from 'react-spatial/components/BasicMap';
 import { Map, Feature } from 'ol';
 import { Vector as VectorLayer } from 'ol/layer';
 import _ from 'lodash/core';
-import { Point } from 'ol/geom';
+import { MultiLineString, Point } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
 import {
@@ -53,7 +53,7 @@ const zoom = 6;
  * The only true map that shows inside the application.
  * @category Map
  */
-class MapComponent extends Component {
+class MapComponent extends PureComponent {
   static getExtentCenter = extent => {
     const X = extent[0] + (extent[2] - extent[0]) / 2;
     const Y = extent[1] + (extent[3] - extent[1]) / 2;
@@ -187,9 +187,9 @@ class MapComponent extends Component {
         onSetCurrentStops,
         onSetCurrentStopsGeoJSON,
       } = this.props;
-      const newTracks = _.clone(tracks);
-      const newCurrentStops = _.clone(currentStops);
-      const newCurentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+      const newTracks = [...tracks];
+      const newCurrentStops = [...currentStops];
+      const newCurentStopsGeoJSON = [...currentStopsGeoJSON];
 
       const { name, id } = evt.features.getArray()[0].getProperties();
       let featureIndex;
@@ -204,7 +204,7 @@ class MapComponent extends Component {
             coords = to4326(id.slice().reverse());
           } else {
             el = element;
-            coords = id.slice().reverse();
+            coords = id.slice();
           }
           return el[0] === coords[0] && el[1] === coords[1];
         };
@@ -280,16 +280,38 @@ class MapComponent extends Component {
       let newHopIdx = -1;
 
       // Drag
-      const flatCoords = features
+      // Create only 1 feature between 2 hops
+      const featuresBetwenHops = [];
+
+      let currHop = null;
+      let multiLineString = null;
+
+      // Geometries are all lineString.
+      for (let i = 0; i < features.length; i += 1) {
+        const feature = features[i];
+        let hop = null;
+        if (feature.get('src')) {
+          hop = `${feature.get('src').join()}-${feature.get('trg').join()}`;
+        }
+        if (currHop === hop || !hop) {
+          multiLineString.appendLineString(feature.getGeometry());
+        } else {
+          currHop = hop;
+          multiLineString = new MultiLineString(feature.getGeometry().clone());
+          featuresBetwenHops.push(new Feature(multiLineString));
+        }
+      }
+
+      const flatCoords = featuresBetwenHops
         .map(f => f.getGeometry())
-        .map(lineString => {
-          return [
-            ...lineString.getFirstCoordinate(),
-            ...lineString.getLastCoordinate(),
-          ];
+        .map(geom => {
+          return [...geom.getFirstCoordinate(), ...geom.getLastCoordinate()];
         });
 
-      const closestSegment = this.routeVectorSource
+      const multiLineSource = new VectorSource({
+        features: featuresBetwenHops,
+      });
+      const closestSegment = multiLineSource
         .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
         .getGeometry();
 
@@ -310,41 +332,29 @@ class MapComponent extends Component {
       });
 
       if (newHopIdx >= 0) {
+        newTracks.splice(newHopIdx, 0, '');
         updatedCurrentStops.splice(
           newHopIdx,
           0,
           evt.mapBrowserEvent.coordinate,
         );
+        updatedCurrentStopsGeoJSON.splice(newHopIdx, 0, {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: {
+                id: evt.mapBrowserEvent.coordinate.slice().reverse(),
+                type: 'coordinates',
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: evt.mapBrowserEvent.coordinate,
+              },
+            },
+          ],
+        });
 
-        newTracks.splice(newHopIdx, 0, '');
-
-        if (updatedCurrentStopsGeoJSON[newHopIdx]) {
-          const keys = Object.keys(updatedCurrentStopsGeoJSON).reverse();
-          keys.forEach(k => {
-            if (parseInt(k, 10) >= newHopIdx) {
-              updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
-                updatedCurrentStopsGeoJSON[k];
-            }
-            if (parseInt(k, 10) === newHopIdx) {
-              updatedCurrentStopsGeoJSON[newHopIdx] = {
-                type: 'FeatureCollection',
-                features: [
-                  {
-                    type: 'Feature',
-                    properties: {
-                      id: evt.mapBrowserEvent.coordinate.slice().reverse(),
-                      type: 'coordinates',
-                    },
-                    geometry: {
-                      type: 'Point',
-                      coordinates: evt.mapBrowserEvent.coordinate,
-                    },
-                  },
-                ],
-              };
-            }
-          });
-        }
         onSetTracks(newTracks);
         onSetCurrentStops(updatedCurrentStops);
         onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
@@ -429,13 +439,13 @@ class MapComponent extends Component {
       activeFloorChanged
     ) {
       this.markerVectorSource.clear();
-      Object.keys(currentStopsGeoJSON).forEach(key => {
+      currentStopsGeoJSON.forEach((val, key) => {
         this.markerVectorSource.addFeatures(
           new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
         );
         if (currentMot === 'foot') {
-          this.markerVectorSource.getFeatures().forEach((f, idx) => {
-            f.setStyle(
+          this.markerVectorSource.getFeatures().forEach((feature, idx) => {
+            feature.setStyle(
               pointStyleFunction(currentMot, floorInfo[idx], activeFloor),
             );
           });
@@ -450,7 +460,7 @@ class MapComponent extends Component {
       this.setIsActiveRoute(false);
 
       // Draw a new route if more than 1 stop is defined
-      if (Object.keys(currentStopsGeoJSON).length > 1) {
+      if (currentStopsGeoJSON.length > 1) {
         this.drawNewRoute();
       }
 
@@ -528,11 +538,11 @@ class MapComponent extends Component {
     onSetShowLoadingBar(true);
 
     // find the index and use this instead.
-    Object.keys(currentStopsGeoJSON).forEach((key, idx) => {
-      if (currentStopsGeoJSON[key].features) {
+    currentStopsGeoJSON.forEach((val, idx) => {
+      if (currentStopsGeoJSON[idx].features) {
         // If the current item is a point selected on the map, not a station.
         hops.push(
-          `${to4326(currentStopsGeoJSON[key].features[0].geometry.coordinates)
+          `${to4326(currentStopsGeoJSON[idx].features[0].geometry.coordinates)
             .slice()
             .reverse()}${
             floorInfo && floorInfo[idx] !== null
@@ -542,7 +552,7 @@ class MapComponent extends Component {
         );
       } else {
         hops.push(
-          `!${currentStopsGeoJSON[key].properties.uid}${
+          `!${currentStopsGeoJSON[idx].properties.uid}${
             tracks[idx] !== null
               ? `${tracks[idx] ? `$${tracks[idx]}` : ''}`
               : ''
@@ -701,6 +711,7 @@ class MapComponent extends Component {
       selectedRoutes,
       isRouteInfoOpen,
       stationSearchUrl,
+      currentStopsGeoJSON,
     } = this.props;
 
     const {
@@ -709,7 +720,7 @@ class MapComponent extends Component {
       hoveredStationOpen,
       hoveredStationName,
     } = this.state;
-
+    console.log(currentStopsGeoJSON);
     return (
       <>
         <RoutingMenu
