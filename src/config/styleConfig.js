@@ -133,7 +133,7 @@ const lineStyleFunction = (mot, isHovered, floor, activeFloor) => {
     const f = cleanFloor(floor);
     const floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
     const stroke = floorColor && floorColor.length ? floorColor : 'blue';
-    return lineStyler([[stroke, isHovered ? 5 : 7, [1, 10]]]);
+    return lineStyler([[stroke, 7, [1, 10]]]);
   }
   return isHovered ? othersLineHoveredStyle : othersLineStyle;
 };
