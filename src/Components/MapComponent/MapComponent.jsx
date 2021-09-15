@@ -206,7 +206,12 @@ class MapComponent extends PureComponent {
             el = element;
             coords = id.slice();
           }
-          return el[0] === coords[0] && el[1] === coords[1];
+          // because of a call of reverse somewhere, coord are not always in the same order
+          // TO FIX
+          return (
+            (el[0] === coords[0] && el[1] === coords[1]) ||
+            (el[1] === coords[0] && el[0] === coords[1])
+          );
         };
         featureIndex = currentStops.findIndex(isCoordPresent);
       }
