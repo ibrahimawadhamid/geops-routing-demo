@@ -84,8 +84,12 @@ class FloorSwitcher extends PureComponent {
               'warning',
             );
           }
+          const floors = response.properties.availableLevels.join().split(',');
+          if (!floors.includes('2D')) {
+            floors.splice(floors.indexOf('0') + 1, 0, '2D');
+          }
           this.setState({
-            floors: response.properties.availableLevels.join().split(','),
+            floors,
           });
         })
         .catch(err => {

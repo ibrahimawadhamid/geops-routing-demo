@@ -5,7 +5,7 @@ import { SEARCH_MODES } from '../../constants';
 
 const initialState = {
   center: [949042.143189, 5899715.591163],
-  activeFloor: '0',
+  activeFloor: '2D',
   currentMot: 'rail',
   floorInfo: [null, null],
   currentStops: ['', ''],

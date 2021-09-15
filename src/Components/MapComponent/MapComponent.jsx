@@ -476,6 +476,7 @@ class MapComponent extends Component {
       searchMode,
       tracks,
       activeFloor,
+      layerService,
     } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
     const tracksChanged = tracks !== prevProps.tracks;
@@ -517,6 +518,18 @@ class MapComponent extends Component {
       // Draw a new route if more than 1 stop is defined
       if (Object.keys(currentStopsGeoJSON).length > 1) {
         this.drawNewRoute();
+      }
+
+      if (
+        currentMot &&
+        currentMot !== prevProps.currentMot &&
+        !layerService.getLayer(`ch.sbb.geschosse2D`).visible
+      ) {
+        // Switch back to 2D floor layer
+        layerService.getLayer(`ch.sbb.geschosse`).children.forEach(layer => {
+          layer.setVisible(false);
+        });
+        layerService.getLayer(`ch.sbb.geschosse2D`).setVisible(true);
       }
     }
   }
