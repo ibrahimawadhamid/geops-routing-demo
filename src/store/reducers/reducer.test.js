@@ -7,7 +7,7 @@ describe('map reducer', () => {
     const test = {
       center: [949042.143189, 5899715.591163],
       currentMot: 'rail',
-      floorInfo: [null, null],
+      floorInfo: ['0', '0'],
       currentStops: ['', ''],
       currentStopsGeoJSON: {},
       dialogPosition: {
