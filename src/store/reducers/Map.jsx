@@ -75,9 +75,6 @@ const setCurrentStops = (state, action) => {
 };
 
 const setCurrentStopsGeoJSON = (state, action) => {
-  if (!Array.isArray(action.currentStopsGeoJSON)) {
-    debugger;
-  }
   const updatedState = {
     currentStopsGeoJSON: action.currentStopsGeoJSON,
   };
