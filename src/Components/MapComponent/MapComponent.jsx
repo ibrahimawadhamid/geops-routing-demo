@@ -394,73 +394,7 @@ class MapComponent extends Component {
         onSetClickLocation(evt.coordinate);
       }
     });
-    this.map.on('pointermove', evt => {
-      const { currentMot } = this.props;
-
-      if (this.hoveredFeature) {
-        this.hoveredFeature = null;
-        this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
-      }
-
-      if (this.hoveredRoute) {
-        if (currentMot === 'foot') {
-          this.routeVectorSource
-            .getFeatures()
-            .forEach(f =>
-              f.setStyle(
-                lineStyleFunction(
-                  currentMot,
-                  true,
-                  f.get('floor'),
-                  activeFloor,
-                ),
-              ),
-            );
-        } else {
-          this.routeVectorLayer.olLayer.setStyle(
-            lineStyleFunction(currentMot, false),
-          );
-        }
-        this.hoveredRoute = null;
-        this.setState({
-          hoveredPoint: null,
-        });
-      }
-      const hovFeats = this.map.getFeaturesAtPixel(evt.pixel, {
-        hitTolerance: 2,
-      });
-
-      hovFeats.forEach(feature => {
-        if (feature.getGeometry().getType() === 'Point') {
-          this.hoveredFeature = feature;
-          let name = '';
-          const featCountryCode = feature.get('country_code');
-          if (feature.get('name')) {
-            name = `${feature.get('name')}${
-              featCountryCode ? ` - ${featCountryCode}` : ''
-            }`;
-          } else {
-            name = `${to4326(feature.getGeometry().flatCoordinates)}`;
-          }
-          this.setState({
-            hoveredStationOpen: true,
-            hoveredStationName: name,
-          });
-        }
-        if (
-          ['MultiLineString', 'LineString'].includes(
-            feature.getGeometry().getType(),
-          )
-        ) {
-          this.hoveredRoute = feature;
-
-          this.setState({
-            hoveredPoint: evt.coordinate,
-          });
-        }
-        return true;
-      });
-    });
+    this.initialize();
   }
 
   /**
@@ -683,6 +617,76 @@ class MapComponent extends Component {
         throw err;
       });
   };
+
+  initialize() {
+    this.map.on('pointermove', evt => {
+      const { currentMot, activeFloor } = this.props;
+
+      if (this.hoveredFeature) {
+        this.hoveredFeature = null;
+        this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
+      }
+
+      if (this.hoveredRoute) {
+        if (currentMot === 'foot') {
+          this.routeVectorSource
+            .getFeatures()
+            .forEach(f =>
+              f.setStyle(
+                lineStyleFunction(
+                  currentMot,
+                  true,
+                  f.get('floor'),
+                  activeFloor,
+                ),
+              ),
+            );
+        } else {
+          this.routeVectorLayer.olLayer.setStyle(
+            lineStyleFunction(currentMot, false),
+          );
+        }
+        this.hoveredRoute = null;
+        this.setState({
+          hoveredPoint: null,
+        });
+      }
+      const hovFeats = this.map.getFeaturesAtPixel(evt.pixel, {
+        hitTolerance: 2,
+      });
+
+      hovFeats.forEach(feature => {
+        if (feature.getGeometry().getType() === 'Point') {
+          this.hoveredFeature = feature;
+          let name = '';
+          const featCountryCode = feature.get('country_code');
+          if (feature.get('name')) {
+            name = `${feature.get('name')}${
+              featCountryCode ? ` - ${featCountryCode}` : ''
+            }`;
+          } else {
+            name = `${to4326(feature.getGeometry().flatCoordinates)}`;
+          }
+          this.setState({
+            hoveredStationOpen: true,
+            hoveredStationName: name,
+          });
+        }
+        if (
+          ['MultiLineString', 'LineString'].includes(
+            feature.getGeometry().getType(),
+          )
+        ) {
+          this.hoveredRoute = feature;
+
+          this.setState({
+            hoveredPoint: evt.coordinate,
+          });
+        }
+        return true;
+      });
+    });
+  }
 
   /**
    * Render the map component to the dom
