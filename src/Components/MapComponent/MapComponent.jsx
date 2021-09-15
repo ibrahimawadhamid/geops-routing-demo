@@ -711,7 +711,6 @@ class MapComponent extends PureComponent {
       selectedRoutes,
       isRouteInfoOpen,
       stationSearchUrl,
-      currentStopsGeoJSON,
     } = this.props;
 
     const {
@@ -720,7 +719,7 @@ class MapComponent extends PureComponent {
       hoveredStationOpen,
       hoveredStationName,
     } = this.state;
-    console.log(currentStopsGeoJSON);
+
     return (
       <>
         <RoutingMenu
