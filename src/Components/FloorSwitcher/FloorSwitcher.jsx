@@ -48,61 +48,64 @@ class FloorSwitcher extends PureComponent {
     super(props);
 
     this.state = {
-      floors: ['-4', '-3', '-2', '-1', '0', '2D', '1', '2', '3', '4'],
+      floors: [],
     };
   }
 
+  componentDidMount() {
+    this.loadFloors();
+  }
+
   componentDidUpdate(prevProps) {
-    const { center, map, dispatchShowNotification } = this.props;
+    const { center } = this.props;
 
     if (prevProps.center !== center) {
-      abortController.abort();
-      abortController = new AbortController();
-      const { signal } = abortController;
-
-      const extent = map.getView().calculateExtent();
-      const reqUrl = `https://walking.geops.io/availableLevels?bbox=${to4326(
-        getBottomLeft(extent),
-      )
-        .reverse()
-        .join(',')}|${to4326(getTopRight(extent))
-        .reverse()
-        .join(',')}`;
-      fetch(reqUrl, { signal })
-        .then(response => response.json())
-        .then(response => {
-          if (response.error) {
-            dispatchShowNotification(
-              "Couldn't find available levels",
-              'warning',
-            );
-            return;
-          }
-          if (!response.properties.availableLevels) {
-            dispatchShowNotification(
-              "Couldn't find available levels",
-              'warning',
-            );
-          }
-          const floors = response.properties.availableLevels.join().split(',');
-          if (!floors.includes('2D')) {
-            floors.splice(floors.indexOf('0') + 1, 0, '2D');
-          }
-          this.setState({
-            floors,
-          });
-        })
-        .catch(err => {
-          if (err.name === 'AbortError') {
-            // eslint-disable-next-line no-console
-            console.warn(`Abort ${reqUrl}`);
-            return;
-          }
-          // It's important to rethrow all other errors so you don't silence them!
-          // For example, any error thrown by setState(), will pass through here.
-          throw err;
-        });
+      this.loadFloors();
     }
+  }
+
+  loadFloors() {
+    const { map, dispatchShowNotification } = this.props;
+    abortController.abort();
+    abortController = new AbortController();
+    const { signal } = abortController;
+
+    const extent = map.getView().calculateExtent();
+    const reqUrl = `https://walking.geops.io/availableLevels?bbox=${to4326(
+      getBottomLeft(extent),
+    )
+      .reverse()
+      .join(',')}|${to4326(getTopRight(extent))
+      .reverse()
+      .join(',')}`;
+    fetch(reqUrl, { signal })
+      .then(response => response.json())
+      .then(response => {
+        if (response.error) {
+          dispatchShowNotification("Couldn't find available levels", 'warning');
+          return;
+        }
+        if (!response.properties.availableLevels) {
+          dispatchShowNotification("Couldn't find available levels", 'warning');
+        }
+        const floors = response.properties.availableLevels.join().split(',');
+        if (!floors.includes('2D')) {
+          floors.splice(floors.indexOf('0') + 1, 0, '2D');
+        }
+        this.setState({
+          floors,
+        });
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') {
+          // eslint-disable-next-line no-console
+          console.warn(`Abort ${reqUrl}`);
+          return;
+        }
+        // It's important to rethrow all other errors so you don't silence them!
+        // For example, any error thrown by setState(), will pass through here.
+        throw err;
+      });
   }
 
   selectFloor(floor) {
