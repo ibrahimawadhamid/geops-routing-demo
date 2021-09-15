@@ -193,7 +193,6 @@ function RoutingMenu({
 
   const [currentMots] = useState(currentMotsVal);
   const [otherMots] = useState(otherMotsVal);
-  const [lastChangedFieldIdx, setLastChangedFieldIdx] = useState(null);
   const [currentSearchResults, setCurrentSearchResults] = useState([]);
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
@@ -401,7 +400,6 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const searchStopsHandler = (event, fieldIndex) => {
-    setLastChangedFieldIdx(fieldIndex);
     // only search if text is available
     if (!event.target.value) {
       const updatedCurrentStops = currentStops;
@@ -497,20 +495,6 @@ function RoutingMenu({
         // For example, any error thrown by setState(), will pass through here.
         throw err;
       });
-  };
-
-  const retriggerSearch = () => {
-    if (lastChangedFieldIdx === null) {
-      return;
-    }
-    searchStopsHandler(
-      {
-        target: {
-          value: elRefs.current[lastChangedFieldIdx].current.value,
-        },
-      },
-      lastChangedFieldIdx,
-    );
   };
 
   /**
