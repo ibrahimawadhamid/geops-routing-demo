@@ -7,7 +7,7 @@ const initialState = {
   center: [949042.143189, 5899715.591163],
   activeFloor: '2D',
   currentMot: 'rail',
-  floorInfo: [null, null],
+  floorInfo: ['0', '0'],
   currentStops: ['', ''],
   currentStopsGeoJSON: {},
   clickLocation: null,

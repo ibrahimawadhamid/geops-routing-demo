@@ -226,7 +226,7 @@ function RoutingMenu({
   ) => {
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
     const updatedFloorInfo = _.clone(floorInfo);
-    updatedFloorInfo[focusedFieldIndex] = null;
+    updatedFloorInfo[focusedFieldIndex] = '0';
     // Create GeoJSON
     const tempGeoJSON = {
       type: 'FeatureCollection',

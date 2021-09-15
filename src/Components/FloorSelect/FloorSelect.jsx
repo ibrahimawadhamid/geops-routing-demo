@@ -35,7 +35,7 @@ function FloorSelect({ index, singleStop }) {
   const dispatch = useDispatch();
   const floorInfo = useSelector(state => state.MapReducer.floorInfo);
   const floor = useMemo(() => floorInfo[index], [index, floorInfo]);
-  const [floors, setFloors] = useState(['-']);
+  const [floors, setFloors] = useState(['0']);
 
   useEffect(() => {
     // Coordinate
@@ -84,7 +84,7 @@ function FloorSelect({ index, singleStop }) {
   return (
     <FormControl className={classes.wrapper}>
       <Select
-        renderValue={val => (val === '' ? '-' : val)}
+        renderValue={val => (!val || val === '' ? '0' : val)}
         labelId="rd-floor-select-label"
         value={floor}
         displayEmpty
@@ -98,7 +98,7 @@ function FloorSelect({ index, singleStop }) {
         {floors.map(fl => {
           return (
             <MenuItem value={fl} key={`floor-${fl}`}>
-              {fl === '' ? '-' : fl}
+              {fl === '' ? '0' : fl}
             </MenuItem>
           );
         })}
