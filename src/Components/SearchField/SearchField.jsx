@@ -99,15 +99,17 @@ function SearchField(props) {
     fieldRightIcon = (
       <Grid item xs={1} className={classes.buttonWrapper}>
         <Tooltip title="Add Hop">
-          <IconButton
-            onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-            disabled={addNextHopDisabled || showLoadingBar}
-            className={classes.button}
-            aria-label="Add Hop"
-            size="small"
-          >
-            <AddCircleOutlineIcon fontSize="small" />
-          </IconButton>
+          <span>
+            <IconButton
+              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
+              disabled={addNextHopDisabled || showLoadingBar}
+              className={classes.button}
+              aria-label="Add Hop"
+              size="small"
+            >
+              <AddCircleOutlineIcon fontSize="small" />
+            </IconButton>
+          </span>
         </Tooltip>
       </Grid>
     );
@@ -144,15 +146,19 @@ function SearchField(props) {
       <>
         <Grid item xs={1} className={classes.buttonWrapper}>
           <Tooltip title="Add Hop">
-            <IconButton
-              disabled={addNextHopDisabled || showLoadingBar}
-              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-              className={classes.button}
-              aria-label="addHop"
-              size="small"
-            >
-              <AddCircleOutlineIcon fontSize="small" />
-            </IconButton>
+            <span>
+              <IconButton
+                disabled={addNextHopDisabled || showLoadingBar}
+                onClick={() =>
+                  addNewSearchFieldHandler(currentStops, index + 1)
+                }
+                className={classes.button}
+                aria-label="addHop"
+                size="small"
+              >
+                <AddCircleOutlineIcon fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         </Grid>
         <Grid item xs={1} className={classes.buttonWrapper}>
