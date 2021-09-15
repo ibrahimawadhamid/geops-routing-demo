@@ -105,8 +105,9 @@ class FloorSwitcher extends PureComponent {
     const { dispatchSetActiveFloor, layerService } = this.props;
 
     layerService.getLayer(`ch.sbb.geschosse`).children.forEach(layer => {
-      layer.setVisible(layer.key === `ch.sbb.geschosse${floor}`);
+      layer.setVisible(false);
     });
+    layerService.getLayer(`ch.sbb.geschosse${floor}`).setVisible(true);
 
     dispatchSetActiveFloor(floor, 'Switcher');
   }
