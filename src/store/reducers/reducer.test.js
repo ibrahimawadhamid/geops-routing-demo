@@ -9,7 +9,7 @@ describe('map reducer', () => {
       currentMot: 'rail',
       floorInfo: ['0', '0'],
       currentStops: ['', ''],
-      currentStopsGeoJSON: {},
+      currentStopsGeoJSON: [],
       dialogPosition: {
         x: 10,
         y: 280,
@@ -75,7 +75,7 @@ describe('map reducer', () => {
         },
       ],
     };
-    const currentStopsGeoJSON = { '0': tempGeoJSON };
+    const currentStopsGeoJSON = [tempGeoJSON];
     expect(
       mapReducer(
         {},

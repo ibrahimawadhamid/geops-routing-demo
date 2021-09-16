@@ -10,11 +10,11 @@ import { setFloorInfo, showNotification } from '../../store/actions/Map';
 
 const propTypes = {
   index: PropTypes.number.isRequired,
-  singleStop: PropTypes.array, // array of coordinate
+  singleStop: PropTypes.oneOfType([PropTypes.string, PropTypes.array]), // array for an array  of coordinate, string for a station name
 };
 
 const defaultProps = {
-  singleStop: undefined,
+  singleStop: null,
 };
 
 const useStyles = makeStyles(() => ({
@@ -87,7 +87,7 @@ function FloorSelect({ index, singleStop }) {
       <Select
         renderValue={val => (!val || val === '' ? '0' : val)}
         labelId="rd-floor-select-label"
-        value={floor}
+        value={floor || '0'}
         displayEmpty
         onChange={evt => {
           const newFloorInfo = [...floorInfo];
@@ -111,4 +111,4 @@ function FloorSelect({ index, singleStop }) {
 FloorSelect.propTypes = propTypes;
 FloorSelect.defaultProps = defaultProps;
 
-export default FloorSelect;
+export default React.memo(FloorSelect);

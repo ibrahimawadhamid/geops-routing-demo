@@ -9,7 +9,7 @@ const initialState = {
   currentMot: 'rail',
   floorInfo: ['0', '0'],
   currentStops: ['', ''],
-  currentStopsGeoJSON: {},
+  currentStopsGeoJSON: [],
   clickLocation: null,
   notificationMessage: '',
   notificationType: 'info',

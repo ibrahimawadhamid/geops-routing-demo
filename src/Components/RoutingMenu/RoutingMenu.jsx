@@ -339,21 +339,12 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const addNewSearchFieldHandler = (currStops, indexToInsertAt) => {
-    const updatedCurrentStops = _.clone(currentStops);
-    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-    updatedCurrentStops.splice(indexToInsertAt, 0, '');
-
-    if (updatedCurrentStopsGeoJSON[indexToInsertAt]) {
-      const keys = Object.keys(updatedCurrentStopsGeoJSON)
-        .filter(k => k >= indexToInsertAt)
-        .reverse();
-      keys.forEach(k => {
-        updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
-          updatedCurrentStopsGeoJSON[k];
-      });
-    }
-
     const updatedTracks = [...tracks];
+    const updatedCurrentStops = [...currentStops];
+    const updatedCurrentStopsGeoJSON = [...currentStopsGeoJSON];
+
+    updatedCurrentStops.splice(indexToInsertAt, 0, '');
+    currentStopsGeoJSON.splice(indexToInsertAt, 0, '');
     updatedTracks.splice(indexToInsertAt, 0, '');
 
     dispatch(setTracks(updatedTracks));
@@ -368,24 +359,12 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const removeSearchFieldHandler = indexToRemoveFrom => {
-    const updatedCurrentStops = _.clone(currentStops);
-    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-    updatedCurrentStops.splice(indexToRemoveFrom, 1);
-
-    if (updatedCurrentStopsGeoJSON[indexToRemoveFrom]) {
-      const keys = Object.keys(updatedCurrentStopsGeoJSON);
-      keys.forEach(key => {
-        const k = parseInt(key, 10);
-        if (k === indexToRemoveFrom) {
-          delete updatedCurrentStopsGeoJSON[indexToRemoveFrom];
-        } else if (k > indexToRemoveFrom) {
-          updatedCurrentStopsGeoJSON[k - 1] = updatedCurrentStopsGeoJSON[k];
-        }
-      });
-      delete updatedCurrentStopsGeoJSON[keys.length - 1];
-    }
-
     const updatedTracks = [...tracks];
+    const updatedCurrentStops = [...currentStops];
+    const updatedCurrentStopsGeoJSON = [...currentStopsGeoJSON];
+
+    updatedCurrentStops.splice(indexToRemoveFrom, 1);
+    updatedCurrentStopsGeoJSON.splice(indexToRemoveFrom, 1);
     updatedTracks.splice(indexToRemoveFrom, 1);
 
     dispatch(setTracks(updatedTracks));
@@ -520,9 +499,9 @@ function RoutingMenu({
       let updateCurrentSearchResults = [];
       if (event.target.value) updateCurrentSearchResults = currentSearchResults;
       const updatedCurrentStopsGeoJSON = {};
-      Object.keys(currentStopsGeoJSON).forEach(key => {
-        if (key !== focusedFieldIndex.toString()) {
-          updatedCurrentStopsGeoJSON[key] = currentStopsGeoJSON[key];
+      currentStopsGeoJSON.forEach((val, idx) => {
+        if (idx !== focusedFieldIndex) {
+          updatedCurrentStopsGeoJSON[idx] = currentStopsGeoJSON[idx];
         }
       });
       setCurrentSearchResults(updateCurrentSearchResults);
@@ -547,10 +526,10 @@ function RoutingMenu({
     dispatch(setTracks(updatedTracks));
     setCurrentSearchResults([]);
 
-    Object.keys(updatedCurrentStopsGeoJSON).forEach(key => {
-      if (key === focusedFieldIndex.toString()) {
-        updatedCurrentStopsGeoJSON[key].geometry.coordinates = to3857(
-          updatedCurrentStopsGeoJSON[key].geometry.coordinates,
+    updatedCurrentStopsGeoJSON.forEach((val, idx) => {
+      if (idx === focusedFieldIndex) {
+        updatedCurrentStopsGeoJSON[idx].geometry.coordinates = to3857(
+          updatedCurrentStopsGeoJSON[idx].geometry.coordinates,
         );
       }
     });
@@ -587,33 +566,29 @@ function RoutingMenu({
 
     const newSource = { ...updatedCurrentStopsGeoJSON[result.source.index] };
     if (result.destination.index < result.source.index) {
-      const keys = Object.keys(updatedCurrentStopsGeoJSON)
-        .filter(k => {
-          return (
-            parseInt(k, 10) >= result.destination.index &&
-            parseInt(k, 10) < result.source.index
-          );
+      updatedCurrentStopsGeoJSON
+        .filter((val, idx) => {
+          return idx >= result.destination.index && idx < result.source.index;
         })
-        .reverse();
-      keys.forEach(k => {
-        updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`] =
-          updatedCurrentStopsGeoJSON[k];
-      });
+        .reverse()
+        .forEach((val, idx) => {
+          updatedCurrentStopsGeoJSON[idx + 1] = updatedCurrentStopsGeoJSON[idx];
+        });
       updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
     } else if (result.destination.index > result.source.index) {
-      const keys = Object.keys(updatedCurrentStopsGeoJSON).filter(
-        k =>
-          parseInt(k, 10) >= result.source.index &&
-          parseInt(k, 10) <= result.destination.index,
-      );
-      keys.forEach(k => {
-        if (parseInt(k, 10) === result.destination.index) {
-          updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
-        } else {
-          updatedCurrentStopsGeoJSON[k] =
-            updatedCurrentStopsGeoJSON[`${parseInt(k, 10) + 1}`];
-        }
-      });
+      updatedCurrentStopsGeoJSON
+        .filter(
+          (val, idx) =>
+            idx >= result.source.index && idx <= result.destination.index,
+        )
+        .forEach((val, idx) => {
+          if (idx === result.destination.index) {
+            updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
+          } else {
+            updatedCurrentStopsGeoJSON[idx] =
+              updatedCurrentStopsGeoJSON[idx + 1];
+          }
+        });
     }
 
     const updatedTracks = [...tracks];
@@ -769,45 +744,49 @@ function RoutingMenu({
           <div className="rd-route-buttons">
             <Grid item xs={6}>
               <Tooltip title="Zoom to the route">
-                <Button
-                  onClick={() => onZoomRouteClick()}
-                  aria-label="Zoom to the route"
-                  disabled={!isActiveRoute}
-                  component={isActiveRoute ? undefined : 'span'}
-                  variant="contained"
-                  color="default"
-                  classes={{
-                    root: 'rd-button-root',
-                    disabled: 'rd-button-disabled',
-                  }}
-                  startIcon={<ZoomInIcon fontSize="small" />}
-                >
-                  <Typography>Zoom to the route</Typography>
-                </Button>
+                <span>
+                  <Button
+                    onClick={() => onZoomRouteClick()}
+                    aria-label="Zoom to the route"
+                    disabled={!isActiveRoute}
+                    component={isActiveRoute ? undefined : 'span'}
+                    variant="contained"
+                    color="default"
+                    classes={{
+                      root: 'rd-button-root',
+                      disabled: 'rd-button-disabled',
+                    }}
+                    startIcon={<ZoomInIcon fontSize="small" />}
+                  >
+                    <Typography>Zoom to the route</Typography>
+                  </Button>
+                </span>
               </Tooltip>
             </Grid>
             <Grid item xs={6}>
               <Tooltip title="Route information">
-                <Button
-                  onClick={() => {
-                    onDrawNewRoute(true).then(() => {
-                      dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
-                    });
-                  }}
-                  aria-label="Route information"
-                  disabled={!isActiveRoute}
-                  component={isActiveRoute ? undefined : 'span'}
-                  variant="contained"
-                  color="default"
-                  className={isRouteInfoOpen ? 'rd-button-active' : ''}
-                  classes={{
-                    root: 'rd-button-root',
-                    disabled: 'rd-button-disabled',
-                  }}
-                  startIcon={<InfoIcon fontSize="small" />}
-                >
-                  <Typography>Route information</Typography>
-                </Button>
+                <span>
+                  <Button
+                    onClick={() => {
+                      onDrawNewRoute(true).then(() => {
+                        dispatch(setIsRouteInfoOpen(!isRouteInfoOpen));
+                      });
+                    }}
+                    aria-label="Route information"
+                    disabled={!isActiveRoute}
+                    component={isActiveRoute ? undefined : 'span'}
+                    variant="contained"
+                    color="default"
+                    className={isRouteInfoOpen ? 'rd-button-active' : ''}
+                    classes={{
+                      root: 'rd-button-root',
+                      disabled: 'rd-button-disabled',
+                    }}
+                    startIcon={<InfoIcon fontSize="small" />}
+                  >
+                    <Typography>Route information</Typography>
+                  </Button>
+                </span>
               </Tooltip>
             </Grid>
           </div>
