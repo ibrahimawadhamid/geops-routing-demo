@@ -88,7 +88,7 @@ const pedestrianGeopsPointStyle = (floor, activeFloor) => {
   return new Style({
     image: new Circle({
       radius: 8,
-      fill: new Fill({ color: floorColor }),
+      fill: new Fill({ color: floorColor || 'black' }),
     }),
   });
 };
@@ -132,7 +132,7 @@ const lineStyleFunction = (mot, isHovered, floor, activeFloor) => {
   if (mot === 'foot') {
     const f = cleanFloor(floor);
     const floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
-    const stroke = floorColor && floorColor.length ? floorColor : 'blue';
+    const stroke = floorColor && floorColor.length ? floorColor : 'black';
     return lineStyler([[stroke, 7, [1, 10]]]);
   }
   return isHovered ? othersLineHoveredStyle : othersLineStyle;
