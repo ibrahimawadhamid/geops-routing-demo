@@ -283,37 +283,43 @@ class MapComponent extends PureComponent {
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       let newHopIdx = -1;
 
-      // Drag
-      // Create only 1 feature between 2 hops
-      const featuresBetwenHops = [];
+      // A segment is a linestring between to hops (also called via points).
+      // It's used to determine where to add the new hop.
+      const segments = features;
 
       let currHop = null;
       let multiLineString = null;
+      const { currentMot } = this.props;
 
-      // Geometries are all lineString.
-      for (let i = 0; i < features.length; i += 1) {
-        const feature = features[i];
-        let hop = null;
-        if (feature.get('src')) {
-          hop = `${feature.get('src').join()}-${feature.get('trg').join()}`;
-        }
-        if (currHop === hop || !hop) {
-          multiLineString.appendLineString(feature.getGeometry());
-        } else {
-          currHop = hop;
-          multiLineString = new MultiLineString(feature.getGeometry().clone());
-          featuresBetwenHops.push(new Feature(multiLineString));
+      // In the case of the foot routing we can receive multiple line string between 2 hops (ex: one line string pro floor).
+      // So we have to re create the segment between 2 hops to be able to find the segment where to add the new hop.
+      if (currentMot === 'foot') {
+        for (let i = 0; i < features.length; i += 1) {
+          const feature = features[i];
+          let hop = null;
+          if (feature.get('src')) {
+            hop = `${feature.get('src').join()}-${feature.get('trg').join()}`;
+          }
+          if (currHop === hop || !hop) {
+            multiLineString.appendLineString(feature.getGeometry());
+          } else {
+            currHop = hop;
+            multiLineString = new MultiLineString(
+              feature.getGeometry().clone(),
+            );
+            segments.push(new Feature(multiLineString));
+          }
         }
       }
 
-      const flatCoords = featuresBetwenHops
+      const flatCoords = segments
         .map(f => f.getGeometry())
         .map(geom => {
           return [...geom.getFirstCoordinate(), ...geom.getLastCoordinate()];
         });
 
       const multiLineSource = new VectorSource({
-        features: featuresBetwenHops,
+        features: segments,
       });
       const closestSegment = multiLineSource
         .getClosestFeatureToCoordinate(this.initialRouteDrag.coordinate)
