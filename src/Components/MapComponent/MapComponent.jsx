@@ -550,7 +550,7 @@ class MapComponent extends PureComponent {
           `${to4326(currentStopsGeoJSON[idx].features[0].geometry.coordinates)
             .slice()
             .reverse()}${
-            floorInfo && floorInfo[idx] !== null
+            currentMot === 'foot' && floorInfo && floorInfo[idx] !== null
               ? `${floorInfo[idx] ? `$${floorInfo[idx]}` : ''}`
               : ''
           }`,
