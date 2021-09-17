@@ -3,7 +3,7 @@ import { Style, Circle, Stroke, Fill } from 'ol/style';
 
 // Convert '0.0' to '0'
 const cleanFloor = floor => {
-  return !isNaN(floor) ? parseInt(floor, 10).toString() : floor;
+  return !isNaN(floor) ? parseFloat(floor, 10).toString() : floor;
 };
 
 const lineStyler = lineStyle => {
