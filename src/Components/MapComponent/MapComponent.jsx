@@ -111,7 +111,7 @@ class MapComponent extends PureComponent {
       visible: true,
     });
 
-    geschosseLayer.children = [-4, -3, -2, -1, -0.5, 0, '2D', 1, 2, 3, 4].map(
+    geschosseLayer.children = [-4, -3, -2, -1, 0, '2D', 1, 2, 3, 4].map(
       level => {
         return new LevelLayer({
           name: `ch.sbb.geschosse${level}`,
