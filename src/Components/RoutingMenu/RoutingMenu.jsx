@@ -498,7 +498,7 @@ function RoutingMenu({
       // The user has erased some of the search query. Reset everything and start all over.
       let updateCurrentSearchResults = [];
       if (event.target.value) updateCurrentSearchResults = currentSearchResults;
-      const updatedCurrentStopsGeoJSON = {};
+      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       currentStopsGeoJSON.forEach((val, idx) => {
         if (idx !== focusedFieldIndex) {
           updatedCurrentStopsGeoJSON[idx] = currentStopsGeoJSON[idx];
