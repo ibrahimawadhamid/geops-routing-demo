@@ -285,7 +285,7 @@ class MapComponent extends PureComponent {
 
       // A segment is a linestring between to hops (also called via points).
       // It's used to determine where to add the new hop.
-      const segments = features;
+      let segments = features;
 
       let currHop = null;
       let multiLineString = null;
@@ -294,19 +294,19 @@ class MapComponent extends PureComponent {
       // In the case of the foot routing we can receive multiple line string between 2 hops (ex: one line string pro floor).
       // So we have to re create the segment between 2 hops to be able to find the segment where to add the new hop.
       if (currentMot === 'foot') {
+        segments = [];
         for (let i = 0; i < features.length; i += 1) {
           const feature = features[i];
           let hop = null;
           if (feature.get('src')) {
             hop = `${feature.get('src').join()}-${feature.get('trg').join()}`;
           }
+          const clone = feature.getGeometry().clone();
           if (currHop === hop || !hop) {
-            multiLineString.appendLineString(feature.getGeometry());
+            multiLineString.appendLineString(clone);
           } else {
             currHop = hop;
-            multiLineString = new MultiLineString(
-              feature.getGeometry().clone(),
-            );
+            multiLineString = new MultiLineString(clone);
             segments.push(new Feature(multiLineString));
           }
         }
