@@ -30,6 +30,7 @@ import {
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
 import { to4326 } from '../../utils';
+import { FLOOR_LEVELS } from '../../constants';
 import './MapComponent.scss';
 import * as actions from '../../store/actions';
 
@@ -111,21 +112,19 @@ class MapComponent extends PureComponent {
       visible: true,
     });
 
-    geschosseLayer.children = [-4, -3, -2, -1, -0.5, 0, '2D', 1, 2, 3, 4].map(
-      level => {
-        return new LevelLayer({
-          name: `ch.sbb.geschosse${level}`,
-          visible: level === activeFloor,
-          mapboxLayer: dataLayer,
-          styleLayersFilter: ({ metadata }) =>
-            metadata && metadata['geops.filter'],
-          level,
-          properties: {
-            radioGroup: 'ch.sbb.geschosse-layer',
-          },
-        });
-      },
-    );
+    geschosseLayer.children = FLOOR_LEVELS.map(level => {
+      return new LevelLayer({
+        name: `ch.sbb.geschosse${level}`,
+        visible: level === activeFloor,
+        mapboxLayer: dataLayer,
+        styleLayersFilter: ({ metadata }) =>
+          metadata && metadata['geops.filter'],
+        level,
+        properties: {
+          radioGroup: 'ch.sbb.geschosse-layer',
+        },
+      });
+    });
     layerService.addLayer(geschosseLayer);
 
     // Define route vectorLayer.

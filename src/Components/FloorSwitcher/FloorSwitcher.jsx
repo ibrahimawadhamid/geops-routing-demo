@@ -5,6 +5,7 @@ import Button from '@geops/react-ui/components/Button';
 import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { getBottomLeft, getTopRight } from 'ol/extent';
 import { to4326 } from '../../utils';
+import { FLOOR_LEVELS } from '../../constants';
 
 import { propTypeCoordinates } from '../../store/prop-types';
 import { setActiveFloor, showNotification } from '../../store/actions/Map';
@@ -88,7 +89,10 @@ class FloorSwitcher extends PureComponent {
         if (!response.properties.availableLevels) {
           dispatchShowNotification("Couldn't find available levels", 'warning');
         }
-        const floors = response.properties.availableLevels.join().split(',');
+        const floors = response.properties.availableLevels
+          .filter(level => FLOOR_LEVELS.includes(level))
+          .join()
+          .split(',');
         if (!floors.includes('2D')) {
           floors.splice(floors.indexOf('0') + 1, 0, '2D');
         }
