@@ -43,6 +43,7 @@ import { to4326, to3857, findMotIcon } from '../../utils';
 import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 
+const COORD_REGEX = /^\d+\.?\d*,\d+\.?\d*$/;
 const FLOOR_REGEX = /\$-?(?:[0-9][0-9]?|100)$/;
 const FLOOR_REGEX_CAPTURE = /\$(-?(?:[1-9][0-9]?|100))$/;
 
@@ -402,7 +403,7 @@ function RoutingMenu({
     // const updatedFloorInfo = _.clone(floorInfo);
     // console.log('before', updatedFloorInfo);
     updatedCurrentStops.forEach((stop, idx) => {
-      if (typeof stop === 'string' && stop !== '' && stop.includes(',')) {
+      if (typeof stop === 'string' && stop !== '' && COORD_REGEX.test(stop)) {
         // Convert the string to point and filter floor info
         const coords = stop.split(',');
         const newPoint = coords.includes(0) ? [] : to3857(coords);
