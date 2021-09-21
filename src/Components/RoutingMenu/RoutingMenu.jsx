@@ -396,7 +396,7 @@ function RoutingMenu({
       return;
     }
     const updatedCurrentStops = _.clone(currentStops);
-    updatedCurrentStops[fieldIndex] = event.target.value.trim();
+    updatedCurrentStops[fieldIndex] = event.target.value;
     dispatch(setCurrentStops(updatedCurrentStops));
 
     const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
