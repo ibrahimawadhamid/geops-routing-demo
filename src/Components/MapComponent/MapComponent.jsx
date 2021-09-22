@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import qs from 'query-string';
-import { Layer, MapboxLayer } from 'mobility-toolbox-js/ol';
+import { Layer, MapboxLayer, MapboxStyleLayer } from 'mobility-toolbox-js/ol';
 import BasicMap from 'react-spatial/components/BasicMap';
 import { Map, Feature } from 'ol';
 import { Vector as VectorLayer } from 'ol/layer';
@@ -9,6 +9,7 @@ import _ from 'lodash/core';
 import { MultiLineString, Point } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
+import { unByKey } from 'ol/Observable';
 import {
   defaults as defaultInteractions,
   Translate,
@@ -49,6 +50,7 @@ import * as actions from '../../store/actions';
 
 let abortController = new AbortController();
 const zoom = 6;
+let cbKey = null;
 
 /**
  * The only true map that shows inside the application.
@@ -98,13 +100,36 @@ class MapComponent extends PureComponent {
     this.projection = 'EPSG:3857';
 
     const dataLayer = new MapboxLayer({
-      name: 'Basemap',
+      name: 'data',
       visible: true,
-      isBaseLayer: true,
       url: `https://maps.geops.io/styles/base_bright_v2/style.json?key=${APIKey}`,
     });
 
+    const baseLayerOthers = new MapboxStyleLayer({
+      name: 'basemap.others',
+      mapboxLayer: dataLayer,
+      isBaseLayer: true,
+      visible: false,
+      styleLayersFilter: styleLayer => {
+        return /perimeter_mask_routing_europe$/.test(styleLayer.id);
+      },
+    });
+
+    const baseLayerFoot = new MapboxStyleLayer({
+      name: 'basemap.foot',
+      mapboxLayer: dataLayer,
+      isBaseLayer: true,
+      visible: false,
+      styleLayersFilter: styleLayer => {
+        return /perimeter_mask_routing_dach$/.test(styleLayer.id);
+      },
+    });
+
     layerService.addLayer(dataLayer);
+    layerService.addLayer(baseLayerOthers);
+    layerService.addLayer(baseLayerFoot);
+
+    this.toggleBasemapMask(layerService.getLayer('data'));
 
     // Define LevelLayer
     const geschosseLayer = new Layer({
@@ -474,6 +499,10 @@ class MapComponent extends PureComponent {
         this.drawNewRoute();
       }
 
+      if (currentMot && currentMot !== prevProps.currentMot) {
+        this.toggleBasemapMask(layerService.getLayer('data'));
+      }
+
       if (
         currentMot &&
         currentMot !== prevProps.currentMot &&
@@ -637,6 +666,20 @@ class MapComponent extends PureComponent {
         throw err;
       });
   };
+
+  toggleBasemapMask(mapboxLayer) {
+    const { currentMot, layerService } = this.props;
+
+    if (!mapboxLayer.loaded) {
+      unByKey(cbKey);
+      cbKey = mapboxLayer.once('load', () => {
+        this.toggleBasemapMask(mapboxLayer);
+      });
+    } else {
+      layerService.getLayer('basemap.others').setVisible(currentMot !== 'foot');
+      layerService.getLayer('basemap.foot').setVisible(currentMot === 'foot');
+    }
+  }
 
   initialize() {
     this.map.on('pointermove', evt => {
