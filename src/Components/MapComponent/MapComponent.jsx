@@ -110,8 +110,11 @@ class MapComponent extends PureComponent {
       mapboxLayer: dataLayer,
       isBaseLayer: true,
       visible: false,
-      styleLayersFilter: styleLayer => {
-        return /perimeter_mask_routing_europe$/.test(styleLayer.id);
+      styleLayersFilter: ({ metadata }) => {
+        return (
+          metadata &&
+          metadata['routing.filter'] === 'perimeter_mask_routing_europe'
+        );
       },
     });
 
@@ -120,8 +123,10 @@ class MapComponent extends PureComponent {
       mapboxLayer: dataLayer,
       isBaseLayer: true,
       visible: false,
-      styleLayersFilter: styleLayer => {
-        return /perimeter_mask_routing_dach$/.test(styleLayer.id);
+      styleLayersFilter: ({ metadata }) => {
+        return (
+          metadata && metadata['routing.filter'] === 'perimeter_mask_routing_dach'
+        );
       },
     });
 
