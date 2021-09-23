@@ -143,7 +143,11 @@ class MapComponent extends PureComponent {
         visible: level === activeFloor,
         mapboxLayer: dataLayer,
         styleLayersFilter: ({ metadata }) =>
-          metadata && metadata['geops.filter'],
+          metadata &&
+          (metadata['geops.filter'] === '2D' ||
+            metadata['geops.filter'] === 'level') &&
+          // Return the filter if it exists
+          metadata['geops.filter'],
         level,
         properties: {
           radioGroup: 'ch.sbb.geschosse-layer',
