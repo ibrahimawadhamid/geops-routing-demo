@@ -125,7 +125,8 @@ class MapComponent extends PureComponent {
       visible: false,
       styleLayersFilter: ({ metadata }) => {
         return (
-          metadata && metadata['routing.filter'] === 'perimeter_mask_routing_dach'
+          metadata &&
+          metadata['routing.filter'] === 'perimeter_mask_routing_dach'
         );
       },
     });
