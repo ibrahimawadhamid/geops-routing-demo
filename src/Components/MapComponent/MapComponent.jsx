@@ -513,8 +513,7 @@ class MapComponent extends PureComponent {
 
       if (currentMotChanged) {
         this.toggleBasemapMask(layerService.getLayer('data'));
-        const newExtent = currentMot === 'foot' ? DACH_EXTENT : EUROPE_EXTENT;
-        onSetMaxExtent(newExtent);
+        onSetMaxExtent(currentMot === 'foot' ? DACH_EXTENT : EUROPE_EXTENT);
       }
 
       if (
@@ -689,13 +688,6 @@ class MapComponent extends PureComponent {
         throw err;
       });
   };
-
-  resetRoute() {
-    const { onSetCurrentStops, onSetCurrentStopsGeoJSON } = this.props;
-    onSetCurrentStops(['', '']);
-    onSetCurrentStopsGeoJSON([]);
-    this.routeVectorSource.clear();
-  }
 
   toggleBasemapMask(mapboxLayer) {
     const { currentMot, layerService } = this.props;
