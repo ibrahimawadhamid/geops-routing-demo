@@ -85,7 +85,7 @@ const getPedestrianStyleColor = (floor, activeFloor) => {
   const f = cleanFloor(floor);
   let floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
   if (activeFloor === '2D') {
-    floorColor = floorsColor[f];
+    floorColor = floorsColor['0'];
   }
   return floorColor || 'black';
 };
