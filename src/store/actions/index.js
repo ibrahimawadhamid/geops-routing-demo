@@ -15,4 +15,5 @@ export {
   setDialogSize,
   setSearchMode,
   setTracks,
+  setMaxExtent,
 } from './Map';

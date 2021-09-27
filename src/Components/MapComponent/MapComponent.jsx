@@ -4,6 +4,7 @@ import qs from 'query-string';
 import { Layer, MapboxLayer, MapboxStyleLayer } from 'mobility-toolbox-js/ol';
 import BasicMap from 'react-spatial/components/BasicMap';
 import { Map, Feature } from 'ol';
+import { containsExtent } from 'ol/extent';
 import { Vector as VectorLayer } from 'ol/layer';
 import _ from 'lodash/core';
 import { MultiLineString, Point } from 'ol/geom';
@@ -31,7 +32,7 @@ import {
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
 import { to4326 } from '../../utils';
-import { FLOOR_LEVELS } from '../../constants';
+import { FLOOR_LEVELS, DACH_EXTENT, EUROPE_EXTENT } from '../../constants';
 import './MapComponent.scss';
 import * as actions from '../../store/actions';
 
@@ -466,6 +467,7 @@ class MapComponent extends PureComponent {
       tracks,
       activeFloor,
       layerService,
+      onSetMaxExtent,
     } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
     const tracksChanged = tracks !== prevProps.tracks;
@@ -509,8 +511,10 @@ class MapComponent extends PureComponent {
         this.drawNewRoute();
       }
 
-      if (currentMot && currentMot !== prevProps.currentMot) {
+      if (currentMotChanged) {
         this.toggleBasemapMask(layerService.getLayer('data'));
+        const newExtent = currentMot === 'foot' ? DACH_EXTENT : EUROPE_EXTENT;
+        onSetMaxExtent(newExtent);
       }
 
       if (
@@ -634,6 +638,7 @@ class MapComponent extends PureComponent {
     return fetch(reqUrl, { signal })
       .then(response => response.json())
       .then(response => {
+        const { maxExtent } = this.props;
         onSetShowLoadingBar(false);
         if (response.error) {
           onShowNotification("Couldn't find route", 'error');
@@ -647,6 +652,14 @@ class MapComponent extends PureComponent {
           featureProjection: 'EPSG:3857',
         });
         this.routeVectorSource.addFeatures(format.readFeatures(response));
+
+        if (!containsExtent(maxExtent, this.routeVectorSource.getExtent())) {
+          // Throw error message, clear route and abort if the route is outside map max extent (e.g. when switching to foot routing)
+          this.routeVectorSource.clear();
+          onShowNotification('Defined route is outside map extent', 'error');
+          return;
+        }
+
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
 
         this.routeVectorSource
@@ -676,6 +689,13 @@ class MapComponent extends PureComponent {
         throw err;
       });
   };
+
+  resetRoute() {
+    const { onSetCurrentStops, onSetCurrentStopsGeoJSON } = this.props;
+    onSetCurrentStops(['', '']);
+    onSetCurrentStopsGeoJSON([]);
+    this.routeVectorSource.clear();
+  }
 
   toggleBasemapMask(mapboxLayer) {
     const { currentMot, layerService } = this.props;
@@ -774,6 +794,7 @@ class MapComponent extends PureComponent {
       selectedRoutes,
       isRouteInfoOpen,
       stationSearchUrl,
+      maxExtent,
     } = this.props;
 
     const {
@@ -809,6 +830,7 @@ class MapComponent extends PureComponent {
           map={this.map}
           viewOptions={{
             projection: this.projection,
+            extent: maxExtent,
           }}
         />
         {isRouteInfoOpen && selectedRoutes.length ? (
@@ -846,6 +868,7 @@ const mapStateToProps = state => {
     searchMode: state.MapReducer.searchMode,
     tracks: state.MapReducer.tracks,
     layerService: state.MapReducer.layerService,
+    maxExtent: state.MapReducer.maxExtent,
   };
 };
 
@@ -865,6 +888,7 @@ const mapDispatchToProps = dispatch => {
       dispatch(actions.setShowLoadingBar(showLoadingBar)),
     onSetSelectedRoutes: selectedRoutes =>
       dispatch(actions.setSelectedRoutes(selectedRoutes)),
+    onSetMaxExtent: extent => dispatch(actions.setMaxExtent(extent)),
   };
 };
 
@@ -889,6 +913,7 @@ MapComponent.propTypes = {
   onSetSelectedRoutes: PropTypes.func.isRequired,
   onSetCurrentStops: PropTypes.func.isRequired,
   onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
+  onSetMaxExtent: PropTypes.func.isRequired,
   currentStops: propTypeCurrentStops.isRequired,
   currentStopsGeoJSON: propTypeCurrentStopsGeoJSON.isRequired,
   isFieldFocused: PropTypes.bool.isRequired,
@@ -899,6 +924,7 @@ MapComponent.propTypes = {
   olMap: PropTypes.instanceOf(Map).isRequired,
   searchMode: PropTypes.string.isRequired,
   layerService: PropTypes.object.isRequired,
+  maxExtent: PropTypes.arrayOf(PropTypes.number).isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

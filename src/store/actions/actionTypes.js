@@ -15,3 +15,4 @@ export const SET_DIALOG_SIZE = 'SET_DIALOG_SIZE';
 export const SET_SEARCH_MODE = 'SET_SEARCH_MODE';
 export const SET_RESOLVE_HOPS = 'SET_RESOLVE_HOPS';
 export const SET_TRACKS = 'SET_TRACKS';
+export const SET_MAX_EXTENT = 'SET_MAX_EXTENT';
