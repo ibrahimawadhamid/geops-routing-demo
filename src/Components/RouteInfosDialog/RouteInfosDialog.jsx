@@ -218,7 +218,6 @@ function RouteInfosDialog({ map, routes }) {
   }, [routes]);
 
   useEffect(() => {
-    console.log('add Highlight layer');
     map.addLayer(highlightLayer);
 
     const highlightHoveredCoords = evt => {
