@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Feature } from 'ol';
+import { Map, Feature } from 'ol';
 import GeoJSON from 'ol/format/GeoJSON';
+import { Point } from 'ol/geom';
+import { Vector as VectorLayer } from 'ol/layer';
+import { Vector as VectorSource } from 'ol/source';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 import combine from '@turf/combine';
-import { Point } from 'ol/geom';
-import Dialog from '@geops/react-ui/components/Dialog';
 import {
   LineChart,
   Line,
@@ -21,19 +22,26 @@ import {
 } from 'recharts';
 import { ReactComponent as InterpolatedSvg } from './interpolated_surface.svg';
 import { ReactComponent as SurfaceSvg } from './surface_elevation.svg';
-import { setIsRouteInfoOpen, setDialogPosition } from '../../store/actions/Map';
+import { pointStyleFunction } from '../../config/styleConfig';
 import './RouteInfosDialog.scss';
 
 const propTypes = {
+  map: PropTypes.instanceOf(Map).isRequired,
   routes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
-  hoveredCoords: PropTypes.arrayOf(PropTypes.number),
-  onHighlightPoint: PropTypes.func.isRequired,
-  clearHighlightPoint: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-  hoveredCoords: null,
-};
+const highlightLayer = new VectorLayer({ source: new VectorSource() });
+
+function clearHighlightLayer() {
+  highlightLayer.getSource().clear();
+}
+
+function highlightPoint(coords, currentMot) {
+  clearHighlightLayer();
+  const feature = new Feature({ geometry: new Point(coords) });
+  feature.setStyle(pointStyleFunction(currentMot));
+  highlightLayer.getSource().addFeatures([feature]);
+}
 
 const tickFormatter = (length, isMeter) => {
   let output;
@@ -62,13 +70,9 @@ const getTooltipY = (alt, maxAlt) => {
   return alt / maxAlt > 0.5 ? 110 : 20;
 };
 
-function RouteInfosDialog({
-  routes,
-  hoveredCoords,
-  onHighlightPoint,
-  clearHighlightPoint,
-}) {
-  const dispatch = useDispatch();
+function RouteInfosDialog({ map, routes }) {
+  const currentMot = useSelector(state => state.MapReducer.currentMot);
+  const [hoveredCoords, setHoveredCoords] = useState(null);
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [length, setLength] = useState(null);
   const [minAltitude, setMinAltitude] = useState(0);
@@ -76,20 +80,6 @@ function RouteInfosDialog({
   const [routePoints, setRoutePoints] = useState([]);
   const [distanceUnit, setDistanceUnit] = useState(null);
   const [isMeter, setIsMeter] = useState(null);
-
-  const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
-
-  const onDragStop = useCallback(
-    (evt, position) => {
-      dispatch(
-        setDialogPosition({
-          x: position.lastX,
-          y: position.lastY,
-        }),
-      );
-    },
-    [dispatch],
-  );
 
   const renderPrograTooltip = useCallback(
     (hovCoords, linePoints, routeLine) => {
@@ -171,7 +161,7 @@ function RouteInfosDialog({
         distance,
       } = tooltipProps.payload[0].payload;
 
-      onHighlightPoint([xVal, yVal]);
+      highlightPoint([xVal, yVal], currentMot);
       // eslint-disable-next-line consistent-return
       return (
         <div className="rd-tootip-wrapper">
@@ -184,7 +174,7 @@ function RouteInfosDialog({
         </div>
       );
     },
-    [hoveredPoint, isMeter, onHighlightPoint],
+    [hoveredPoint, isMeter, currentMot],
   );
 
   useEffect(() => {
@@ -227,20 +217,34 @@ function RouteInfosDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routes]);
 
+  useEffect(() => {
+    console.log('add Highlight layer');
+    map.addLayer(highlightLayer);
+
+    const highlightHoveredCoords = evt => {
+      const hoveredFeatures = map.getFeaturesAtPixel(evt.pixel, {
+        hitTolerance: 2,
+      });
+
+      hoveredFeatures.forEach(feature => {
+        if (feature.getGeometry().getType() === 'LineString') {
+          setHoveredCoords(evt.coordinate);
+        }
+      });
+    };
+
+    map.on('pointermove', highlightHoveredCoords);
+
+    return () => {
+      map.removeLayer(highlightLayer);
+      map.un('pointermove', highlightHoveredCoords);
+    };
+  }, [map, routes]);
+
   return (
-    <Dialog
-      isOpen
-      title={<span>Route information</span>}
-      isDraggable
-      onDragStop={onDragStop}
-      className="rd-dialog-container"
-      classNameHeader="rd-dialog-header"
-      classNameCloseBt="rd-dialog-close-bt"
-      cancelDraggable=".tm-dialog-body"
-      position={dialogPosition}
-      onClose={() => dispatch(setIsRouteInfoOpen(false))}
-    >
-      <div className="rd-dialog-legend">
+    <div className="rd-info-dialog">
+      <div className="rd-info-dialog-header">Route information</div>
+      <div className="rd-info-dialog-legend">
         <span>
           <SurfaceSvg /> surface elevation
         </span>
@@ -248,8 +252,8 @@ function RouteInfosDialog({
           <InterpolatedSvg /> interpolated altitude
         </span>
       </div>
-      <ResponsiveContainer width="90%" height="80%">
-        <LineChart data={routePoints} onMouseLeave={clearHighlightPoint}>
+      <ResponsiveContainer width="100%" height="80%">
+        <LineChart data={routePoints} onMouseLeave={clearHighlightLayer}>
           <YAxis
             type="number"
             axisLine={false}
@@ -312,11 +316,10 @@ function RouteInfosDialog({
           />
         </LineChart>
       </ResponsiveContainer>
-    </Dialog>
+    </div>
   );
 }
 
 RouteInfosDialog.propTypes = propTypes;
-RouteInfosDialog.defaultProps = defaultProps;
 
 export default React.memo(RouteInfosDialog);

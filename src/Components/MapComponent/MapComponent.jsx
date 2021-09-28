@@ -18,7 +18,6 @@ import {
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import RoutingMenu, { FLOOR_REGEX } from '../RoutingMenu';
-import RouteInfosDialog from '../RouteInfosDialog';
 import FloorSwitcher from '../FloorSwitcher';
 import LevelLayer from '../../layers/LevelLayer';
 import {
@@ -92,7 +91,6 @@ class MapComponent extends PureComponent {
       hoveredStationOpen: false,
       hoveredStationName: '',
       isActiveRoute: false,
-      hoveredPoint: null,
     };
 
     this.onHighlightPoint = this.onHighlightPoint.bind(this);
@@ -173,19 +171,6 @@ class MapComponent extends PureComponent {
         olLayer: new VectorLayer({
           zIndex: 1,
           source: this.routeVectorSource,
-        }),
-      }),
-    );
-
-    // Define highlight vectorLayer.
-    this.highlightVectorSource = new VectorSource({});
-    layerService.addLayer(
-      new Layer({
-        key: 'highlightLayer',
-        name: 'highlightLayer',
-        olLayer: new VectorLayer({
-          zIndex: 1,
-          source: this.highlightVectorSource,
         }),
       }),
     );
@@ -580,7 +565,6 @@ class MapComponent extends PureComponent {
       onSetSelectedRoutes,
       searchMode,
       tracks,
-      isRouteInfoOpen,
       activeFloor,
     } = this.props;
 
@@ -614,7 +598,7 @@ class MapComponent extends PureComponent {
     abortController = new AbortController();
     const { signal } = abortController;
 
-    const calculateElevation = !!(isRouteInfoOpen || useElevation);
+    const calculateElevation = !!useElevation;
     let reqUrl =
       `${routingUrl}` +
       `?via=${hops.join(
@@ -720,9 +704,6 @@ class MapComponent extends PureComponent {
           );
         }
         this.hoveredRoute = null;
-        this.setState({
-          hoveredPoint: null,
-        });
       }
       const hovFeats = this.map.getFeaturesAtPixel(evt.pixel, {
         hitTolerance: 2,
@@ -751,10 +732,6 @@ class MapComponent extends PureComponent {
           )
         ) {
           this.hoveredRoute = feature;
-
-          this.setState({
-            hoveredPoint: evt.coordinate,
-          });
         }
         return true;
       });
@@ -766,19 +743,10 @@ class MapComponent extends PureComponent {
    * @category Map
    */
   render() {
-    const {
-      center,
-      mots,
-      currentMot,
-      APIKey,
-      selectedRoutes,
-      isRouteInfoOpen,
-      stationSearchUrl,
-    } = this.props;
+    const { center, mots, currentMot, APIKey, stationSearchUrl } = this.props;
 
     const {
       isActiveRoute,
-      hoveredPoint,
       hoveredStationOpen,
       hoveredStationName,
     } = this.state;
@@ -793,6 +761,7 @@ class MapComponent extends PureComponent {
           onPanViaClick={this.onPanViaClick}
           onDrawNewRoute={this.drawNewRoute}
           APIKey={APIKey}
+          map={this.map}
         />
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -811,16 +780,6 @@ class MapComponent extends PureComponent {
             projection: this.projection,
           }}
         />
-        {isRouteInfoOpen && selectedRoutes.length ? (
-          <RouteInfosDialog
-            routes={selectedRoutes}
-            hoveredCoords={hoveredPoint}
-            onHighlightPoint={this.onHighlightPoint}
-            clearHighlightPoint={() => {
-              this.highlightVectorSource.clear();
-            }}
-          />
-        ) : null}
         {currentMot === 'foot' && this.map.getView().getZoom() >= 14 ? (
           <FloorSwitcher />
         ) : null}
@@ -835,8 +794,6 @@ const mapStateToProps = state => {
     activeFloor: state.MapReducer.activeFloor,
     floorInfo: state.MapReducer.floorInfo,
     selectedRoute: state.MapReducer.selectedRoute,
-    selectedRoutes: state.MapReducer.selectedRoutes,
-    isRouteInfoOpen: state.MapReducer.isRouteInfoOpen,
     currentMot: state.MapReducer.currentMot,
     currentStops: state.MapReducer.currentStops,
     currentStopsGeoJSON: state.MapReducer.currentStopsGeoJSON,
@@ -876,8 +833,6 @@ MapComponent.propTypes = {
   center: propTypeCoordinates,
   activeFloor: PropTypes.string.isRequired,
   floorInfo: PropTypes.arrayOf(PropTypes.string).isRequired,
-  selectedRoutes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
-  isRouteInfoOpen: PropTypes.bool.isRequired,
   mots: PropTypes.arrayOf(PropTypes.string).isRequired,
   APIKey: PropTypes.string.isRequired,
   stationSearchUrl: PropTypes.string.isRequired,

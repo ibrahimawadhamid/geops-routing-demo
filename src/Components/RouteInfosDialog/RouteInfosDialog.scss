@@ -1,100 +1,49 @@
 @import '../../globals.scss';
 
-.tm-rnd {
-  width: auto;
-  z-index: 2;
-  position: absolute;
-  cursor: initial;
-  background: white;
-  color: rgba(0, 0, 0, 0.87);
-  background-color: #fff;
-  box-shadow: 0 3px 3px -2px rgba(0, 0, 0, 0.2), 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12);
+.rd-info-dialog {
+  position: relative;
+  height: 300px;
+  width: calc(100% - 20px);
 
-  .rd-dialog-container {
-    height: 300px;
-    width: 500px;
+  .rd-info-dialog-header {
+    border-top: 1px #999 solid;
+    margin: 20px 0 10px 20px;
+    padding-top: 10px;
+  }
 
-    .rd-dialog-header {
-      line-height: 50px;
-      height: 50px;
-      padding: 0 20px;
-      text-align: left;
+  .rd-info-dialog-legend {
+    position: absolute;
+    font-size: 13px;
+    right: 0;
 
-      .rd-dialog-close-bt {
-        position: absolute;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        right: 0;
-        top: 0;
-        height: 50px;
-        width: 50px;
-      }
-    }
-
-    .tm-dialog-body {
-      height: calc(100% - 50px);
-      margin-top: 5px;
-      font-size: 12px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-
-      .rd-dialog-legend {
-        position: absolute;
-        font-size: 13px;
-        right: 25px;
-
-        svg {
-          display: inline-block;
-          vertical-align: middle;
-          margin: 0 4px 0 8px;
-          height: 17px;
-          width: 17px;
-        }
-      }
-
-      .recharts-wrapper {
-        padding-top: 30px;
-
-        .recharts-surface {
-          overflow: visible;
-
-          text {
-            fill: rgb(102, 102, 102);
-          }
-        }
-
-        .recharts-tooltip-wrapper {
-          visibility: visible !important;
-        }
-
-        .rd-tootip-wrapper {
-          padding: 5px;
-          background-color: rgba(0, 0, 0, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-      }
+    svg {
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0 4px 0 8px;
+      height: 17px;
+      width: 17px;
     }
   }
-}
 
-@media (max-width: $breakpoint-mobile) {
-  .tm-rnd {
-    .rd-dialog-container {
-      width: 280px;
+  .recharts-wrapper {
+    padding-top: 30px;
 
-      .tm-dialog-body {
-        .rd-dialog-legend {
-          display: flex;
-          flex-direction: column;
-        }
+    .recharts-surface {
+      overflow: visible;
 
-        .recharts-wrapper {
-          padding-top: 50px;
-        }
+      text {
+        fill: rgb(102, 102, 102);
       }
+    }
+
+    .recharts-tooltip-wrapper {
+      visibility: visible !important;
+    }
+
+    .rd-tootip-wrapper {
+      padding: 5px;
+      background-color: rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.5);
     }
   }
 }

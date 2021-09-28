@@ -10,6 +10,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Adjust from '@material-ui/icons/Adjust';
 import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import DragIndicatorIcon from '@material-ui/icons/DragIndicator';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
 import FloorSelect from '../FloorSelect';
@@ -186,6 +187,18 @@ function SearchField(props) {
       className={classes.gridContainer}
       alignItems="flex-end"
     >
+      <Grid item xs={1}>
+        <Tooltip title="Move station">
+          <IconButton
+            className={classes.button}
+            aria-label="dragHop"
+            size="small"
+            disabled
+          >
+            <DragIndicatorIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Grid>
       <Grid item xs={1}>
         {fieldLeftIcon}
       </Grid>
