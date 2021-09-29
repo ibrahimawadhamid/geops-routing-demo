@@ -786,7 +786,6 @@ class MapComponent extends PureComponent {
       selectedRoutes,
       isRouteInfoOpen,
       stationSearchUrl,
-      maxExtent,
     } = this.props;
 
     const {
