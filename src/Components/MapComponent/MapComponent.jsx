@@ -822,7 +822,7 @@ class MapComponent extends PureComponent {
           map={this.map}
           viewOptions={{
             projection: this.projection,
-            extent: maxExtent,
+            extent: EUROPE_EXTENT,
           }}
         />
         {isRouteInfoOpen && selectedRoutes.length ? (
