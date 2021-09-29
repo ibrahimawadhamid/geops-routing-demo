@@ -1,10 +1,11 @@
 import { Map } from 'ol';
 import LayerService from 'react-spatial/LayerService';
 import * as actionTypes from '../actions/actionTypes';
-import { SEARCH_MODES } from '../../constants';
+import { SEARCH_MODES, EUROPE_EXTENT } from '../../constants';
 
 const initialState = {
   center: [949042.143189, 5899715.591163],
+  maxExtent: EUROPE_EXTENT,
   activeFloor: '2D',
   currentMot: 'rail',
   floorInfo: ['0', '0'],
@@ -209,6 +210,16 @@ const setSearchMode = (state, action) => {
   };
 };
 
+const setMaxExtent = (state, action) => {
+  const updatedState = {
+    maxExtent: action.maxExtent,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
@@ -245,6 +256,8 @@ const reducer = (state = initialState, action) => {
       return setResolveHops(state, action);
     case actionTypes.SET_TRACKS:
       return setTracks(state, action);
+    case actionTypes.SET_MAX_EXTENT:
+      return setMaxExtent(state, action);
     default:
       return state;
   }
