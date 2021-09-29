@@ -12,6 +12,7 @@ export const OTHER_MOTS = [
   'gondola',
   'funicular',
   'ferry',
+  'car',
 ];
 
 export const VALID_MOTS = [...DEFAULT_MOTS, ...OTHER_MOTS];
