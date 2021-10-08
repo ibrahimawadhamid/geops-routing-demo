@@ -85,6 +85,7 @@ class MapComponent extends PureComponent {
       olMap,
       activeFloor,
       layerService,
+      currentStopsGeoJSON,
     } = this.props;
     this.map = olMap;
     this.hoveredRoute = null;
@@ -94,7 +95,6 @@ class MapComponent extends PureComponent {
       isActiveRoute: false,
       hoveredPoint: null,
     };
-
     this.onHighlightPoint = this.onHighlightPoint.bind(this);
 
     this.projection = 'EPSG:3857';
@@ -795,7 +795,7 @@ class MapComponent extends PureComponent {
         />
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          open={hoveredStationName}
+          open={!!hoveredStationName}
           message={hoveredStationName}
         />
         <BasicMap
