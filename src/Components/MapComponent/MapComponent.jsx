@@ -19,6 +19,7 @@ import {
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import { touchOnly } from 'ol/events/condition';
+import MapFloorSwitcher from '../MapFloorSwitcher';
 import RoutingMenu, { FLOOR_REGEX } from '../RoutingMenu';
 import RouteInfosDialog from '../RouteInfosDialog';
 import FloorSwitcher from '../FloorSwitcher';
@@ -780,7 +781,7 @@ class MapComponent extends PureComponent {
     } = this.props;
 
     const { isActiveRoute, hoveredPoint, hoveredStationName } = this.state;
-
+    let previousFloor = null;
     return (
       <>
         <RoutingMenu
@@ -823,6 +824,28 @@ class MapComponent extends PureComponent {
         {currentMot === 'foot' && this.map.getView().getZoom() >= 14 ? (
           <FloorSwitcher />
         ) : null}
+        {currentMot === 'foot'
+          ? (() => {
+              const dialogs = [];
+              selectedRoutes.forEach((route, idx) => {
+                const previousRoute = selectedRoutes[idx - 1];
+                if (previousRoute) {
+                  previousFloor = previousRoute.get('floor');
+                }
+                const floor = route.get('floor');
+                if (previousFloor && floor !== previousFloor) {
+                  dialogs.push(
+                    <MapFloorSwitcher
+                      key={route.ol_uid}
+                      route={previousRoute}
+                      nextRoute={route}
+                    />,
+                  );
+                }
+              });
+              return dialogs;
+            })()
+          : null}
       </>
     );
   }
