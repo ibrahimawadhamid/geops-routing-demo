@@ -26,24 +26,26 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+const shouldDisplayButton = (map, coord) => {
+  return (
+    map.getView().getZoom() >= 16 &&
+    containsCoordinate(map.getView().calculateExtent(), coord)
+  );
+};
+
 function MapFloorSwitcher({ route, nextRoute }) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const map = useSelector(state => state.MapReducer.olMap);
   const activeFloor = useSelector(state => state.MapReducer.activeFloor);
   const coord = route.getGeometry().getLastCoordinate();
-  const [isInExtent, setInExtent] = useState(
-    (map.getView().getZoom() >= 16 && containsCoordinate(map.getView().calculateExtent(), coord),
-  );
+  const [isInExtent, setInExtent] = useState(shouldDisplayButton(map, coord));
+
   const feature = new Feature(new Point(coord));
 
   useEffect(() => {
     const key = map.on('moveend', () => {
-      if (map.getView().getZoom() < 16) {
-        setInExtent(false);
-      } else {
-        setInExtent(containsCoordinate(map.getView().calculateExtent(), coord));
-      }
+      setInExtent(shouldDisplayButton(map, coord));
     });
     return () => {
       unByKey(key);
