@@ -33,7 +33,7 @@ function FloorSelect({ index, singleStop }) {
   const dispatch = useDispatch();
   const floorInfo = useSelector(state => state.MapReducer.floorInfo);
   const floor = useMemo(() => floorInfo[index], [index, floorInfo]);
-  const [floors, setFloors] = useState(['0']);
+  const [floors, setFloors] = useState([floor || '0']);
 
   useEffect(() => {
     const abortController = new AbortController();
