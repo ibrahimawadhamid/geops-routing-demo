@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Feature } from 'ol';
@@ -62,6 +62,47 @@ const getTooltipY = (alt, maxAlt) => {
   return alt / maxAlt > 0.5 ? 110 : 20;
 };
 
+const format = new GeoJSON({
+  dataProjection: 'EPSG:4326',
+  featureProjection: 'EPSG:3857',
+});
+
+const getHoveredPointFromHoveredCoords = (hovCoords, linePoints, routeLine) => {
+  const line = combine(format.writeFeaturesObject(routeLine)).features[0];
+
+  const hoveredFeat = new Feature({
+    geometry: new Point(hovCoords),
+  });
+
+  const pt = format.writeFeatureObject(hoveredFeat);
+
+  const turfClosestPt = nearestPointOnLine(line, pt);
+  const lineCoordinates = line.geometry.coordinates;
+  const nearestPts = lineCoordinates.map(coords => {
+    return coords[turfClosestPt.properties.index];
+  });
+  const nearestPt = nearestPts.reduce((prev, curr) => {
+    const goal = turfClosestPt.geometry.coordinates[0];
+    if (!prev) {
+      return curr;
+    }
+    return curr && prev && Math.abs(curr[0] - goal) < Math.abs(prev[0] - goal)
+      ? curr
+      : prev;
+  });
+
+  const hoveredLineIdx = nearestPts.indexOf(nearestPt);
+  // Turf only return the index within the closest feature.
+  // We need to add the length of each preceding feature to have the correct index.
+  let nearestPtIndex = turfClosestPt.properties.index;
+  for (let i = 0; i < hoveredLineIdx; i += 1) {
+    nearestPtIndex += lineCoordinates[i].length;
+  }
+
+  const point = linePoints[nearestPtIndex];
+  return point;
+};
+
 function RouteInfosDialog({
   routes,
   hoveredCoords,
@@ -69,7 +110,6 @@ function RouteInfosDialog({
   clearHighlightPoint,
 }) {
   const dispatch = useDispatch();
-  const [hoveredPoint, setHoveredPoint] = useState(null);
   const [length, setLength] = useState(null);
   const [minAltitude, setMinAltitude] = useState(0);
   const [maxAltitude, setMaxAltitude] = useState(null);
@@ -91,87 +131,8 @@ function RouteInfosDialog({
     [dispatch],
   );
 
-  const renderPrograTooltip = useCallback(
-    (hovCoords, linePoints, routeLine) => {
-      const format = new GeoJSON();
-
-      const line = combine(
-        format.writeFeaturesObject(routeLine, {
-          dataProjection: 'EPSG:4326',
-          featureProjection: 'EPSG:3857',
-        }),
-      ).features[0];
-
-      const hoveredFeat = new Feature({
-        geometry: new Point(hovCoords),
-      });
-      const pt = format.writeFeatureObject(hoveredFeat, {
-        dataProjection: 'EPSG:4326',
-        featureProjection: 'EPSG:3857',
-      });
-
-      const turfClosestPt = nearestPointOnLine(line, pt);
-      const lineCoordinates = line.geometry.coordinates;
-      const nearestPts = lineCoordinates.map(coords => {
-        return coords[turfClosestPt.properties.index];
-      });
-      const nearestPt = nearestPts.reduce((prev, curr) => {
-        const goal = turfClosestPt.geometry.coordinates[0];
-        if (!prev) {
-          return curr;
-        }
-        return curr &&
-          prev &&
-          Math.abs(curr[0] - goal) < Math.abs(prev[0] - goal)
-          ? curr
-          : prev;
-      });
-
-      const hoveredLineIdx = nearestPts.indexOf(nearestPt);
-      // Turf only return the index within the closest feature.
-      // We need to add the length of each preceding feature to have the correct index.
-      let nearestPtIndex = turfClosestPt.properties.index;
-      for (let i = 0; i < hoveredLineIdx; i += 1) {
-        nearestPtIndex += lineCoordinates[i].length;
-      }
-
-      const point = linePoints[nearestPtIndex];
-      setHoveredPoint(point);
-
-      if (!point) {
-        return null;
-      }
-      return (
-        <div className="rd-tootip-wrapper">
-          <div>surface elevation: {point.surfaceElevation} m</div>
-          <div>interpolated altitude: {point.alt} m</div>
-          <div>
-            distance: {tickFormatter(point.distance, isMeter)}
-            {isMeter ? ' m' : ' km'}
-          </div>
-        </div>
-      );
-    },
-    [isMeter],
-  );
-
   const renderTooltip = useCallback(
-    tooltipProps => {
-      if (hoveredPoint) {
-        setHoveredPoint(null);
-      }
-      if (!tooltipProps.payload.length) {
-        return;
-      }
-      const {
-        xVal,
-        yVal,
-        alt,
-        surfaceElevation,
-        distance,
-      } = tooltipProps.payload[0].payload;
-
-      onHighlightPoint([xVal, yVal]);
+    ({ alt, surfaceElevation, distance }) => {
       // eslint-disable-next-line consistent-return
       return (
         <div className="rd-tootip-wrapper">
@@ -184,7 +145,7 @@ function RouteInfosDialog({
         </div>
       );
     },
-    [hoveredPoint, isMeter, onHighlightPoint],
+    [isMeter],
   );
 
   useEffect(() => {
@@ -226,6 +187,18 @@ function RouteInfosDialog({
     setRoutePoints(pointArray);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routes]);
+
+  const hoveredPoint = useMemo(() => {
+    if (hoveredCoords && routePoints && routes) {
+      const point = getHoveredPointFromHoveredCoords(
+        hoveredCoords,
+        routePoints,
+        routes,
+      );
+      return point;
+    }
+    return null;
+  }, [hoveredCoords, routePoints, routes]);
 
   return (
     <Dialog
@@ -304,11 +277,21 @@ function RouteInfosDialog({
                   }
                 : null
             }
-            content={content =>
-              hoveredCoords
-                ? renderPrograTooltip(hoveredCoords, routePoints, routes)
-                : renderTooltip(content)
-            }
+            content={content => {
+              if (hoveredPoint) {
+                // Render toltip is we are hovering the route
+                return renderTooltip(hoveredPoint);
+              }
+              if (!content.payload.length) {
+                return null;
+              }
+              const point = content.payload[0].payload;
+              const { xVal, yVal } = point;
+
+              onHighlightPoint([xVal, yVal]);
+              // Render tooltip is we are hovering  the graph
+              return renderTooltip(point);
+            }}
           />
         </LineChart>
       </ResponsiveContainer>
