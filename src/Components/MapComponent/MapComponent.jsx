@@ -662,15 +662,17 @@ class MapComponent extends PureComponent {
         }
 
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
-        this.routeVectorSource
-          .getFeatures()
-          .forEach(f =>
-            f.setStyle(
-              lineStyleFunction(currentMot, false, f.get('floor'), activeFloor),
-            ),
-          );
+        console.log('setStyle features(2');
+        // this.routeVectorSource
+        //   .getFeatures()
+        //   .forEach(f =>
+        //     f.setStyle(
+        //       lineStyleFunction(currentMot, false, f.get('floor'), activeFloor),
+        //     ),
+        //   );
         // Don't use this.routeVectorSource.getFeatures() here, we need to keep the order.
         onSetSelectedRoutes(feats);
+        console.log('setStylelayer (3');
         this.routeVectorLayer.olLayer.setStyle(
           lineStyleFunction(currentMot, false),
         );
@@ -727,8 +729,9 @@ class MapComponent extends PureComponent {
               ),
             );
         } else {
+          console.log('setStyle layer(');
           this.routeVectorLayer.olLayer.setStyle(
-            lineStyleFunction(currentMot, false),
+            lineStyleFunction(currentMot, true),
           );
         }
         this.hoveredRoute = null;

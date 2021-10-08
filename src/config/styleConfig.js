@@ -34,10 +34,7 @@ const busLineStyle = lineStyler([
   ['yellow', 3],
 ]);
 
-const busLineHoveredStyle = lineStyler([
-  ['rgb(153,153,0)', 7],
-  ['yellow', 4],
-]);
+const busLineHoveredStyle = lineStyler([['rgb(255,153,0)', 10]]);
 
 const othersLineStyle = lineStyler([
   ['darkblue', 6],
@@ -135,6 +132,7 @@ const lineStyleFunction = (mot, isHovered, floor, activeFloor) => {
     return isHovered ? railLineHoveredStyle : railLineStyle;
   }
   if (mot === 'bus') {
+    console.log(isHovered, busLineHoveredStyle);
     return isHovered ? busLineHoveredStyle : busLineStyle;
   }
   if (mot === 'foot') {
