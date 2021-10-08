@@ -11,8 +11,9 @@ const feature = PropTypes.shape({
   geometry,
   properties: PropTypes.shape({
     id: PropTypes.oneOfType([
-      PropTypes.number.isRequired,
-      PropTypes.number.isRequired,
+      PropTypes.number,
+      PropTypes.string,
+      propTypeCoordinates, // a coordinate
     ]),
     type: PropTypes.string.isRequired,
   }),
