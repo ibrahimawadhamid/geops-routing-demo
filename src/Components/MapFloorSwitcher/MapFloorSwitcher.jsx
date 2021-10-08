@@ -33,7 +33,7 @@ function MapFloorSwitcher({ route, nextRoute }) {
   const activeFloor = useSelector(state => state.MapReducer.activeFloor);
   const coord = route.getGeometry().getLastCoordinate();
   const [isInExtent, setInExtent] = useState(
-    containsCoordinate(map.getView().calculateExtent(), coord),
+    (map.getView().getZoom() >= 16 && containsCoordinate(map.getView().calculateExtent(), coord),
   );
   const feature = new Feature(new Point(coord));
 
