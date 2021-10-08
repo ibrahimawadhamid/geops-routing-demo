@@ -18,10 +18,12 @@ import {
 } from 'ol/interaction';
 import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
+import { touchOnly } from 'ol/events/condition';
 import RoutingMenu, { FLOOR_REGEX } from '../RoutingMenu';
 import RouteInfosDialog from '../RouteInfosDialog';
 import FloorSwitcher from '../FloorSwitcher';
 import LevelLayer from '../../layers/LevelLayer';
+import { to4326 } from '../../utils';
 import {
   lineStyleFunction,
   pointStyleFunction,
@@ -31,7 +33,6 @@ import {
   propTypeCurrentStops,
   propTypeCurrentStopsGeoJSON,
 } from '../../store/prop-types';
-import { to4326 } from '../../utils';
 import { FLOOR_LEVELS, DACH_EXTENT, EUROPE_EXTENT } from '../../constants';
 import './MapComponent.scss';
 import * as actions from '../../store/actions';
@@ -86,12 +87,10 @@ class MapComponent extends PureComponent {
       layerService,
     } = this.props;
     this.map = olMap;
-    this.hoveredFeature = null;
     this.hoveredRoute = null;
     this.initialRouteDrag = null;
     this.state = {
-      hoveredStationOpen: false,
-      hoveredStationName: '',
+      hoveredStationName: null,
       isActiveRoute: false,
       hoveredPoint: null,
     };
@@ -179,6 +178,15 @@ class MapComponent extends PureComponent {
         olLayer: new VectorLayer({
           zIndex: 1,
           source: this.routeVectorSource,
+          style: feature => {
+            const { currentMot, activeFloor: activeFloorr } = this.props;
+            return lineStyleFunction(
+              currentMot,
+              this.hoveredRoute === feature,
+              feature.get('floor'),
+              activeFloorr,
+            );
+          },
         }),
       }),
     );
@@ -589,7 +597,6 @@ class MapComponent extends PureComponent {
       searchMode,
       tracks,
       isRouteInfoOpen,
-      activeFloor,
     } = this.props;
 
     onSetShowLoadingBar(true);
@@ -662,20 +669,9 @@ class MapComponent extends PureComponent {
         }
 
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
-        console.log('setStyle features(2');
-        // this.routeVectorSource
-        //   .getFeatures()
-        //   .forEach(f =>
-        //     f.setStyle(
-        //       lineStyleFunction(currentMot, false, f.get('floor'), activeFloor),
-        //     ),
-        //   );
+
         // Don't use this.routeVectorSource.getFeatures() here, we need to keep the order.
         onSetSelectedRoutes(feats);
-        console.log('setStylelayer (3');
-        this.routeVectorLayer.olLayer.setStyle(
-          lineStyleFunction(currentMot, false),
-        );
       })
       .catch(err => {
         if (err.name === 'AbortError') {
@@ -707,72 +703,65 @@ class MapComponent extends PureComponent {
 
   initialize() {
     this.map.on('pointermove', evt => {
-      const { currentMot, activeFloor } = this.props;
-
-      if (this.hoveredFeature) {
-        this.hoveredFeature = null;
-        this.setState({ hoveredStationOpen: false, hoveredStationName: '' });
+      if (
+        touchOnly(evt) ||
+        this.map.getView().getAnimating() ||
+        this.map.getView().getInteracting()
+      ) {
+        return;
       }
+      let hoveredRoute = null;
+      let name = null;
 
-      if (this.hoveredRoute) {
-        if (currentMot === 'foot') {
-          this.routeVectorSource
-            .getFeatures()
-            .forEach(f =>
-              f.setStyle(
-                lineStyleFunction(
-                  currentMot,
-                  true,
-                  f.get('floor'),
-                  activeFloor,
-                ),
-              ),
-            );
-        } else {
-          console.log('setStyle layer(');
-          this.routeVectorLayer.olLayer.setStyle(
-            lineStyleFunction(currentMot, true),
-          );
-        }
-        this.hoveredRoute = null;
-        this.setState({
-          hoveredPoint: null,
-        });
-      }
-      const hovFeats = this.map.getFeaturesAtPixel(evt.pixel, {
-        hitTolerance: 2,
-      });
-
-      hovFeats.forEach(feature => {
-        if (feature.getGeometry().getType() === 'Point') {
-          this.hoveredFeature = feature;
-          let name = '';
-          const featCountryCode = feature.get('country_code');
-          if (feature.get('name')) {
-            name = `${feature.get('name')}${
-              featCountryCode ? ` - ${featCountryCode}` : ''
-            }`;
-          } else {
-            name = `${to4326(feature.getGeometry().flatCoordinates)}`;
+      this.map
+        .getFeaturesAtPixel(evt.pixel, {
+          hitTolerance: 2,
+        })
+        .forEach(feature => {
+          // if the feature is a via point or a route point to modify.
+          if (feature.getGeometry().getType() === 'Point') {
+            name = feature.get('name');
+            if (name) {
+              const featCountryCode = feature.get('country_code');
+              name = `${name}${featCountryCode ? ` - ${featCountryCode}` : ''}`;
+            }
+            this.setState({
+              // Display the name of a station or the coordinate of the point
+              hoveredStationName:
+                name || `${to4326(feature.getGeometry().getCoordinates())}`,
+            });
           }
-          this.setState({
-            hoveredStationOpen: true,
-            hoveredStationName: name,
-          });
-        }
-        if (
-          ['MultiLineString', 'LineString'].includes(
-            feature.getGeometry().getType(),
-          )
-        ) {
-          this.hoveredRoute = feature;
+          // if the feature is a route
+          if (
+            ['MultiLineString', 'LineString'].includes(
+              feature.getGeometry().getType(),
+            )
+          ) {
+            hoveredRoute = feature;
 
+            this.setState({
+              // Update the tooltip in route info dialog
+              hoveredPoint: evt.coordinate,
+
+              // Display the coordinate on the route or the name of a via point
+              hoveredStationName: name || `${to4326(evt.coordinate)}`,
+            });
+          }
+        });
+
+      // If the hovered route has changed we update the hover effect
+      if (this.hoveredRoute !== hoveredRoute) {
+        this.hoveredRoute = hoveredRoute;
+
+        // Update the style
+        this.routeVectorLayer.olLayer.changed();
+
+        if (!this.hoveredRoute) {
           this.setState({
-            hoveredPoint: evt.coordinate,
+            hoveredPoint: null,
           });
         }
-        return true;
-      });
+      }
     });
   }
 
@@ -791,12 +780,7 @@ class MapComponent extends PureComponent {
       stationSearchUrl,
     } = this.props;
 
-    const {
-      isActiveRoute,
-      hoveredPoint,
-      hoveredStationOpen,
-      hoveredStationName,
-    } = this.state;
+    const { isActiveRoute, hoveredPoint, hoveredStationName } = this.state;
 
     return (
       <>
@@ -811,7 +795,7 @@ class MapComponent extends PureComponent {
         />
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          open={hoveredStationOpen}
+          open={hoveredStationName}
           message={hoveredStationName}
         />
         <BasicMap
