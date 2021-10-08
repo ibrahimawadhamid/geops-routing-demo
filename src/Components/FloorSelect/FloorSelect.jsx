@@ -56,14 +56,19 @@ function FloorSelect({ index, singleStop }) {
             );
             return;
           }
-          if (!response.properties.availableLevels) {
+          let { availableLevels } = response.properties;
+          if (!availableLevels) {
             dispatch(
               showNotification("Couldn't find available levels", 'warning'),
             );
             return;
           }
           // Use String levels
-          setFloors(response.properties.availableLevels.join().split(','));
+          if (!availableLevels.length) {
+            // if the array is empty we replace it by ['0'] to avoid warnings.
+            availableLevels = ['0'];
+          }
+          setFloors(availableLevels.join().split(','));
         })
         .catch(err => {
           if (err.name === 'AbortError') {
@@ -87,7 +92,7 @@ function FloorSelect({ index, singleStop }) {
       <Select
         renderValue={val => (!val || val === '' ? '0' : val)}
         labelId="rd-floor-select-label"
-        value={floor || '0'}
+        value={floor}
         displayEmpty
         onChange={evt => {
           const newFloorInfo = [...floorInfo];
