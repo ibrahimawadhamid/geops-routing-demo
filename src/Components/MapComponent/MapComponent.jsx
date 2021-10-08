@@ -781,7 +781,7 @@ class MapComponent extends PureComponent {
     } = this.props;
 
     const { isActiveRoute, hoveredPoint, hoveredStationName } = this.state;
-    let previousFloor = null;
+
     return (
       <>
         <RoutingMenu
@@ -827,6 +827,7 @@ class MapComponent extends PureComponent {
         {currentMot === 'foot'
           ? (() => {
               const dialogs = [];
+              let previousFloor = null;
               selectedRoutes.forEach((route, idx) => {
                 const previousRoute = selectedRoutes[idx - 1];
                 if (previousRoute) {
