@@ -99,6 +99,11 @@ class MapComponent extends PureComponent {
     this.onHighlightPoint = this.onHighlightPoint.bind(this);
 
     this.projection = 'EPSG:3857';
+    this.format = new GeoJSON();
+    this.formatFromLonLat = new GeoJSON({
+      dataProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:3857',
+    });
 
     const dataLayer = new MapboxLayer({
       name: 'data',
@@ -488,7 +493,7 @@ class MapComponent extends PureComponent {
       this.markerVectorSource.clear();
       currentStopsGeoJSON.forEach((val, key) => {
         this.markerVectorSource.addFeatures(
-          new GeoJSON().readFeatures(currentStopsGeoJSON[key]),
+          this.format.readFeatures(currentStopsGeoJSON[key]),
         );
         if (currentMot === 'foot') {
           this.markerVectorSource.getFeatures().forEach((feature, idx) => {
@@ -646,11 +651,8 @@ class MapComponent extends PureComponent {
         }
         // A route was found, prepare to draw it.
         this.routeVectorSource.clear();
-        const format = new GeoJSON({
-          dataProjection: 'EPSG:4326',
-          featureProjection: 'EPSG:3857',
-        });
-        this.routeVectorSource.addFeatures(format.readFeatures(response));
+        const feats = this.formatFromLonLat.readFeatures(response);
+        this.routeVectorSource.addFeatures(feats);
 
         if (!containsExtent(maxExtent, this.routeVectorSource.getExtent())) {
           // Throw error message, clear route and abort if the route is outside map max extent (e.g. when switching to foot routing)
@@ -660,7 +662,6 @@ class MapComponent extends PureComponent {
         }
 
         this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
-
         this.routeVectorSource
           .getFeatures()
           .forEach(f =>
@@ -668,9 +669,8 @@ class MapComponent extends PureComponent {
               lineStyleFunction(currentMot, false, f.get('floor'), activeFloor),
             ),
           );
-
-        onSetSelectedRoutes(this.routeVectorSource.getFeatures());
-
+        // Don't use this.routeVectorSource.getFeatures() here, we need to keep the order.
+        onSetSelectedRoutes(feats);
         this.routeVectorLayer.olLayer.setStyle(
           lineStyleFunction(currentMot, false),
         );
