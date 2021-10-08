@@ -624,16 +624,6 @@ function RoutingMenu({
   return (
     <>
       <div className="rd-routing-menu">
-        <button
-          className="rd-routing-menu-toggle"
-          type="button"
-          onClick={() => setMenuVisible(!menuVisible)}
-        >
-          {isDesktop && menuVisible && <ArrowLeftIcon />}
-          {isDesktop && !menuVisible && <ArrowRightIcon />}
-          {!isDesktop && menuVisible && <ExpandLess />}
-          {!isDesktop && !menuVisible && <ExpandMore />}
-        </button>
         <Slide
           direction={isDesktop ? 'right' : 'down'}
           in={menuVisible}
@@ -778,6 +768,10 @@ function RoutingMenu({
                   )}
                 </Droppable>
               </DragDropContext>
+              <SearchResults
+                currentSearchResults={currentSearchResults}
+                processClickedResultHandler={processClickedResultHandler}
+              />
               <div className="rd-route-buttons">
                 <Grid container spacing={3}>
                   <Grid item xs={6}>
@@ -832,15 +826,25 @@ function RoutingMenu({
                 </Grid>
               </div>
               {isRouteInfoOpen && selectedRoutes.length ? (
-                <RouteInfosDialog map={map} routes={selectedRoutes} />
+                <RouteInfosDialog
+                  map={map}
+                  routes={selectedRoutes}
+                  closeInfo={() => dispatch(setIsRouteInfoOpen(false))}
+                />
               ) : null}
             </TabPanel>
-            <SearchResults
-              currentSearchResults={currentSearchResults}
-              processClickedResultHandler={processClickedResultHandler}
-            />
           </Paper>
         </Slide>
+        <button
+          className="rd-routing-menu-toggle"
+          type="button"
+          onClick={() => setMenuVisible(!menuVisible)}
+        >
+          {isDesktop && menuVisible && <ArrowLeftIcon />}
+          {isDesktop && !menuVisible && <ArrowRightIcon />}
+          {!isDesktop && menuVisible && <ExpandLess />}
+          {!isDesktop && !menuVisible && <ExpandMore />}
+        </button>
       </div>
     </>
   );

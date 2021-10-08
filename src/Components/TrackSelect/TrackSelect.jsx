@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -64,6 +65,9 @@ function TrackSelect({ index, disabled }) {
 
   return (
     <FormControl className={classes.wrapper}>
+      <InputLabel shrink id="rd-track-select-label">
+        Track
+      </InputLabel>
       <Select
         classes={selectClasses}
         renderValue={val => (val === '' ? '-' : val)}

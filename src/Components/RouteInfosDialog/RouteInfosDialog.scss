@@ -5,6 +5,12 @@
   height: 300px;
   width: calc(100% - 20px);
 
+  .rd-info-close-button {
+    position: absolute;
+    right: 0;
+    top: 5px;
+  }
+
   .rd-info-dialog-header {
     border-top: 1px #999 solid;
     margin: 20px 0 10px 20px;
@@ -14,7 +20,7 @@
   .rd-info-dialog-legend {
     position: absolute;
     font-size: 13px;
-    right: 0;
+    right: 5px;
 
     svg {
       display: inline-block;

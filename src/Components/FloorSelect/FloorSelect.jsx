@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -84,6 +85,9 @@ function FloorSelect({ index, singleStop }) {
 
   return (
     <FormControl className={classes.wrapper}>
+      <InputLabel shrink id="rd-floor-select-label">
+        Floor
+      </InputLabel>
       <Select
         renderValue={val => (!val || val === '' ? '0' : val)}
         labelId="rd-floor-select-label"

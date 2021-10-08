@@ -5,11 +5,13 @@
   width: 100%;
   display: flex;
   z-index: 1;
+  flex-direction: column;
 
   > div {
-    z-index: 1;
-    margin-top: 32px;
+    z-index: 2;
     flex-grow: 1;
+    overflow: scroll;
+    max-height: calc(100vh - 32px);
   }
 
   .rd-routing-menu-toggle {
@@ -23,7 +25,6 @@
     box-shadow: 0 0 5px #555;
     color: #555;
     width: 100%;
-    position: absolute;
     z-index: 1;
   }
 
@@ -85,9 +86,8 @@
 
 @media (min-width: 768px) {
   .rd-routing-menu {
-    width: 500px;
-    flex-direction: row-reverse;
-    justify-content: flex-end;
+    width: 588px;
+    flex-direction: row;
 
     > div {
       margin-top: 0;

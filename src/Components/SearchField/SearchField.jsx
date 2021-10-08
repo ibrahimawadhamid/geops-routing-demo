@@ -2,10 +2,12 @@ import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
 
 import Adjust from '@material-ui/icons/Adjust';
 import Room from '@material-ui/icons/Room';
@@ -42,6 +44,12 @@ const useStyles = makeStyles(theme => ({
       maxWidth: '50%',
     },
   },
+  addButtonWrapper: {
+    padding: '5px 0 5px 8px !important',
+  },
+  buttonIcon: {
+    color: 'gray !important',
+  },
   buttonWrapper: {
     maxWidth: '26px',
   },
@@ -72,6 +80,7 @@ function SearchField(props) {
   let searchFieldSize = 10;
   let searchFieldLabel = '';
   let fieldRightIcon = null;
+  let addButton = null;
 
   const formatSingleStop = val => (Array.isArray(val) ? to4326(val) : val);
   const isStationName = useMemo(
@@ -97,19 +106,28 @@ function SearchField(props) {
       </Tooltip>
     );
     searchFieldLabel = 'Start';
-    fieldRightIcon = (
-      <Grid item xs={1} className={classes.buttonWrapper}>
+    addButton = (
+      <Grid item className={`rd-route-buttons ${classes.addButtonWrapper}`}>
         <Tooltip title="Add Hop">
           <span>
-            <IconButton
+            <Button
+              variant="contained"
               onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-              disabled={addNextHopDisabled || showLoadingBar}
-              className={classes.button}
+              className="rd-button-active"
+              classes={{
+                root: 'rd-button-root',
+                disabled: 'rd-button-disabled',
+              }}
               aria-label="Add Hop"
-              size="small"
+              startIcon={
+                <AddCircleOutlineIcon
+                  fontSize="small"
+                  className={classes.buttonIcon}
+                />
+              }
             >
-              <AddCircleOutlineIcon fontSize="small" />
-            </IconButton>
+              <Typography variant="caption">Add stopover</Typography>
+            </Button>
           </span>
         </Tooltip>
       </Grid>
@@ -143,41 +161,52 @@ function SearchField(props) {
     );
     searchFieldSize = 9;
     searchFieldLabel = 'Hop';
+    addButton = (
+      <Grid item className={`rd-route-buttons ${classes.addButtonWrapper}`}>
+        <Tooltip title="Add Hop">
+          <span>
+            <Button
+              variant="contained"
+              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
+              disabled={addNextHopDisabled || showLoadingBar}
+              className="rd-button-active"
+              classes={{
+                root: 'rd-button-root',
+                disabled: 'rd-button-disabled',
+              }}
+              aria-label="Add Hop"
+              startIcon={
+                <AddCircleOutlineIcon
+                  fontSize="small"
+                  className={classes.buttonIcon}
+                />
+              }
+            >
+              <Typography variant="caption">Add stopover</Typography>
+            </Button>
+          </span>
+        </Tooltip>
+      </Grid>
+    );
     fieldRightIcon = (
-      <>
-        <Grid item xs={1} className={classes.buttonWrapper}>
-          <Tooltip title="Add Hop">
-            <span>
-              <IconButton
-                disabled={addNextHopDisabled || showLoadingBar}
-                onClick={() =>
-                  addNewSearchFieldHandler(currentStops, index + 1)
-                }
-                className={classes.button}
-                aria-label="addHop"
-                size="small"
-              >
-                <AddCircleOutlineIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </Grid>
-        <Grid item xs={1} className={classes.buttonWrapper}>
-          <Tooltip title="Remove Hop">
-            <span>
-              <IconButton
-                onClick={() => removeSearchFieldHandler(index)}
-                className={classes.button}
-                aria-label="removeHop"
-                size="small"
-                disabled={showLoadingBar}
-              >
-                <RemoveCircleOutlineIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </Grid>
-      </>
+      <Grid item xs={1} className={classes.buttonWrapper}>
+        <Tooltip title="Remove Hop">
+          <span>
+            <IconButton
+              onClick={() => removeSearchFieldHandler(index)}
+              className={classes.button}
+              aria-label="removeHop"
+              size="small"
+              disabled={showLoadingBar}
+            >
+              <RemoveCircleOutlineIcon
+                fontSize="small"
+                className={classes.buttonIcon}
+              />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Grid>
     );
   }
   return (
@@ -236,6 +265,12 @@ function SearchField(props) {
         <TrackSelect index={index} disabled={!isStationName} />
       ) : null}
       {fieldRightIcon}
+      {addButton && (
+        <Grid container>
+          <Grid item xs="2" />
+          {addButton}
+        </Grid>
+      )}
     </Grid>
   );
 }

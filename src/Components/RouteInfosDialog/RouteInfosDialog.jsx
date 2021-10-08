@@ -6,6 +6,8 @@ import GeoJSON from 'ol/format/GeoJSON';
 import { Point } from 'ol/geom';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 import combine from '@turf/combine';
 import {
@@ -26,6 +28,7 @@ import { pointStyleFunction } from '../../config/styleConfig';
 import './RouteInfosDialog.scss';
 
 const propTypes = {
+  closeInfo: PropTypes.func.isRequired,
   map: PropTypes.instanceOf(Map).isRequired,
   routes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
 };
@@ -70,7 +73,7 @@ const getTooltipY = (alt, maxAlt) => {
   return alt / maxAlt > 0.5 ? 110 : 20;
 };
 
-function RouteInfosDialog({ map, routes }) {
+function RouteInfosDialog({ closeInfo, map, routes }) {
   const currentMot = useSelector(state => state.MapReducer.currentMot);
   const [hoveredCoords, setHoveredCoords] = useState(null);
   const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -242,6 +245,11 @@ function RouteInfosDialog({ map, routes }) {
 
   return (
     <div className="rd-info-dialog">
+      <div className="rd-info-close-button">
+        <IconButton aria-label="close" onClick={closeInfo} size="small">
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </div>
       <div className="rd-info-dialog-header">Route information</div>
       <div className="rd-info-dialog-legend">
         <span>
@@ -251,7 +259,7 @@ function RouteInfosDialog({ map, routes }) {
           <InterpolatedSvg /> interpolated altitude
         </span>
       </div>
-      <ResponsiveContainer width="100%" height="80%">
+      <ResponsiveContainer width="98%" height="80%">
         <LineChart data={routePoints} onMouseLeave={clearHighlightLayer}>
           <YAxis
             type="number"
