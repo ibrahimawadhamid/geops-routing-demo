@@ -481,6 +481,7 @@ class MapComponent extends PureComponent {
       activeFloor,
       layerService,
       onSetMaxExtent,
+      dispatchSetActiveFloor,
     } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
     const tracksChanged = tracks !== prevProps.tracks;
@@ -534,11 +535,17 @@ class MapComponent extends PureComponent {
         currentMot !== prevProps.currentMot &&
         !layerService.getLayer(`ch.sbb.geschosse2D`).visible
       ) {
-        // Switch back to 2D floor layer
-        layerService.getLayer(`ch.sbb.geschosse`).children.forEach(layer => {
-          layer.setVisible(false);
-        });
-        layerService.getLayer(`ch.sbb.geschosse2D`).setVisible(true);
+        dispatchSetActiveFloor('2D');
+      }
+    }
+
+    if (activeFloorChanged) {
+      layerService.getLayer(`ch.sbb.geschosse`).children.forEach(layer => {
+        layer.setVisible(false);
+      });
+      const layer = layerService.getLayer(`ch.sbb.geschosse${activeFloor}`);
+      if (layer) {
+        layer.setVisible(true);
       }
     }
   }
@@ -890,6 +897,8 @@ const mapDispatchToProps = dispatch => {
     onSetSelectedRoutes: selectedRoutes =>
       dispatch(actions.setSelectedRoutes(selectedRoutes)),
     onSetMaxExtent: extent => dispatch(actions.setMaxExtent(extent)),
+    dispatchSetActiveFloor: activeFloor =>
+      dispatch(actions.setActiveFloor(activeFloor)),
   };
 };
 
@@ -915,6 +924,7 @@ MapComponent.propTypes = {
   onSetCurrentStops: PropTypes.func.isRequired,
   onSetCurrentStopsGeoJSON: PropTypes.func.isRequired,
   onSetMaxExtent: PropTypes.func.isRequired,
+  dispatchSetActiveFloor: PropTypes.func.isRequired,
   currentStops: propTypeCurrentStops.isRequired,
   currentStopsGeoJSON: propTypeCurrentStopsGeoJSON.isRequired,
   isFieldFocused: PropTypes.bool.isRequired,

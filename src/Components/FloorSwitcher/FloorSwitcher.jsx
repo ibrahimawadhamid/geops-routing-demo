@@ -18,7 +18,6 @@ const propTypes = {
   center: propTypeCoordinates.isRequired,
   activeFloor: PropTypes.string.isRequired,
   map: PropTypes.object.isRequired,
-  layerService: PropTypes.object.isRequired,
   // isAppWidthSmallerThanS: PropTypes.bool,
 
   // mapDispatchToProps
@@ -113,16 +112,7 @@ class FloorSwitcher extends PureComponent {
   }
 
   selectFloor(floor) {
-    const { dispatchSetActiveFloor, layerService } = this.props;
-
-    layerService.getLayer(`ch.sbb.geschosse`).children.forEach(layer => {
-      layer.setVisible(false);
-    });
-    const layer = layerService.getLayer(`ch.sbb.geschosse${floor}`);
-    if (layer) {
-      layer.setVisible(true);
-    }
-
+    const { dispatchSetActiveFloor } = this.props;
     dispatchSetActiveFloor(floor, 'Switcher');
   }
 
@@ -205,7 +195,6 @@ const mapStateToProps = state => ({
   activeFloor: state.MapReducer.activeFloor,
   center: state.MapReducer.center,
   map: state.MapReducer.olMap,
-  layerService: state.MapReducer.layerService,
   // isAppWidthSmallerThanS: state.isAppWidthSmallerThanS,
 });
 
