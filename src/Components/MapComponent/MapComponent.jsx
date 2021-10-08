@@ -85,7 +85,6 @@ class MapComponent extends PureComponent {
       olMap,
       activeFloor,
       layerService,
-      currentStopsGeoJSON,
     } = this.props;
     this.map = olMap;
     this.hoveredRoute = null;
