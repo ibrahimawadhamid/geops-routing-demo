@@ -111,20 +111,21 @@ function SearchField(props) {
         <Tooltip title="Add Hop">
           <span>
             <Button
-              variant="contained"
-              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
+              aria-label="Add Hop"
               className="rd-button-active"
               classes={{
                 root: 'rd-button-root',
                 disabled: 'rd-button-disabled',
               }}
-              aria-label="Add Hop"
+              disabled={addNextHopDisabled || showLoadingBar}
+              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
               startIcon={
                 <AddCircleOutlineIcon
                   fontSize="small"
                   className={classes.buttonIcon}
                 />
               }
+              variant="contained"
             >
               <Typography variant="caption">Add stopover</Typography>
             </Button>
@@ -166,21 +167,21 @@ function SearchField(props) {
         <Tooltip title="Add Hop">
           <span>
             <Button
-              variant="contained"
-              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-              disabled={addNextHopDisabled || showLoadingBar}
+              aria-label="Add Hop"
               className="rd-button-active"
               classes={{
                 root: 'rd-button-root',
                 disabled: 'rd-button-disabled',
               }}
-              aria-label="Add Hop"
+              disabled={addNextHopDisabled || showLoadingBar}
+              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
               startIcon={
                 <AddCircleOutlineIcon
                   fontSize="small"
                   className={classes.buttonIcon}
                 />
               }
+              variant="contained"
             >
               <Typography variant="caption">Add stopover</Typography>
             </Button>
