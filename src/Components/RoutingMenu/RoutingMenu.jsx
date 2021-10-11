@@ -209,6 +209,7 @@ function RoutingMenu({
   const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
   const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
   const [menuVisible, setMenuVisible] = useState(true);
+  const [isEntered, setIsEntered] = useState(true);
 
   useEffect(() => {
     if (isRouteInfoOpen) {
@@ -627,6 +628,8 @@ function RoutingMenu({
         <Slide
           direction={isDesktop ? 'right' : 'down'}
           in={menuVisible}
+          onEntered={() => setIsEntered(true)}
+          onExiting={() => setIsEntered(false)}
           mountOnEnter
           unmountOnExit
         >
@@ -837,6 +840,7 @@ function RoutingMenu({
         </Slide>
         <button
           className="rd-routing-menu-toggle"
+          style={{ position: isEntered ? 'relative' : 'absolute' }}
           type="button"
           onClick={() => setMenuVisible(!menuVisible)}
         >
