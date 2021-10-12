@@ -35,6 +35,8 @@ function FloorSelect({ index, singleStop }) {
   const floor = useMemo(() => floorInfo[index], [index, floorInfo]);
   const [floors, setFloors] = useState([floor || '0']);
 
+  console.log(floors, floor);
+
   useEffect(() => {
     const abortController = new AbortController();
     // Coordinate
@@ -68,7 +70,21 @@ function FloorSelect({ index, singleStop }) {
             // if the array is empty we replace it by ['0'] to avoid warnings.
             availableLevels = ['0'];
           }
-          setFloors(availableLevels.join().split(','));
+
+          const newFloors = availableLevels.join().split(',');
+
+          // If the old floor doesn't exist at the new coordinate try to pick one.
+          if (floor && !newFloors.includes(floor)) {
+            if (floor !== '0' && newFloors.includes('0')) {
+              floorInfo[index] = '0';
+            } else {
+              // If the level 0 doesn't exist pick the one in the middle
+              floorInfo[index] = newFloors[Math.floor(newFloors.length / 2)];
+            }
+            dispatch(setFloorInfo([...floorInfo]));
+          }
+
+          setFloors(newFloors);
         })
         .catch(err => {
           if (err.name === 'AbortError') {
@@ -86,6 +102,12 @@ function FloorSelect({ index, singleStop }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [singleStop]);
+
+  useEffect(() => {
+    // Select the good floor if there is only one possibility
+    if (floorInfo && floors && floors.length) {
+    }
+  }, [floorInfo, floors]);
 
   return (
     <FormControl className={classes.wrapper}>
