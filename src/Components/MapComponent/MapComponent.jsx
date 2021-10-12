@@ -744,6 +744,7 @@ class MapComponent extends PureComponent {
         if (!this.hoveredRoute) {
           this.setState({
             hoveredPoint: null,
+            hoveredStationName: null,
           });
         }
       }
