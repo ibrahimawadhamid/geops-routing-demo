@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { transformExtent } from 'ol/proj';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
@@ -187,6 +188,7 @@ function RoutingMenu({
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const selectedRoutes = useSelector(state => state.MapReducer.selectedRoutes);
   const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
+  const maxExtent = useSelector(state => state.MapReducer.maxExtent);
   const isRouteInfoOpen = useSelector(
     state => state.MapReducer.isRouteInfoOpen,
   );
@@ -463,7 +465,11 @@ function RoutingMenu({
       currentMot,
     )}`}&ref_location=${to4326(center)
       .reverse()
-      .join(',')}&limit=10`;
+      .join(',')}&limit=10&bbox=${transformExtent(
+      maxExtent,
+      'EPSG:3857',
+      'EPSG:4326',
+    ).toString()}`;
 
     fetch(reqUrl, { signal })
       .then(response => response.json())
