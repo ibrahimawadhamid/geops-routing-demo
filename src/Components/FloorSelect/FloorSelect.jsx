@@ -35,8 +35,6 @@ function FloorSelect({ index, singleStop }) {
   const floor = useMemo(() => floorInfo[index], [index, floorInfo]);
   const [floors, setFloors] = useState([floor || '0']);
 
-  console.log(floors, floor);
-
   useEffect(() => {
     const abortController = new AbortController();
     // Coordinate
