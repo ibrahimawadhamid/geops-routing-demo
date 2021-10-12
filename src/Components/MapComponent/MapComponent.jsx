@@ -280,20 +280,15 @@ class MapComponent extends PureComponent {
 
       newTracks[featureIndex] = '';
       newCurentStopsGeoJSON[featureIndex] = {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: {
-              id: evt.coordinate.slice().reverse(),
-              type: 'coordinates',
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: evt.coordinate,
-            },
-          },
-        ],
+        type: 'Feature',
+        properties: {
+          id: evt.coordinate.slice().reverse(),
+          type: 'coordinates',
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: evt.coordinate,
+        },
       };
       onSetTracks(newTracks);
       onSetCurrentStops(newCurrentStops);
@@ -398,20 +393,15 @@ class MapComponent extends PureComponent {
           evt.mapBrowserEvent.coordinate,
         );
         updatedCurrentStopsGeoJSON.splice(newHopIdx, 0, {
-          type: 'FeatureCollection',
-          features: [
-            {
-              type: 'Feature',
-              properties: {
-                id: evt.mapBrowserEvent.coordinate.slice().reverse(),
-                type: 'coordinates',
-              },
-              geometry: {
-                type: 'Point',
-                coordinates: evt.mapBrowserEvent.coordinate,
-              },
-            },
-          ],
+          type: 'Feature',
+          properties: {
+            id: evt.mapBrowserEvent.coordinate.slice().reverse(),
+            type: 'coordinates',
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: evt.mapBrowserEvent.coordinate,
+          },
         });
 
         onSetTracks(newTracks);
@@ -444,9 +434,7 @@ class MapComponent extends PureComponent {
     this.onPanViaClick = (item, idx) => {
       const { currentStopsGeoJSON } = this.props;
       if (currentStopsGeoJSON && currentStopsGeoJSON[idx]) {
-        const featureCoord = currentStopsGeoJSON[idx].features
-          ? currentStopsGeoJSON[idx].features[0].geometry.coordinates
-          : currentStopsGeoJSON[idx].geometry.coordinates;
+        const featureCoord = currentStopsGeoJSON[idx].geometry.coordinates;
 
         this.map.getView().animate({
           center: featureCoord,
@@ -500,10 +488,11 @@ class MapComponent extends PureComponent {
       activeFloorChanged
     ) {
       this.markerVectorSource.clear();
-      currentStopsGeoJSON.forEach((val, key) => {
-        this.markerVectorSource.addFeatures(
-          this.format.readFeatures(currentStopsGeoJSON[key]),
-        );
+      currentStopsGeoJSON.forEach(val => {
+        if (!val) {
+          return;
+        }
+        this.markerVectorSource.addFeatures(this.format.readFeatures(val));
         if (currentMot === 'foot') {
           this.markerVectorSource.getFeatures().forEach((feature, idx) => {
             feature.setStyle(
@@ -610,10 +599,13 @@ class MapComponent extends PureComponent {
 
     // find the index and use this instead.
     currentStopsGeoJSON.forEach((val, idx) => {
-      if (currentStopsGeoJSON[idx].features) {
+      if (!val) {
+        return;
+      }
+      if (!val.properties.uid) {
         // If the current item is a point selected on the map, not a station.
         hops.push(
-          `${to4326(currentStopsGeoJSON[idx].features[0].geometry.coordinates)
+          `${to4326(val.geometry.coordinates)
             .slice()
             .reverse()}${
             currentMot === 'foot' && floorInfo && floorInfo[idx] !== null
@@ -623,7 +615,7 @@ class MapComponent extends PureComponent {
         );
       } else {
         hops.push(
-          `!${currentStopsGeoJSON[idx].properties.uid}${
+          `!${val.properties.uid}${
             tracks[idx] !== null
               ? `${tracks[idx] ? `$${tracks[idx]}` : ''}`
               : ''

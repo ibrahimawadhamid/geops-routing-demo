@@ -66,15 +66,6 @@ function TabPanel(props) {
   );
 }
 
-const swapFc = (input, indexA, indexB) => {
-  const temp = input[indexA];
-
-  // eslint-disable-next-line no-param-reassign
-  input[indexA] = input[indexB];
-  // eslint-disable-next-line no-param-reassign
-  input[indexB] = temp;
-};
-
 /**
  * The routing menu props
  * @typedef RoutingMenuProps
@@ -214,7 +205,6 @@ function RoutingMenu({
    */
   useEffect(() => {
     if (clickLocation) {
-      console.log(clickLocation);
       currentStops[focusedFieldIndex] = clickLocation;
       if (currentStops.length !== currentStopsGeoJSON.length) {
         currentStopsGeoJSON.splice(focusedFieldIndex, 0, null);
@@ -234,20 +224,15 @@ function RoutingMenu({
 
       // Create GeoJSON
       currentStopsGeoJSON[focusedFieldIndex] = {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: {
-              id: clickLocation.slice().reverse(),
-              type: 'coordinates',
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: clickLocation,
-            },
-          },
-        ],
+        type: 'Feature',
+        properties: {
+          id: clickLocation.slice().reverse(),
+          type: 'coordinates',
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: clickLocation,
+        },
       };
 
       // Move the focus to the next field
@@ -256,12 +241,12 @@ function RoutingMenu({
           ? focusedFieldIndex + 1
           : focusedFieldIndex;
 
-      // Make sure we only goes here when the clickLocation has been modified.
+      // Make sure we only goes here once when the clickLocation has been modified.
       dispatch(setClickLocation(null));
-      dispatch(setCurrentStops([...currentStops]));
-      dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
       dispatch(setTracks([...tracks]));
       dispatch(setFloorInfo([...floorInfo]));
+      dispatch(setCurrentStops([...currentStops]));
+      dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
       setFocusedFieldIndex(nextFocusFieldIdx);
     }
   }, [
@@ -303,17 +288,15 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const addNewSearchFieldHandler = (currStops, indexToInsertAt) => {
-    const updatedTracks = [...tracks];
-    const updatedCurrentStops = [...currentStops];
-    const updatedCurrentStopsGeoJSON = [...currentStopsGeoJSON];
+    tracks.splice(indexToInsertAt, 0, '');
+    floorInfo.splice(indexToInsertAt, 0, '0');
+    currentStops.splice(indexToInsertAt, 0, '');
+    currentStopsGeoJSON.splice(indexToInsertAt, 0, null);
 
-    updatedCurrentStops.splice(indexToInsertAt, 0, '');
-    currentStopsGeoJSON.splice(indexToInsertAt, 0, '');
-    updatedTracks.splice(indexToInsertAt, 0, '');
-
-    dispatch(setTracks(updatedTracks));
-    dispatch(setCurrentStops(updatedCurrentStops));
-    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+    dispatch(setTracks([...tracks]));
+    dispatch(setFloorInfo([...floorInfo]));
+    dispatch(setCurrentStops([...currentStops]));
+    dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
   };
 
   /**
@@ -372,20 +355,15 @@ function RoutingMenu({
         const newPoint = coords.includes(0) ? [] : to3857(coords);
         // : to3857(coords.map(coord => coord.split('$')[0]));
         updatedCurrentStopsGeoJSON[idx] = {
-          type: 'FeatureCollection',
-          features: [
-            {
-              type: 'Feature',
-              properties: {
-                id: newPoint.slice().reverse(),
-                type: 'coordinates',
-              },
-              geometry: {
-                type: 'Point',
-                coordinates: newPoint,
-              },
-            },
-          ],
+          type: 'Feature',
+          properties: {
+            id: newPoint.slice().reverse(),
+            type: 'coordinates',
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: newPoint,
+          },
         };
       }
       /*
@@ -456,27 +434,11 @@ function RoutingMenu({
     const [firstSearchResult] = currentSearchResults;
     if (event.key === 'Enter' && firstSearchResult) {
       // The user has chosen the first result by pressing 'Enter' key on keyboard
-      const updatedCurrentStops = currentStops;
-      updatedCurrentStops[focusedFieldIndex] =
-        firstSearchResult.properties.name;
-      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-      updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
-      dispatch(setCurrentStops(updatedCurrentStops));
+      currentStops[focusedFieldIndex] = firstSearchResult.properties.name;
+      currentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
+      dispatch(setCurrentStops([...currentStops]));
+      dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
       setCurrentSearchResults([]);
-      dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
-    }
-    if (event.key === 'Backspace') {
-      // The user has erased some of the search query. Reset everything and start all over.
-      let updateCurrentSearchResults = [];
-      if (event.target.value) updateCurrentSearchResults = currentSearchResults;
-      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-      currentStopsGeoJSON.forEach((val, idx) => {
-        if (idx !== focusedFieldIndex) {
-          updatedCurrentStopsGeoJSON[idx] = currentStopsGeoJSON[idx];
-        }
-      });
-      setCurrentSearchResults(updateCurrentSearchResults);
-      dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
     }
   };
 
@@ -502,19 +464,17 @@ function RoutingMenu({
     }
 
     tracks[focusedFieldIndex] = '';
-
     floorInfo[focusedFieldIndex] = '0';
-
     currentStopsGeoJSON[focusedFieldIndex] = searchResult;
     currentStopsGeoJSON[focusedFieldIndex].geometry.coordinates = to3857(
       searchResult.geometry.coordinates,
     );
 
     setCurrentSearchResults([]);
-    dispatch(setCurrentStops([...currentStops]));
-    dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
     dispatch(setTracks([...tracks]));
     dispatch(setFloorInfo([...floorInfo]));
+    dispatch(setCurrentStops([...currentStops]));
+    dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
   };
 
   const changeCurrentOtherMot = evt => {
@@ -539,45 +499,22 @@ function RoutingMenu({
       return;
     }
 
-    const updatedCurrentStops = _.clone(currentStops);
-    const [removed] = updatedCurrentStops.splice(result.source.index, 1);
-    updatedCurrentStops.splice(result.destination.index, 0, removed);
+    let [removed] = currentStops.splice(result.source.index, 1);
+    currentStops.splice(result.destination.index, 0, removed);
 
-    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
+    [removed] = currentStopsGeoJSON.splice(result.source.index, 1);
+    currentStopsGeoJSON.splice(result.destination.index, 0, removed);
 
-    const newSource = { ...updatedCurrentStopsGeoJSON[result.source.index] };
-    if (result.destination.index < result.source.index) {
-      updatedCurrentStopsGeoJSON
-        .filter((val, idx) => {
-          return idx >= result.destination.index && idx < result.source.index;
-        })
-        .reverse()
-        .forEach((val, idx) => {
-          updatedCurrentStopsGeoJSON[idx + 1] = updatedCurrentStopsGeoJSON[idx];
-        });
-      updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
-    } else if (result.destination.index > result.source.index) {
-      updatedCurrentStopsGeoJSON
-        .filter(
-          (val, idx) =>
-            idx >= result.source.index && idx <= result.destination.index,
-        )
-        .forEach((val, idx) => {
-          if (idx === result.destination.index) {
-            updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
-          } else {
-            updatedCurrentStopsGeoJSON[idx] =
-              updatedCurrentStopsGeoJSON[idx + 1];
-          }
-        });
-    }
+    [removed] = tracks.splice(result.source.index, 1);
+    tracks.splice(result.destination.index, 0, removed);
 
-    const updatedTracks = [...tracks];
-    swapFc(updatedTracks, result.source.index, result.destination.index);
+    [removed] = floorInfo.splice(result.source.index, 1);
+    floorInfo.splice(result.destination.index, 0, removed);
 
-    dispatch(setTracks(updatedTracks));
-    dispatch(setCurrentStops(updatedCurrentStops));
-    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+    dispatch(setTracks([...tracks]));
+    dispatch(setFloorInfo([...floorInfo]));
+    dispatch(setCurrentStops([...currentStops]));
+    dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
   };
 
   /**
