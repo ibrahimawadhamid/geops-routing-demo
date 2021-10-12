@@ -32,6 +32,7 @@ import {
   setSelectedRoutes,
   setSearchMode,
   setIsRouteInfoOpen,
+  setClickLocation,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
 import {
@@ -115,6 +116,44 @@ const useStyles = makeStyles(() => ({
 let abortController = new AbortController();
 
 /**
+ * Validate the mots provided from the props, then retrieve the icons for the valid ones.
+ * @param mots The provided mots
+ * @returns {Array} The valid mots with their icons
+ * @category RoutingMenu
+ */
+const validateMots = (motsArray, validationMots) => {
+  const currentMotsArray = [];
+
+  motsArray
+    .filter(mot => {
+      return validationMots.includes(mot);
+    })
+    .forEach(providedMot => {
+      const requestedMot = validationMots.find(mot => mot === providedMot);
+      if (requestedMot) {
+        currentMotsArray.push({
+          name: requestedMot,
+          icon: findMotIcon(requestedMot),
+        });
+      }
+    });
+  if (currentMotsArray.length === 0) {
+    currentMotsArray.push({
+      name: VALID_MOTS[0],
+      icon: findMotIcon(VALID_MOTS[0]),
+    });
+  }
+  return currentMotsArray;
+};
+
+// Currently no 'coach' mot available for stop finder.
+const handleStopFinderMot = mot => {
+  if (mot === 'coach') return 'bus';
+  if (mot === 'foot' || mot === 'car') return '';
+  return mot;
+};
+
+/**
  * The routing menu that controls station search
  * @category RoutingMenu
  */
@@ -129,44 +168,6 @@ function RoutingMenu({
 }) {
   const classes = useStyles();
   const dispatch = useDispatch();
-
-  /**
-   * Validate the mots provided from the props, then retrieve the icons for the valid ones.
-   * @param mots The provided mots
-   * @returns {Array} The valid mots with their icons
-   * @category RoutingMenu
-   */
-  const validateMots = (motsArray, validationMots) => {
-    const currentMotsArray = [];
-
-    motsArray
-      .filter(mot => {
-        return validationMots.includes(mot);
-      })
-      .forEach(providedMot => {
-        const requestedMot = validationMots.find(mot => mot === providedMot);
-        if (requestedMot) {
-          currentMotsArray.push({
-            name: requestedMot,
-            icon: findMotIcon(requestedMot),
-          });
-        }
-      });
-    if (currentMotsArray.length === 0) {
-      currentMotsArray.push({
-        name: VALID_MOTS[0],
-        icon: findMotIcon(VALID_MOTS[0]),
-      });
-    }
-    return currentMotsArray;
-  };
-
-  // Currently no 'coach' mot available for stop finder.
-  const handleStopFinderMot = mot => {
-    if (mot === 'coach') return 'bus';
-    if (mot === 'foot' || mot === 'car') return '';
-    return mot;
-  };
 
   const currentMotsVal = validateMots(mots, DEFAULT_MOTS);
   const otherMotsVal = validateMots(mots, OTHER_MOTS);
@@ -187,18 +188,18 @@ function RoutingMenu({
   const currentMot = useSelector(state => state.MapReducer.currentMot);
   const searchMode = useSelector(state => state.MapReducer.searchMode);
 
+  const [currentMots] = useState(currentMotsVal);
+  const [otherMots] = useState(otherMotsVal);
+  const [currentSearchResults, setCurrentSearchResults] = useState([]);
+  const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
+  const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
+
   const elRefs = React.useRef([]);
   if (elRefs.current.length !== currentStops.length) {
     elRefs.current = Array(currentStops.length)
       .fill()
       .map((el, i) => elRefs.current[i] || React.createRef());
   }
-
-  const [currentMots] = useState(currentMotsVal);
-  const [otherMots] = useState(otherMotsVal);
-  const [currentSearchResults, setCurrentSearchResults] = useState([]);
-  const [focusedFieldIndex, setFocusedFieldIndex] = useState(0);
-  const [currentOtherMot, setCurrentOtherMot] = useState(undefined);
 
   useEffect(() => {
     if (isRouteInfoOpen) {
@@ -208,110 +209,70 @@ function RoutingMenu({
   }, [currentStops]);
 
   /**
-   * Update the current stops array (string array) and the GeoJSON array in the local state.
-   * @param updatedCurrentStops The updated stops.
-   * @param updatedCurrentStopsGeoJSON The updated GeoJSON.
-   * @category RoutingMenu
-   */
-  const updateCurrentStops = (
-    updatedCurrentStops,
-    updatedCurrentStopsGeoJSON,
-    updatedFocusedFieldIndex,
-  ) => {
-    dispatch(setCurrentStops(updatedCurrentStops));
-    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
-    setFocusedFieldIndex(updatedFocusedFieldIndex);
-  };
-
-  const updateFieldOnMapClick = (
-    updatedCurrentStops,
-    updatedFocusedFieldIndex,
-  ) => {
-    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-    const updatedFloorInfo = _.clone(floorInfo);
-    updatedFloorInfo[focusedFieldIndex] = '0';
-    // Create GeoJSON
-    const tempGeoJSON = {
-      type: 'FeatureCollection',
-      features: [
-        {
-          type: 'Feature',
-          properties: {
-            id: clickLocation.slice().reverse(),
-            type: 'coordinates',
-          },
-          geometry: {
-            type: 'Point',
-            coordinates: clickLocation,
-          },
-        },
-      ],
-    };
-    const updatedTracks = [...tracks];
-    updatedTracks[updatedFocusedFieldIndex - 1] = '';
-    updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
-    updateCurrentStops(
-      updatedCurrentStops,
-      updatedCurrentStopsGeoJSON,
-      updatedFocusedFieldIndex,
-    );
-    dispatch(setFloorInfo(updatedFloorInfo));
-    dispatch(setTracks(updatedTracks));
-    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
-  };
-
-  /**
    * If a location was received through the props (user click on map) act accordingly.
    * @category RoutingMenu
    */
   useEffect(() => {
     if (clickLocation) {
-      // A click occurred on the map
-      if (currentStops[focusedFieldIndex] === '') {
-        // Performs when there's an empty field.
-        const updatedCurrentStops = currentStops;
-        updatedCurrentStops[focusedFieldIndex] = clickLocation;
-        updateFieldOnMapClick(
-          currentStops,
-          focusedFieldIndex + 1 < currentStops.length
-            ? focusedFieldIndex + 1
-            : focusedFieldIndex,
-        );
-      } else {
-        const updatedCurrentStops = currentStops;
-        const updatedFocusedFieldIndex = focusedFieldIndex;
-        updatedCurrentStops[focusedFieldIndex] = clickLocation;
-        updateFieldOnMapClick(updatedCurrentStops, focusedFieldIndex);
-
-        const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-        // Create GeoJSON
-        const tempGeoJSON = {
-          type: 'FeatureCollection',
-          features: [
-            {
-              type: 'Feature',
-              properties: {
-                id: clickLocation.slice().reverse(),
-                type: 'coordinates',
-              },
-              geometry: {
-                type: 'Point',
-                coordinates: clickLocation,
-              },
-            },
-          ],
-        };
-        updatedCurrentStopsGeoJSON[focusedFieldIndex] = tempGeoJSON;
-        updateCurrentStops(
-          updatedCurrentStops,
-          updatedCurrentStopsGeoJSON,
-          updatedFocusedFieldIndex,
-        );
-        dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+      console.log(clickLocation);
+      currentStops[focusedFieldIndex] = clickLocation;
+      if (currentStops.length !== currentStopsGeoJSON.length) {
+        currentStopsGeoJSON.splice(focusedFieldIndex, 0, null);
       }
+
+      if (currentStops.length !== floorInfo.length) {
+        floorInfo.splice(focusedFieldIndex, 0, '0');
+      }
+
+      if (currentStops.length !== tracks.length) {
+        tracks.splice(focusedFieldIndex, 0, '');
+      }
+
+      tracks[focusedFieldIndex] = '';
+
+      floorInfo[focusedFieldIndex] = '0';
+
+      // Create GeoJSON
+      currentStopsGeoJSON[focusedFieldIndex] = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {
+              id: clickLocation.slice().reverse(),
+              type: 'coordinates',
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: clickLocation,
+            },
+          },
+        ],
+      };
+
+      // Move the focus to the next field
+      const nextFocusFieldIdx =
+        focusedFieldIndex + 1 < currentStops.length
+          ? focusedFieldIndex + 1
+          : focusedFieldIndex;
+
+      // Make sure we only goes here when the clickLocation has been modified.
+      dispatch(setClickLocation(null));
+      dispatch(setCurrentStops([...currentStops]));
+      dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
+      dispatch(setTracks([...tracks]));
+      dispatch(setFloorInfo([...floorInfo]));
+      setFocusedFieldIndex(nextFocusFieldIdx);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clickLocation]);
+  }, [
+    clickLocation,
+    currentStops,
+    currentStopsGeoJSON,
+    dispatch,
+    floorInfo,
+    focusedFieldIndex,
+    tracks,
+  ]);
 
   /**
    * Process changing the current selected mot, save in local state and dispatch store action.
@@ -445,10 +406,9 @@ function RoutingMenu({
     abortController.abort();
     abortController = new AbortController();
     const { signal } = abortController;
+    const q = event.target.value;
 
-    const reqUrl = `${stationSearchUrl}?q=${
-      event.target.value
-    }&key=${APIKey}${`&mots=${handleStopFinderMot(
+    const reqUrl = `${stationSearchUrl}?q=${q}&key=${APIKey}${`&mots=${handleStopFinderMot(
       currentMot,
     )}`}&ref_location=${to4326(center)
       .reverse()
@@ -465,9 +425,12 @@ function RoutingMenu({
           dispatch(showNotification("Couldn't find stations", 'warning'));
           return;
         }
-        if (response.features.length === 0) {
+
+        // Show only the notification when it make sense, the server returns results only when there is at least 2 letters.
+        if (q && q.length >= 2 && response.features.length === 0) {
           dispatch(showNotification("Couldn't find stations", 'warning'));
         }
+
         setCurrentSearchResults(response.features);
         dispatch(setShowLoadingBar(false));
       })
@@ -494,7 +457,8 @@ function RoutingMenu({
     if (event.key === 'Enter' && firstSearchResult) {
       // The user has chosen the first result by pressing 'Enter' key on keyboard
       const updatedCurrentStops = currentStops;
-      updateCurrentStops[focusedFieldIndex] = firstSearchResult.properties.name;
+      updatedCurrentStops[focusedFieldIndex] =
+        firstSearchResult.properties.name;
       const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       updatedCurrentStopsGeoJSON[focusedFieldIndex] = firstSearchResult;
       dispatch(setCurrentStops(updatedCurrentStops));
@@ -522,25 +486,35 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const processClickedResultHandler = searchResult => {
-    const updatedCurrentStops = currentStops;
-    updatedCurrentStops[focusedFieldIndex] = searchResult.properties.name;
-    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-    updatedCurrentStopsGeoJSON[focusedFieldIndex] = searchResult;
-    dispatch(setCurrentStops(updatedCurrentStops));
+    currentStops[focusedFieldIndex] = searchResult.properties.name;
 
-    const updatedTracks = [...tracks];
-    updatedTracks[focusedFieldIndex] = '';
-    dispatch(setTracks(updatedTracks));
+    // Add an element to the array if necessary
+    if (currentStops.length !== currentStopsGeoJSON.length) {
+      currentStopsGeoJSON.splice(focusedFieldIndex, 0, null);
+    }
+
+    if (currentStops.length !== floorInfo.length) {
+      floorInfo.splice(focusedFieldIndex, 0, '0');
+    }
+
+    if (currentStops.length !== tracks.length) {
+      tracks.splice(focusedFieldIndex, 0, '');
+    }
+
+    tracks[focusedFieldIndex] = '';
+
+    floorInfo[focusedFieldIndex] = '0';
+
+    currentStopsGeoJSON[focusedFieldIndex] = searchResult;
+    currentStopsGeoJSON[focusedFieldIndex].geometry.coordinates = to3857(
+      searchResult.geometry.coordinates,
+    );
+
     setCurrentSearchResults([]);
-
-    updatedCurrentStopsGeoJSON.forEach((val, idx) => {
-      if (idx === focusedFieldIndex) {
-        updatedCurrentStopsGeoJSON[idx].geometry.coordinates = to3857(
-          updatedCurrentStopsGeoJSON[idx].geometry.coordinates,
-        );
-      }
-    });
-    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+    dispatch(setCurrentStops([...currentStops]));
+    dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
+    dispatch(setTracks([...tracks]));
+    dispatch(setFloorInfo([...floorInfo]));
   };
 
   const changeCurrentOtherMot = evt => {
