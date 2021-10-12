@@ -18,7 +18,6 @@ import InfoIcon from '@material-ui/icons/Info';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
-import _ from 'lodash/core';
 
 import {
   setTracks,
@@ -226,7 +225,7 @@ function RoutingMenu({
       currentStopsGeoJSON[focusedFieldIndex] = {
         type: 'Feature',
         properties: {
-          id: clickLocation.slice().reverse(),
+          id: clickLocation.toString(),
           type: 'coordinates',
         },
         geometry: {
@@ -306,17 +305,15 @@ function RoutingMenu({
    * @category RoutingMenu
    */
   const removeSearchFieldHandler = indexToRemoveFrom => {
-    const updatedTracks = [...tracks];
-    const updatedCurrentStops = [...currentStops];
-    const updatedCurrentStopsGeoJSON = [...currentStopsGeoJSON];
+    tracks.splice(indexToRemoveFrom, 1);
+    floorInfo.splice(indexToRemoveFrom, 1);
+    currentStops.splice(indexToRemoveFrom, 1);
+    currentStopsGeoJSON.splice(indexToRemoveFrom, 1);
 
-    updatedCurrentStops.splice(indexToRemoveFrom, 1);
-    updatedCurrentStopsGeoJSON.splice(indexToRemoveFrom, 1);
-    updatedTracks.splice(indexToRemoveFrom, 1);
-
-    dispatch(setTracks(updatedTracks));
-    dispatch(setCurrentStops(updatedCurrentStops));
-    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
+    dispatch(setTracks([...tracks]));
+    dispatch(setFloorInfo([...floorInfo]));
+    dispatch(setCurrentStops([...currentStops]));
+    dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
   };
 
   /**
@@ -328,60 +325,62 @@ function RoutingMenu({
   const searchStopsHandler = (event, fieldIndex) => {
     // only search if text is available
     if (!event.target.value) {
-      const updatedCurrentStops = currentStops;
-      updatedCurrentStops[fieldIndex] = '';
-      setCurrentSearchResults([]);
-      dispatch(setCurrentStops(updatedCurrentStops));
-
       // Reset the track value.
-      const updatedTracks = [...tracks];
-      updatedTracks[fieldIndex] = '';
-      dispatch(setTracks(updatedTracks));
+      tracks[fieldIndex] = '';
+      floorInfo[fieldIndex] = '0';
+      currentStops[fieldIndex] = '';
+      currentStopsGeoJSON[fieldIndex] = null;
 
+      setCurrentSearchResults([]);
+      dispatch(setTracks([...tracks]));
+      dispatch(setFloorInfo([...floorInfo]));
+      dispatch(setCurrentStops([...currentStops]));
+      dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
       dispatch(setShowLoadingBar(false));
       return;
     }
-    const updatedCurrentStops = _.clone(currentStops);
-    updatedCurrentStops[fieldIndex] = event.target.value;
-    dispatch(setCurrentStops(updatedCurrentStops));
 
-    const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
-    // const updatedFloorInfo = _.clone(floorInfo);
-    // console.log('before', updatedFloorInfo);
-    updatedCurrentStops.forEach((stop, idx) => {
-      if (typeof stop === 'string' && stop !== '' && COORD_REGEX.test(stop)) {
-        // Convert the string to point and filter floor info
-        const coords = stop.split(',');
-        const newPoint = coords.includes(0) ? [] : to3857(coords);
-        // : to3857(coords.map(coord => coord.split('$')[0]));
-        updatedCurrentStopsGeoJSON[idx] = {
-          type: 'Feature',
-          properties: {
-            id: newPoint.slice().reverse(),
-            type: 'coordinates',
-          },
-          geometry: {
-            type: 'Point',
-            coordinates: newPoint,
-          },
-        };
-      }
-      /*
-      const floorMatched = typeof stop === 'string' && stop.match(FLOOR_REGEX);
-      if (floorMatched) {
-        [updatedFloorInfo[idx]] = floorMatched;
-      } else {
-        updatedFloorInfo[idx] = null;
-      }
-      */
-    });
+    const stop = event.target.value;
 
-    dispatch(setCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON));
-    // Need to be supported when add/remove stop later on.
-    // console.log('search setFloorInfo', updatedFloorInfo);
-    // dispatch(setFloorInfo(updatedFloorInfo));
+    const isCoord =
+      typeof stop === 'string' && stop !== '' && COORD_REGEX.test(stop);
+
+    // if the string is a coordinate
+    if (isCoord) {
+      // Convert the string to a coordinate
+      const coords = to3857(stop.split(','));
+      currentStops[fieldIndex] = coords;
+      currentStopsGeoJSON[fieldIndex] = {
+        type: 'Feature',
+        properties: {
+          id: coords.toString(),
+          type: 'coordinates',
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: coords,
+        },
+      };
+    } else {
+      currentStops[fieldIndex] = event.target.value;
+      currentStopsGeoJSON[fieldIndex] = null;
+    }
+
+    tracks[fieldIndex] = '';
+    floorInfo[fieldIndex] = '0';
+
+    dispatch(setTracks([...tracks]));
+    dispatch(setFloorInfo([...floorInfo]));
+    dispatch(setCurrentStops([...currentStops]));
+    dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
 
     abortController.abort();
+
+    if (isCoord) {
+      setCurrentSearchResults([]);
+      return;
+    }
+
     abortController = new AbortController();
     const { signal } = abortController;
     const q = event.target.value;

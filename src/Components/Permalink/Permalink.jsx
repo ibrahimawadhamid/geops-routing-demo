@@ -45,7 +45,7 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
       geoJson = {
         type: 'Feature',
         properties: {
-          id: coords3857,
+          id: coords3857.toString(),
           type: 'coordinates',
         },
         geometry: {
@@ -92,12 +92,14 @@ const compileViaString = (currentStopsGeoJson = [], tracks) => {
     return null;
   }
 
-  const uidStrings = currentStopsGeoJson.map((val, idx) => {
-    if (!val.properties.uid) {
-      return `${to4326(val.geometry.coordinates)}`;
-    }
-    return `!${val.properties.uid}${tracks[idx] ? `$${tracks[idx]}` : ''}`;
-  });
+  const uidStrings = currentStopsGeoJson
+    .filter(val => !!val)
+    .map((val, idx) => {
+      if (!val.properties.uid) {
+        return `${to4326(val.geometry.coordinates)}`;
+      }
+      return `!${val.properties.uid}${tracks[idx] ? `$${tracks[idx]}` : ''}`;
+    });
   return uidStrings.join('|');
 };
 
@@ -170,7 +172,6 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
                   return '';
                 }
                 if (!stop.properties.name) {
-                  console.log(stop);
                   return stop.geometry.coordinates;
                 }
                 return stop.properties.name;

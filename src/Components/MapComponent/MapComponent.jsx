@@ -6,7 +6,6 @@ import BasicMap from 'react-spatial/components/BasicMap';
 import { Map, Feature } from 'ol';
 import { containsExtent } from 'ol/extent';
 import { Vector as VectorLayer } from 'ol/layer';
-import _ from 'lodash/core';
 import { MultiLineString, Point } from 'ol/geom';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Vector as VectorSource } from 'ol/source';
@@ -234,55 +233,43 @@ class MapComponent extends PureComponent {
         currentStopsGeoJSON,
         onSetCurrentStops,
         onSetCurrentStopsGeoJSON,
+        floorInfo,
+        onSetFloorInfo,
       } = this.props;
-      const newTracks = [...tracks];
-      const newCurrentStops = [...currentStops];
-      const newCurentStopsGeoJSON = [...currentStopsGeoJSON];
 
       const { name, id } = evt.features.getArray()[0].getProperties();
       let featureIndex;
       if (name) {
+        // It's a station
         featureIndex = currentStops.indexOf(name);
       } else {
-        const isCoordPresent = element => {
-          let el;
-          let coords;
-          if (!Array.isArray(element)) {
-            el = element.split(',');
-            coords = to4326(id.slice().reverse());
-          } else {
-            el = element;
-            coords = id.slice();
-          }
-          // because of a call of reverse somewhere, coord are not always in the same order
-          // TO FIX
-          return (
-            (el[0] === coords[0] && el[1] === coords[1]) ||
-            (el[1] === coords[0] && el[0] === coords[1])
-          );
-        };
-        featureIndex = currentStops.findIndex(isCoordPresent);
+        // It's a coordinate
+        featureIndex = currentStops.findIndex(element => {
+          return element.toString() === id;
+        });
       }
 
       if (featureIndex === -1) {
         return;
       }
 
-      if (typeof newCurrentStops[featureIndex] === 'string') {
-        const stopFloor = newCurrentStops[featureIndex].match(FLOOR_REGEX);
+      const currStop = currentStops[featureIndex];
+      if (typeof currStop === 'string') {
+        const stopFloor = currStop.match(FLOOR_REGEX);
 
-        newCurrentStops[featureIndex] = `${to4326(evt.coordinate).join(
+        currentStops[featureIndex] = `${to4326(evt.coordinate).join(
           ',',
         )}${stopFloor || ''}`;
       } else {
-        newCurrentStops[featureIndex] = evt.coordinate;
+        currentStops[featureIndex] = evt.coordinate;
       }
 
-      newTracks[featureIndex] = '';
-      newCurentStopsGeoJSON[featureIndex] = {
+      tracks[featureIndex] = '';
+      floorInfo[featureIndex] = '';
+      currentStopsGeoJSON[featureIndex] = {
         type: 'Feature',
         properties: {
-          id: evt.coordinate.slice().reverse(),
+          id: evt.coordinate.toString(),
           type: 'coordinates',
         },
         geometry: {
@@ -290,9 +277,10 @@ class MapComponent extends PureComponent {
           coordinates: evt.coordinate,
         },
       };
-      onSetTracks(newTracks);
-      onSetCurrentStops(newCurrentStops);
-      onSetCurrentStopsGeoJSON(newCurentStopsGeoJSON);
+      onSetTracks([...tracks]);
+      onSetFloorInfo([...floorInfo]);
+      onSetCurrentStops([...currentStops]);
+      onSetCurrentStopsGeoJSON([...currentStopsGeoJSON]);
     });
 
     const modify = new Modify({
@@ -316,15 +304,14 @@ class MapComponent extends PureComponent {
       const { features } = this.initialRouteDrag;
       const {
         tracks,
+        floorInfo,
         currentStops,
         currentStopsGeoJSON,
         onSetTracks,
+        onSetFloorInfo,
         onSetCurrentStops,
         onSetCurrentStopsGeoJSON,
       } = this.props;
-      const newTracks = [...tracks];
-      const updatedCurrentStops = _.clone(currentStops);
-      const updatedCurrentStopsGeoJSON = _.clone(currentStopsGeoJSON);
       let newHopIdx = -1;
 
       // A segment is a linestring between to hops (also called via points).
@@ -386,16 +373,13 @@ class MapComponent extends PureComponent {
       });
 
       if (newHopIdx >= 0) {
-        newTracks.splice(newHopIdx, 0, '');
-        updatedCurrentStops.splice(
-          newHopIdx,
-          0,
-          evt.mapBrowserEvent.coordinate,
-        );
-        updatedCurrentStopsGeoJSON.splice(newHopIdx, 0, {
+        tracks.splice(newHopIdx, 0, '');
+        floorInfo.splice(newHopIdx, 0, '0');
+        currentStops.splice(newHopIdx, 0, evt.mapBrowserEvent.coordinate);
+        currentStopsGeoJSON.splice(newHopIdx, 0, {
           type: 'Feature',
           properties: {
-            id: evt.mapBrowserEvent.coordinate.slice().reverse(),
+            id: evt.mapBrowserEvent.coordinate.toString(),
             type: 'coordinates',
           },
           geometry: {
@@ -404,9 +388,10 @@ class MapComponent extends PureComponent {
           },
         });
 
-        onSetTracks(newTracks);
-        onSetCurrentStops(updatedCurrentStops);
-        onSetCurrentStopsGeoJSON(updatedCurrentStopsGeoJSON);
+        onSetTracks([...tracks]);
+        onSetFloorInfo([...floorInfo]);
+        onSetCurrentStops([...currentStops]);
+        onSetCurrentStopsGeoJSON([...currentStopsGeoJSON]);
       }
       this.initialRouteDrag = null;
     });
@@ -479,6 +464,7 @@ class MapComponent extends PureComponent {
       currentStopsGeoJSON &&
       currentStopsGeoJSON !== prevProps.currentStopsGeoJSON;
     const activeFloorChanged = activeFloor !== prevProps.activeFloor;
+
     if (
       floorInfoChanged ||
       currentMotChanged ||
@@ -876,6 +862,7 @@ const mapDispatchToProps = dispatch => {
   return {
     onSetCenter: center => dispatch(actions.setCenter(center)),
     onSetTracks: tracks => dispatch(actions.setTracks(tracks)),
+    onSetFloorInfo: floorInfo => dispatch(actions.setFloorInfo(floorInfo)),
     onSetCurrentStops: currentStops =>
       dispatch(actions.setCurrentStops(currentStops)),
     onSetCurrentStopsGeoJSON: currentStopsGeoJSON =>
@@ -909,6 +896,7 @@ MapComponent.propTypes = {
   stationSearchUrl: PropTypes.string.isRequired,
   onSetCenter: PropTypes.func.isRequired,
   onSetTracks: PropTypes.func.isRequired,
+  onSetFloorInfo: PropTypes.func.isRequired,
   onSetClickLocation: PropTypes.func.isRequired,
   onShowNotification: PropTypes.func.isRequired,
   onSetShowLoadingBar: PropTypes.func.isRequired,
