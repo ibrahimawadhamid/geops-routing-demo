@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import qs from 'query-string';
 import { Layer, MapboxLayer, MapboxStyleLayer } from 'mobility-toolbox-js/ol';
 import BasicMap from 'react-spatial/components/BasicMap';
+import Copyright from 'react-spatial/components/Copyright';
 import { Map, Feature } from 'ol';
 import { Vector as VectorLayer } from 'ol/layer';
 import _ from 'lodash/core';
@@ -780,6 +781,7 @@ class MapComponent extends PureComponent {
             projection: this.projection,
           }}
         />
+        <Copyright map={this.map} />
         {currentMot === 'foot' && this.map.getView().getZoom() >= 14 ? (
           <FloorSwitcher />
         ) : null}

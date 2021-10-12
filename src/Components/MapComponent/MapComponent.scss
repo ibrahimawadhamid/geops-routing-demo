@@ -1,4 +1,4 @@
-@import "~ol/ol.css";
+@import '~ol/ol.css';
 
 .rs-map {
   position: absolute;
@@ -6,4 +6,17 @@
   bottom: 0;
   right: 0;
   left: 0;
+}
+
+.rs-copyright {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  margin-right: 75px;
+  font-size: 0.8em;
+  color: #555;
+
+  a {
+    color: #555;
+  }
 }
