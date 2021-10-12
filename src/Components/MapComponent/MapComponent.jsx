@@ -245,7 +245,6 @@ class MapComponent extends PureComponent {
       } else {
         // It's a coordinate
         featureIndex = currentStops.findIndex(element => {
-          console.log(element.toString(), id);
           return element.toString() === id;
         });
       }
