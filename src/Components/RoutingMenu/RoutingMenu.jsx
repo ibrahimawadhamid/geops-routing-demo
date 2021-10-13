@@ -45,8 +45,6 @@ import SearchResults from '../SearchResults';
 import SearchField from '../SearchField';
 
 const COORD_REGEX = /^\d+\.?\d*,\d+\.?\d*$/;
-const FLOOR_REGEX = /\$-?(?:[0-9][0-9]?|100)$/;
-const FLOOR_REGEX_CAPTURE = /\$(-?(?:[1-9][0-9]?|100))$/;
 
 function TabPanel(props) {
   const { children, value, index } = props;
@@ -219,7 +217,8 @@ function RoutingMenu({
 
       tracks[focusedFieldIndex] = '';
 
-      floorInfo[focusedFieldIndex] = '0';
+      // Let floorSelect component decides if the floor exist on the new point or not
+      // floorInfo[focusedFieldIndex] = '0';
 
       // Create GeoJSON
       currentStopsGeoJSON[focusedFieldIndex] = {
@@ -243,7 +242,7 @@ function RoutingMenu({
       // Make sure we only goes here once when the clickLocation has been modified.
       dispatch(setClickLocation(null));
       dispatch(setTracks([...tracks]));
-      dispatch(setFloorInfo([...floorInfo]));
+      // dispatch(setFloorInfo([...floorInfo]));
       dispatch(setCurrentStops([...currentStops]));
       dispatch(setCurrentStopsGeoJSON([...currentStopsGeoJSON]));
       setFocusedFieldIndex(nextFocusFieldIdx);
@@ -743,5 +742,4 @@ RoutingMenu.defaultProps = {
   onPanViaClick: undefined,
 };
 
-export { FLOOR_REGEX, FLOOR_REGEX_CAPTURE };
 export default RoutingMenu;

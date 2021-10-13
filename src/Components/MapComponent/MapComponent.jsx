@@ -19,7 +19,7 @@ import PropTypes from 'prop-types';
 import Snackbar from '@material-ui/core/Snackbar';
 import { touchOnly } from 'ol/events/condition';
 import MapFloorSwitcher from '../MapFloorSwitcher';
-import RoutingMenu, { FLOOR_REGEX } from '../RoutingMenu';
+import RoutingMenu from '../RoutingMenu';
 import RouteInfosDialog from '../RouteInfosDialog';
 import FloorSwitcher from '../FloorSwitcher';
 import LevelLayer from '../../layers/LevelLayer';
@@ -233,8 +233,6 @@ class MapComponent extends PureComponent {
         currentStopsGeoJSON,
         onSetCurrentStops,
         onSetCurrentStopsGeoJSON,
-        floorInfo,
-        onSetFloorInfo,
       } = this.props;
 
       const { name, id } = evt.features.getArray()[0].getProperties();
@@ -253,19 +251,11 @@ class MapComponent extends PureComponent {
         return;
       }
 
-      const currStop = currentStops[featureIndex];
-      if (typeof currStop === 'string') {
-        const stopFloor = currStop.match(FLOOR_REGEX);
-
-        currentStops[featureIndex] = `${to4326(evt.coordinate).join(
-          ',',
-        )}${stopFloor || ''}`;
-      } else {
-        currentStops[featureIndex] = evt.coordinate;
-      }
+      currentStops[featureIndex] = evt.coordinate;
 
       tracks[featureIndex] = '';
-      floorInfo[featureIndex] = '';
+      // Dont' set floor here, let FloorSelect the responsability to change it if the current floors is not in the avalbleLevels
+      // floorInfo[featureIndex] = '0';
       currentStopsGeoJSON[featureIndex] = {
         type: 'Feature',
         properties: {
@@ -278,7 +268,7 @@ class MapComponent extends PureComponent {
         },
       };
       onSetTracks([...tracks]);
-      onSetFloorInfo([...floorInfo]);
+      // onSetFloorInfo([...floorInfo]);
       onSetCurrentStops([...currentStops]);
       onSetCurrentStopsGeoJSON([...currentStopsGeoJSON]);
     });
