@@ -101,7 +101,7 @@ function FloorSelect({ index, singleStop }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [singleStop]);
 
-  // Don't display the select box if teh floor is not in the list
+  // Don't display the select box if the floor is not in the list
   if (floor && floors && !floors.includes(floor)) {
     return null;
   }
