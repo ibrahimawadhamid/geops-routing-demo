@@ -12,7 +12,7 @@ React app showing how to use the geOps Routing API.
 ## Quick start
 
 ```bash
-git clone https://github.com/ibrahimawadhamid/geops-routing-demo.git
+git clone https://github.com/geops/geops-routing-demo.git
 cd geops-routing-demo
 yarn install
 yarn start
