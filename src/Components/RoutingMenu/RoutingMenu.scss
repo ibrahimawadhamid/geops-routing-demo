@@ -12,21 +12,36 @@
     flex-grow: 1;
     overflow-x: hidden;
     overflow-y: auto;
-    max-height: calc(100vh - 32px);
+    max-height: 100vh;
   }
 
-  .rd-routing-menu-toggle {
+  .rd-routing-menu-toggle-close {
+    position: sticky;
+    bottom: 0;
+  }
+
+  .rd-routing-menu-toggle-open {
     background-color: white;
+    box-shadow: 0 0 5px #555;
+    position: absolute;
+  }
+
+  .rd-routing-menu-toggle-close,
+  .rd-routing-menu-toggle-open {
+    cursor: pointer;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     padding: 0;
-    box-shadow: 0 0 5px #555;
     color: #555;
     width: 100%;
     z-index: 1;
+  }
+
+  .rd-routing-menu-toggle-close:hover {
+    background-color: rgba(0, 0, 0, 0.05);
   }
 
   .rd-routing-menu-header {
@@ -89,20 +104,29 @@
 
     > div {
       margin-top: 0;
+      position: relative;
     }
 
-    .rd-routing-menu-toggle {
+    .rd-routing-menu-toggle-close,
+    .rd-routing-menu-toggle-open {
       background-color: #3f51b5;
       height: 48px;
       width: 32px;
       color: white;
-      position: relative;
+      position: absolute;
       box-shadow: none;
     }
 
-    .rd-routing-menu-toggle:hover {
-      cursor: pointer;
-      opacity: 0.8;
+    .rd-routing-menu-toggle-close {
+      position: absolute;
+      box-shadow: none;
+      top: 0;
+      right: 0;
+    }
+
+    .rd-routing-menu-toggle-close:hover,
+    .rd-routing-menu-toggle-open:hover {
+      background-color: #545db8;
     }
   }
 }
