@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Map, Feature } from 'ol';
@@ -74,6 +74,7 @@ const getTooltipY = (alt, maxAlt) => {
 };
 
 function RouteInfosDialog({ closeInfo, map, routes }) {
+  const containerRef = useRef();
   const currentMot = useSelector(state => state.MapReducer.currentMot);
   const [hoveredCoords, setHoveredCoords] = useState(null);
   const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -243,8 +244,10 @@ function RouteInfosDialog({ closeInfo, map, routes }) {
     };
   }, [map, routes]);
 
+  useEffect(() => containerRef.current.scrollIntoView({ behavior: 'smooth' }));
+
   return (
-    <div className="rd-info-dialog">
+    <div className="rd-info-dialog" ref={containerRef}>
       <div className="rd-info-close-button">
         <IconButton aria-label="close" onClick={closeInfo} size="small">
           <CloseIcon fontSize="small" />
