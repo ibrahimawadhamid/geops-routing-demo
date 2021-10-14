@@ -594,7 +594,9 @@ function RoutingMenu({
         .forEach((val, idx) => {
           updatedCurrentStopsGeoJSON[idx + 1] = updatedCurrentStopsGeoJSON[idx];
         });
-      updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
+      if (Object.keys(newSource).length > 0) {
+        updatedCurrentStopsGeoJSON[result.destination.index] = newSource;
+      }
     } else if (result.destination.index > result.source.index) {
       updatedCurrentStopsGeoJSON
         .filter(
