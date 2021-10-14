@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import qs from 'query-string';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import Footer from '../Footer';
 import MapComponent from '../MapComponent';
 import Permalink from '../Permalink';
 import NotificationHandler from '../NotificationHandler';
@@ -60,6 +61,7 @@ function App(props) {
         stationSearchUrl={stationSearchUrl}
       />
       <NotificationHandler />
+      <Footer />
     </ThemeProvider>
   );
 }
