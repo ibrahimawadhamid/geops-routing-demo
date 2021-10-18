@@ -33,7 +33,7 @@ function FloorSelect({ index, singleStop }) {
   const dispatch = useDispatch();
   const floorInfo = useSelector(state => state.MapReducer.floorInfo);
   const floor = useMemo(() => floorInfo[index], [index, floorInfo]);
-  const [floors, setFloors] = useState(['0']);
+  const [floors, setFloors] = useState([floor || '0']);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -56,14 +56,33 @@ function FloorSelect({ index, singleStop }) {
             );
             return;
           }
-          if (!response.properties.availableLevels) {
+          let { availableLevels } = response.properties;
+          if (!availableLevels) {
             dispatch(
               showNotification("Couldn't find available levels", 'warning'),
             );
             return;
           }
           // Use String levels
-          setFloors(response.properties.availableLevels.join().split(','));
+          if (!availableLevels.length) {
+            // if the array is empty we replace it by ['0'] to avoid warnings.
+            availableLevels = ['0'];
+          }
+
+          const newFloors = availableLevels.join().split(',');
+
+          // If the old floor doesn't exist at the new coordinate try to pick one.
+          if (floor && !newFloors.includes(floor)) {
+            if (floor !== '0' && newFloors.includes('0')) {
+              floorInfo[index] = '0';
+            } else {
+              // If the level 0 doesn't exist pick the one in the middle
+              floorInfo[index] = newFloors[Math.floor(newFloors.length / 2)];
+            }
+            dispatch(setFloorInfo([...floorInfo]));
+          }
+
+          setFloors(newFloors);
         })
         .catch(err => {
           if (err.name === 'AbortError') {
@@ -82,12 +101,17 @@ function FloorSelect({ index, singleStop }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [singleStop]);
 
+  // Don't display the select box if the floor is not in the list
+  if (floor && floors && !floors.includes(floor)) {
+    return null;
+  }
+
   return (
     <FormControl className={classes.wrapper}>
       <Select
         renderValue={val => (!val || val === '' ? '0' : val)}
         labelId="rd-floor-select-label"
-        value={floor || '0'}
+        value={floor}
         displayEmpty
         onChange={evt => {
           const newFloorInfo = [...floorInfo];
