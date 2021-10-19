@@ -57,7 +57,7 @@ const railPointStyle = new Style({
   }),
 });
 
-const floorsColor = {
+export const floorsColor = {
   '-4': '#CAF0F8',
   '-3': '#ADE8F4',
   '-2': '#90E0EF',

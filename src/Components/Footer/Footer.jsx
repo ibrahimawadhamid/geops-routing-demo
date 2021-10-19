@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(() => ({
   container: {
+    background: 'white',
     position: 'absolute',
     bottom: 0,
     fontSize: '0.8em',

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Button from '@geops/react-ui/components/Button';
 
+import { floorsColor } from '../../config/styleConfig';
 import './FloorButton.scss';
 
 const propTypes = {
@@ -18,6 +19,12 @@ const defaultProps = {
   isMobile: false,
 };
 
+function getFloorStyle(active, floor) {
+  return active
+    ? { backgroundColor: floorsColor[floor === '2D' ? '0' : floor] }
+    : null;
+}
+
 const FloorButton = ({ floor, onClick, active, children, isMobile }) => {
   const mobileInfo = isMobile && (
     <div className="tm-mobile-floor-info">Floor</div>
@@ -28,6 +35,7 @@ const FloorButton = ({ floor, onClick, active, children, isMobile }) => {
         <Button
           className={`tm-button tm-square-white${active ? ' tm-active' : ''}`}
           onClick={() => onClick(floor)}
+          style={getFloorStyle(active, floor)}
         >
           {mobileInfo}
           <div>
