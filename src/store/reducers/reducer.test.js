@@ -40,7 +40,7 @@ describe('map reducer', () => {
           currentMot: 'bus',
         },
       ),
-    ).toEqual({ currentMot: 'bus' });
+    ).toEqual({ currentMot: 'bus', isRouteInfoOpen: false });
   });
 
   it('should handle SET_CURRENT_MOT second time', () => {
@@ -54,6 +54,7 @@ describe('map reducer', () => {
       ),
     ).toEqual({
       currentMot: 'train',
+      isRouteInfoOpen: false,
     });
   });
 
