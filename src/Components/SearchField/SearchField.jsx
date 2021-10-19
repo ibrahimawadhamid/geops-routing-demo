@@ -17,7 +17,7 @@ import FloorSelect from '../FloorSelect';
 import TrackSelect from '../TrackSelect';
 import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
-import { setIsFieldFocused } from '../../store/actions/Map';
+import { setIsFieldFocused, setIsRouteInfoOpen } from '../../store/actions/Map';
 
 const useStyles = makeStyles(theme => ({
   gridContainer: {
@@ -234,6 +234,8 @@ function SearchField(props) {
           value={formatSingleStop(singleStop)}
           onKeyDown={processHighlightedResultSelectHandler}
           onFocus={() => {
+            // We close the route infos dialog otherwise we loose the focus
+            dispatch(setIsRouteInfoOpen(false));
             dispatch(setIsFieldFocused(true));
             onFieldFocusHandler(index);
           }}

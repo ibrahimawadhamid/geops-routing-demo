@@ -43,20 +43,15 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
       /* Convert coordinates to 3857 */
       const coords3857 = to3857(coordArray);
       geoJson = {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: {
-              id: coords3857,
-              type: 'coordinates',
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: coords3857,
-            },
-          },
-        ],
+        type: 'Feature',
+        properties: {
+          id: coords3857.toString(),
+          type: 'coordinates',
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: coords3857,
+        },
       };
     }
     return Promise.resolve(geoJson);
@@ -82,9 +77,7 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
     .then(response => {
       /* Convert coordinates to 3857 */
       const feature = response.features[0];
-      feature.geometry.coordinates = to3857(
-        response.features[0].geometry.coordinates,
-      );
+      feature.geometry.coordinates = to3857(feature.geometry.coordinates);
       return feature;
     })
     .catch(() => {
@@ -99,16 +92,14 @@ const compileViaString = (currentStopsGeoJson = [], tracks) => {
     return null;
   }
 
-  const uidStrings = currentStopsGeoJson.map((val, idx) => {
-    if (currentStopsGeoJson[idx].features) {
-      return `${to4326(
-        currentStopsGeoJson[idx].features[0].geometry.coordinates,
-      )}`;
-    }
-    return `!${currentStopsGeoJson[idx].properties.uid}${
-      tracks[idx] ? `$${tracks[idx]}` : ''
-    }`;
-  });
+  const uidStrings = currentStopsGeoJson
+    .filter(val => !!val)
+    .map((val, idx) => {
+      if (!val.properties.uid) {
+        return `${to4326(val.geometry.coordinates)}`;
+      }
+      return `!${val.properties.uid}${tracks[idx] ? `$${tracks[idx]}` : ''}`;
+    });
   return uidStrings.join('|');
 };
 
@@ -180,8 +171,8 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
                 if (!stop) {
                   return '';
                 }
-                if (stop.type === 'FeatureCollection') {
-                  return stop.features[0].geometry.coordinates;
+                if (!stop.properties.name) {
+                  return stop.geometry.coordinates;
                 }
                 return stop.properties.name;
               }),

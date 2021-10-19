@@ -1,0 +1,36 @@
+
+$popup-height: 30px;
+
+.rs-popup {
+  position: absolute;
+  background: white;
+  width: 80px;
+  height: $popup-height;
+  border-radius: 20px;
+  border: solid 3px black;
+  transform: translateX(-50%) translateY(15px);
+
+  .rs-popup-close-bt {
+    display: none;
+  }
+
+  .rs-popup-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: $popup-height;
+
+    > div {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 17px;
+      border-right: solid 2px lightgray;
+    }
+
+    > div:last-child {
+      border: none;
+    }
+  }
+}
