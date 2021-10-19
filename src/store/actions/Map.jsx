@@ -119,3 +119,10 @@ export const setSearchMode = searchMode => {
     searchMode,
   };
 };
+
+export const setMaxExtent = maxExtent => {
+  return {
+    type: actionTypes.SET_MAX_EXTENT,
+    maxExtent,
+  };
+};

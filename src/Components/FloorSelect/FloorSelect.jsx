@@ -10,11 +10,11 @@ import { setFloorInfo, showNotification } from '../../store/actions/Map';
 
 const propTypes = {
   index: PropTypes.number.isRequired,
-  singleStop: PropTypes.object,
+  singleStop: PropTypes.oneOfType([PropTypes.string, PropTypes.array]), // array for an array  of coordinate, string for a station name
 };
 
 const defaultProps = {
-  singleStop: undefined,
+  singleStop: null,
 };
 
 const useStyles = makeStyles(() => ({
@@ -25,8 +25,6 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-let abortController = new AbortController();
-
 /**
  * The component that displays the floor selector
  */
@@ -35,20 +33,19 @@ function FloorSelect({ index, singleStop }) {
   const dispatch = useDispatch();
   const floorInfo = useSelector(state => state.MapReducer.floorInfo);
   const floor = useMemo(() => floorInfo[index], [index, floorInfo]);
-  const [floors, setFloors] = useState(['-']);
+  const [floors, setFloors] = useState([floor || '0']);
 
   useEffect(() => {
+    const abortController = new AbortController();
     // Coordinate
     if (Array.isArray(singleStop)) {
-      abortController.abort();
-      abortController = new AbortController();
       const { signal } = abortController;
 
       const reqUrl = `https://walking.geops.io/availableLevels?point=${to4326(
         singleStop,
       )
         .reverse()
-        .join(',')}&distance=0.01`;
+        .join(',')}&distance=0.006`;
 
       fetch(reqUrl, { signal })
         .then(response => response.json())
@@ -59,13 +56,33 @@ function FloorSelect({ index, singleStop }) {
             );
             return;
           }
-          if (!response.properties.availableLevels) {
+          let { availableLevels } = response.properties;
+          if (!availableLevels) {
             dispatch(
               showNotification("Couldn't find available levels", 'warning'),
             );
+            return;
           }
           // Use String levels
-          setFloors(response.properties.availableLevels.join().split(','));
+          if (!availableLevels.length) {
+            // if the array is empty we replace it by ['0'] to avoid warnings.
+            availableLevels = ['0'];
+          }
+
+          const newFloors = availableLevels.join().split(',');
+
+          // If the old floor doesn't exist at the new coordinate try to pick one.
+          if (floor && !newFloors.includes(floor)) {
+            if (floor !== '0' && newFloors.includes('0')) {
+              floorInfo[index] = '0';
+            } else {
+              // If the level 0 doesn't exist pick the one in the middle
+              floorInfo[index] = newFloors[Math.floor(newFloors.length / 2)];
+            }
+            dispatch(setFloorInfo([...floorInfo]));
+          }
+
+          setFloors(newFloors);
         })
         .catch(err => {
           if (err.name === 'AbortError') {
@@ -78,13 +95,21 @@ function FloorSelect({ index, singleStop }) {
           throw err;
         });
     }
+    return () => {
+      abortController.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [singleStop]);
+
+  // Don't display the select box if the floor is not in the list
+  if (floor && floors && !floors.includes(floor)) {
+    return null;
+  }
 
   return (
     <FormControl className={classes.wrapper}>
       <Select
-        renderValue={val => (val === '' ? '-' : val)}
+        renderValue={val => (!val || val === '' ? '0' : val)}
         labelId="rd-floor-select-label"
         value={floor}
         displayEmpty
@@ -98,7 +123,7 @@ function FloorSelect({ index, singleStop }) {
         {floors.map(fl => {
           return (
             <MenuItem value={fl} key={`floor-${fl}`}>
-              {fl === '' ? '-' : fl}
+              {fl === '' ? '0' : fl}
             </MenuItem>
           );
         })}
@@ -110,4 +135,4 @@ function FloorSelect({ index, singleStop }) {
 FloorSelect.propTypes = propTypes;
 FloorSelect.defaultProps = defaultProps;
 
-export default FloorSelect;
+export default React.memo(FloorSelect);

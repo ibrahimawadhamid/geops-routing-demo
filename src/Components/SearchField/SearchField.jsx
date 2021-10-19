@@ -16,7 +16,7 @@ import FloorSelect from '../FloorSelect';
 import TrackSelect from '../TrackSelect';
 import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
-import { setIsFieldFocused } from '../../store/actions/Map';
+import { setIsFieldFocused, setIsRouteInfoOpen } from '../../store/actions/Map';
 
 const useStyles = makeStyles(theme => ({
   gridContainer: {
@@ -99,15 +99,17 @@ function SearchField(props) {
     fieldRightIcon = (
       <Grid item xs={1} className={classes.buttonWrapper}>
         <Tooltip title="Add Hop">
-          <IconButton
-            onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-            disabled={addNextHopDisabled || showLoadingBar}
-            className={classes.button}
-            aria-label="Add Hop"
-            size="small"
-          >
-            <AddCircleOutlineIcon fontSize="small" />
-          </IconButton>
+          <span>
+            <IconButton
+              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
+              disabled={addNextHopDisabled || showLoadingBar}
+              className={classes.button}
+              aria-label="Add Hop"
+              size="small"
+            >
+              <AddCircleOutlineIcon fontSize="small" />
+            </IconButton>
+          </span>
         </Tooltip>
       </Grid>
     );
@@ -144,28 +146,34 @@ function SearchField(props) {
       <>
         <Grid item xs={1} className={classes.buttonWrapper}>
           <Tooltip title="Add Hop">
-            <IconButton
-              disabled={addNextHopDisabled || showLoadingBar}
-              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-              className={classes.button}
-              aria-label="addHop"
-              size="small"
-            >
-              <AddCircleOutlineIcon fontSize="small" />
-            </IconButton>
+            <span>
+              <IconButton
+                disabled={addNextHopDisabled || showLoadingBar}
+                onClick={() =>
+                  addNewSearchFieldHandler(currentStops, index + 1)
+                }
+                className={classes.button}
+                aria-label="addHop"
+                size="small"
+              >
+                <AddCircleOutlineIcon fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         </Grid>
         <Grid item xs={1} className={classes.buttonWrapper}>
           <Tooltip title="Remove Hop">
-            <IconButton
-              onClick={() => removeSearchFieldHandler(index)}
-              className={classes.button}
-              aria-label="removeHop"
-              size="small"
-              disabled={showLoadingBar}
-            >
-              <RemoveCircleOutlineIcon fontSize="small" />
-            </IconButton>
+            <span>
+              <IconButton
+                onClick={() => removeSearchFieldHandler(index)}
+                className={classes.button}
+                aria-label="removeHop"
+                size="small"
+                disabled={showLoadingBar}
+              >
+                <RemoveCircleOutlineIcon fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         </Grid>
       </>
@@ -193,6 +201,8 @@ function SearchField(props) {
           value={formatSingleStop(singleStop)}
           onKeyDown={processHighlightedResultSelectHandler}
           onFocus={() => {
+            // We close the route infos dialog otherwise we loose the focus
+            dispatch(setIsRouteInfoOpen(false));
             dispatch(setIsFieldFocused(true));
             onFieldFocusHandler(index);
           }}

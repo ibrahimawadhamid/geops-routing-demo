@@ -3,7 +3,7 @@ import { Style, Circle, Stroke, Fill } from 'ol/style';
 
 // Convert '0.0' to '0'
 const cleanFloor = floor => {
-  return !isNaN(floor) ? parseInt(floor, 10).toString() : floor;
+  return !isNaN(floor) ? parseFloat(floor, 10).toString() : floor;
 };
 
 const lineStyler = lineStyle => {
@@ -81,14 +81,22 @@ const floorsColorGrey = {
   '4': '#222222',
 };
 
-const pedestrianGeopsPointStyle = (floor, activeFloor) => {
+const getPedestrianStyleColor = (floor, activeFloor) => {
   const f = cleanFloor(floor);
-  const floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
+  let floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
+  if (activeFloor === '2D') {
+    floorColor = floorsColor['0'];
+  }
+  return floorColor || 'black';
+};
 
+const pedestrianGeopsPointStyle = (floor, activeFloor) => {
   return new Style({
     image: new Circle({
       radius: 8,
-      fill: new Fill({ color: floorColor }),
+      fill: new Fill({
+        color: getPedestrianStyleColor(floor, activeFloor),
+      }),
     }),
   });
 };
@@ -130,10 +138,8 @@ const lineStyleFunction = (mot, isHovered, floor, activeFloor) => {
     return isHovered ? busLineHoveredStyle : busLineStyle;
   }
   if (mot === 'foot') {
-    const f = cleanFloor(floor);
-    const floorColor = f === activeFloor ? floorsColor[f] : floorsColorGrey[f];
-    const stroke = floorColor && floorColor.length ? floorColor : 'blue';
-    return lineStyler([[stroke, isHovered ? 5 : 7, [1, 10]]]);
+    const floorColor = getPedestrianStyleColor(floor, activeFloor);
+    return lineStyler([[floorColor, 7, [1, 10]]]);
   }
   return isHovered ? othersLineHoveredStyle : othersLineStyle;
 };

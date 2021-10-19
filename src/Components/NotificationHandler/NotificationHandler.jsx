@@ -113,8 +113,11 @@ const mapStateToProps = state => {
 
 NotificationHandler.propTypes = {
   onShowNotification: PropTypes.func.isRequired,
-  notificationMessage: PropTypes.string.isRequired,
+  notificationMessage: PropTypes.string,
   notificationType: PropTypes.string.isRequired,
+};
+NotificationHandler.defaultProps = {
+  notificationMessage: null,
 };
 
 export default connect(

@@ -5,6 +5,7 @@ import Button from '@geops/react-ui/components/Button';
 import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { getBottomLeft, getTopRight } from 'ol/extent';
 import { to4326 } from '../../utils';
+import { FLOOR_LEVELS } from '../../constants';
 
 import { propTypeCoordinates } from '../../store/prop-types';
 import { setActiveFloor, showNotification } from '../../store/actions/Map';
@@ -17,7 +18,6 @@ const propTypes = {
   center: propTypeCoordinates.isRequired,
   activeFloor: PropTypes.string.isRequired,
   map: PropTypes.object.isRequired,
-  layerService: PropTypes.object.isRequired,
   // isAppWidthSmallerThanS: PropTypes.bool,
 
   // mapDispatchToProps
@@ -48,67 +48,71 @@ class FloorSwitcher extends PureComponent {
     super(props);
 
     this.state = {
-      floors: ['-4', '-3', '-2', '-1', '0', '2D', '1', '2', '3', '4'],
+      floors: [],
     };
   }
 
+  componentDidMount() {
+    this.loadFloors();
+  }
+
   componentDidUpdate(prevProps) {
-    const { center, map, dispatchShowNotification } = this.props;
+    const { center } = this.props;
 
     if (prevProps.center !== center) {
-      abortController.abort();
-      abortController = new AbortController();
-      const { signal } = abortController;
-
-      const extent = map.getView().calculateExtent();
-      const reqUrl = `https://walking.geops.io/availableLevels?bbox=${to4326(
-        getBottomLeft(extent),
-      )
-        .reverse()
-        .join(',')}|${to4326(getTopRight(extent))
-        .reverse()
-        .join(',')}`;
-      fetch(reqUrl, { signal })
-        .then(response => response.json())
-        .then(response => {
-          if (response.error) {
-            dispatchShowNotification(
-              "Couldn't find available levels",
-              'warning',
-            );
-            return;
-          }
-          if (!response.properties.availableLevels) {
-            dispatchShowNotification(
-              "Couldn't find available levels",
-              'warning',
-            );
-          }
-          this.setState({
-            floors: response.properties.availableLevels.join().split(','),
-          });
-        })
-        .catch(err => {
-          if (err.name === 'AbortError') {
-            // eslint-disable-next-line no-console
-            console.warn(`Abort ${reqUrl}`);
-            return;
-          }
-          // It's important to rethrow all other errors so you don't silence them!
-          // For example, any error thrown by setState(), will pass through here.
-          throw err;
-        });
+      this.loadFloors();
     }
   }
 
+  loadFloors() {
+    const { map, dispatchShowNotification } = this.props;
+    abortController.abort();
+    abortController = new AbortController();
+    const { signal } = abortController;
+
+    const extent = map.getView().calculateExtent();
+    const reqUrl = `https://walking.geops.io/availableLevels?bbox=${to4326(
+      getBottomLeft(extent),
+    )
+      .reverse()
+      .join(',')}|${to4326(getTopRight(extent))
+      .reverse()
+      .join(',')}`;
+    fetch(reqUrl, { signal })
+      .then(response => response.json())
+      .then(response => {
+        if (response.error) {
+          dispatchShowNotification("Couldn't find available levels", 'warning');
+          return;
+        }
+        if (!response.properties.availableLevels) {
+          dispatchShowNotification("Couldn't find available levels", 'warning');
+        }
+        const floors = response.properties.availableLevels
+          .filter(level => FLOOR_LEVELS.includes(level))
+          .join()
+          .split(',');
+        if (!floors.includes('2D')) {
+          floors.splice(floors.indexOf('0') + 1, 0, '2D');
+        }
+        this.setState({
+          floors,
+        });
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') {
+          // eslint-disable-next-line no-console
+          console.warn(`Abort ${reqUrl}`);
+          return;
+        }
+        // It's important to rethrow all other errors so you don't silence them!
+        // For example, any error thrown by setState(), will pass through here.
+        throw err;
+      });
+  }
+
   selectFloor(floor) {
-    const { dispatchSetActiveFloor, layerService } = this.props;
-
-    layerService.getLayer(`ch.sbb.geschosse`).children.forEach(layer => {
-      layer.setVisible(false);
-    });
-    layerService.getLayer(`ch.sbb.geschosse${floor}`).setVisible(true);
-
+    const { dispatchSetActiveFloor } = this.props;
     dispatchSetActiveFloor(floor, 'Switcher');
   }
 
@@ -191,7 +195,6 @@ const mapStateToProps = state => ({
   activeFloor: state.MapReducer.activeFloor,
   center: state.MapReducer.center,
   map: state.MapReducer.olMap,
-  layerService: state.MapReducer.layerService,
   // isAppWidthSmallerThanS: state.isAppWidthSmallerThanS,
 });
 
