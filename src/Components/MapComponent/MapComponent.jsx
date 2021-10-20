@@ -687,41 +687,44 @@ class MapComponent extends PureComponent {
       let hoveredRoute = null;
       let name = null;
 
-      this.map
-        .getFeaturesAtPixel(evt.pixel, {
-          hitTolerance: 2,
-        })
-        .forEach(feature => {
-          // if the feature is a via point or a route point to modify.
-          if (feature.getGeometry().getType() === 'Point') {
-            name = feature.get('name');
-            if (name) {
-              const featCountryCode = feature.get('country_code');
-              name = `${name}${featCountryCode ? ` - ${featCountryCode}` : ''}`;
-            }
-            this.setState({
-              // Display the name of a station or the coordinate of the point
-              hoveredStationName:
-                name || `${to4326(feature.getGeometry().getCoordinates())}`,
-            });
+      const hoveredFeatures = this.map.getFeaturesAtPixel(evt.pixel, {
+        hitTolerance: 2,
+      });
+      hoveredFeatures.forEach(feature => {
+        // if the feature is a via point or a route point to modify.
+        if (feature.getGeometry().getType() === 'Point') {
+          name = feature.get('name');
+          if (name) {
+            const featCountryCode = feature.get('country_code');
+            name = `${name}${featCountryCode ? ` - ${featCountryCode}` : ''}`;
           }
-          // if the feature is a route
-          if (
-            ['MultiLineString', 'LineString'].includes(
-              feature.getGeometry().getType(),
-            )
-          ) {
-            hoveredRoute = feature;
+          this.setState({
+            // Display the name of a station or the coordinate of the point
+            hoveredStationName:
+              name || `${to4326(feature.getGeometry().getCoordinates())}`,
+          });
+        }
+        // if the feature is a route
+        if (
+          ['MultiLineString', 'LineString'].includes(
+            feature.getGeometry().getType(),
+          )
+        ) {
+          hoveredRoute = feature;
 
-            this.setState({
-              // Update the tooltip in route info dialog
-              hoveredPoint: evt.coordinate,
+          this.setState({
+            // Update the tooltip in route info dialog
+            hoveredPoint: evt.coordinate,
 
-              // Display the coordinate on the route or the name of a via point
-              hoveredStationName: name || `${to4326(evt.coordinate)}`,
-            });
-          }
-        });
+            // Display the coordinate on the route or the name of a via point
+            hoveredStationName: name || `${to4326(evt.coordinate)}`,
+          });
+        }
+      });
+
+      if (hoveredFeatures.length === 0) {
+        this.setState({ hoveredStationName: null });
+      }
 
       // If the hovered route has changed we update the hover effect
       if (this.hoveredRoute !== hoveredRoute) {
