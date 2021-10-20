@@ -20,3 +20,12 @@
     color: #555;
   }
 }
+
+.MuiSnackbar-anchorOriginBottomLeft,
+.MuiSnackbar-anchorOriginBottomRight {
+  bottom: 36px !important;
+}
+
+.MuiSnackbar-anchorOriginBottomRight {
+  right: 76px !important;
+}
