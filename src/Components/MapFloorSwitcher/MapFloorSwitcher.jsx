@@ -85,7 +85,7 @@ function MapFloorSwitcher({ route, nextRoute }) {
   return (
     <Popup map={map} feature={feature} className="map-floor-switcher">
       <div>
-        <Typography>{intNextFloor}</Typography>
+        <Typography variant="body2">{intNextFloor}</Typography>
       </div>
       <div>
         <IconButton
