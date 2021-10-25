@@ -1,14 +1,14 @@
 
 $popup-height: 30px;
 
-.rs-popup {
+.map-floor-switcher {
   position: absolute;
-  background: white;
-  width: 80px;
+  width: 50px;
   height: $popup-height;
   border-radius: 20px;
-  border: solid 3px black;
+  border: solid 2px black;
   transform: translateX(-50%) translateY(15px);
+  background: rgba(255, 255, 255, 0.7);
 
   .rs-popup-close-bt {
     display: none;
@@ -27,6 +27,15 @@ $popup-height: 30px;
       justify-content: center;
       height: 17px;
       border-right: solid 2px lightgray;
+    }
+
+    > div:first-child {
+      justify-content: right;
+
+      p {
+        padding-top: 1px;
+        padding-right: 5px;
+      }
     }
 
     > div:last-child {
