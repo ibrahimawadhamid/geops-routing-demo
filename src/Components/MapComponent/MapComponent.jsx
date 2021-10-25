@@ -600,14 +600,15 @@ class MapComponent extends PureComponent {
       }
     });
 
+    abortController.abort();
+    abortController = new AbortController();
+
     if (hops.length < 2) {
       onSetShowLoadingBar(false);
       onSetSelectedRoutes([]);
       return Promise.resolve();
     }
 
-    abortController.abort();
-    abortController = new AbortController();
     const { signal } = abortController;
 
     const calculateElevation = !!(isRouteInfoOpen || useElevation);
