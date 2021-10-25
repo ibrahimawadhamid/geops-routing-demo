@@ -571,11 +571,13 @@ class MapComponent extends PureComponent {
       isRouteInfoOpen,
     } = this.props;
 
-    onSetShowLoadingBar(true);
+    let hasNullViaPoint = false;
 
     // find the index and use this instead.
     currentStopsGeoJSON.forEach((val, idx) => {
       if (!val) {
+        // That means the user is typing or selecting a new station or point.
+        hasNullViaPoint = true;
         return;
       }
       if (!val.properties.uid) {
@@ -603,7 +605,7 @@ class MapComponent extends PureComponent {
     abortController.abort();
     abortController = new AbortController();
 
-    if (hops.length < 2) {
+    if (hasNullViaPoint || hops.length < 2) {
       onSetShowLoadingBar(false);
       onSetSelectedRoutes([]);
       return Promise.resolve();
@@ -627,6 +629,8 @@ class MapComponent extends PureComponent {
     if (graph) {
       reqUrl += `&graph=${graph}`;
     }
+
+    onSetShowLoadingBar(true);
 
     return fetch(reqUrl, { signal })
       .then(response => response.json())
