@@ -11,7 +11,6 @@ import { Point } from 'ol/geom';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import Typography from '@material-ui/core/Typography';
-import { GiStairsGoal } from 'react-icons/gi';
 import { unByKey } from 'ol/Observable';
 import { setActiveFloor } from '../../store/actions/Map';
 
@@ -84,16 +83,9 @@ function MapFloorSwitcher({ route, nextRoute }) {
   );
 
   return (
-    <Popup
-      map={map}
-      feature={feature}
-      // panIntoView
-    >
+    <Popup map={map} feature={feature} className="map-floor-switcher">
       <div>
-        <GiStairsGoal />
-      </div>
-      <div>
-        <Typography>{intNextFloor}</Typography>
+        <Typography variant="body2">{intNextFloor}</Typography>
       </div>
       <div>
         <IconButton
