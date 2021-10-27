@@ -20,16 +20,12 @@ const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       padding: '0 5px 4px 5px',
     },
-  },
-}));
-
-const selectStyles = makeStyles(() => ({
-  select: {
-    paddingRight: '17px !important',
-  },
-  icon: {
-    width: '0.8em',
-    height: '0.8em',
+    '& label': {
+      left: '10px',
+      [theme.breakpoints.down('xs')]: {
+        left: '5px',
+      },
+    },
   },
 }));
 
@@ -38,7 +34,6 @@ const selectStyles = makeStyles(() => ({
  */
 function TrackSelect({ index, disabled }) {
   const classes = useStyles();
-  const selectClasses = selectStyles();
   const dispatch = useDispatch();
   const tracks = useSelector(state => state.MapReducer.tracks);
   const currentMot = useSelector(state => state.MapReducer.currentMot);
@@ -69,7 +64,6 @@ function TrackSelect({ index, disabled }) {
         Track
       </InputLabel>
       <Select
-        classes={selectClasses}
         renderValue={val => (val === '' ? '-' : val)}
         labelId="rd-track-select-label"
         value={track || ''}
