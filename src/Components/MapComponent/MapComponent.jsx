@@ -20,7 +20,6 @@ import Snackbar from '@material-ui/core/Snackbar';
 import { touchOnly } from 'ol/events/condition';
 import MapFloorSwitcher from '../MapFloorSwitcher';
 import RoutingMenu from '../RoutingMenu';
-import RouteInfosDialog from '../RouteInfosDialog';
 import FloorSwitcher from '../FloorSwitcher';
 import LevelLayer from '../../layers/LevelLayer';
 import { to4326 } from '../../utils';
@@ -699,41 +698,44 @@ class MapComponent extends PureComponent {
       let hoveredRoute = null;
       let name = null;
 
-      this.map
-        .getFeaturesAtPixel(evt.pixel, {
-          hitTolerance: 2,
-        })
-        .forEach(feature => {
-          // if the feature is a via point or a route point to modify.
-          if (feature.getGeometry().getType() === 'Point') {
-            name = feature.get('name');
-            if (name) {
-              const featCountryCode = feature.get('country_code');
-              name = `${name}${featCountryCode ? ` - ${featCountryCode}` : ''}`;
-            }
-            this.setState({
-              // Display the name of a station or the coordinate of the point
-              hoveredStationName:
-                name || `${to4326(feature.getGeometry().getCoordinates())}`,
-            });
+      const hoveredFeatures = this.map.getFeaturesAtPixel(evt.pixel, {
+        hitTolerance: 2,
+      });
+      hoveredFeatures.forEach(feature => {
+        // if the feature is a via point or a route point to modify.
+        if (feature.getGeometry().getType() === 'Point') {
+          name = feature.get('name');
+          if (name) {
+            const featCountryCode = feature.get('country_code');
+            name = `${name}${featCountryCode ? ` - ${featCountryCode}` : ''}`;
           }
-          // if the feature is a route
-          if (
-            ['MultiLineString', 'LineString'].includes(
-              feature.getGeometry().getType(),
-            )
-          ) {
-            hoveredRoute = feature;
+          this.setState({
+            // Display the name of a station or the coordinate of the point
+            hoveredStationName:
+              name || `${to4326(feature.getGeometry().getCoordinates())}`,
+          });
+        }
+        // if the feature is a route
+        if (
+          ['MultiLineString', 'LineString'].includes(
+            feature.getGeometry().getType(),
+          )
+        ) {
+          hoveredRoute = feature;
 
-            this.setState({
-              // Update the tooltip in route info dialog
-              hoveredPoint: evt.coordinate,
+          this.setState({
+            // Update the tooltip in route info dialog
+            hoveredPoint: evt.coordinate,
 
-              // Display the coordinate on the route or the name of a via point
-              hoveredStationName: name || `${to4326(evt.coordinate)}`,
-            });
-          }
-        });
+            // Display the coordinate on the route or the name of a via point
+            hoveredStationName: name || `${to4326(evt.coordinate)}`,
+          });
+        }
+      });
+
+      if (hoveredFeatures.length === 0) {
+        this.setState({ hoveredStationName: null });
+      }
 
       // If the hovered route has changed we update the hover effect
       if (this.hoveredRoute !== hoveredRoute) {
@@ -763,7 +765,6 @@ class MapComponent extends PureComponent {
       currentMot,
       APIKey,
       selectedRoutes,
-      isRouteInfoOpen,
       stationSearchUrl,
     } = this.props;
 
@@ -779,6 +780,12 @@ class MapComponent extends PureComponent {
           onPanViaClick={this.onPanViaClick}
           onDrawNewRoute={this.drawNewRoute}
           APIKey={APIKey}
+          routes={selectedRoutes}
+          hoveredCoords={hoveredPoint}
+          onHighlightPoint={this.onHighlightPoint}
+          clearHighlightPoint={() => {
+            this.highlightVectorSource.clear();
+          }}
         />
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -798,16 +805,6 @@ class MapComponent extends PureComponent {
             extent: EUROPE_EXTENT,
           }}
         />
-        {isRouteInfoOpen && selectedRoutes.length ? (
-          <RouteInfosDialog
-            routes={selectedRoutes}
-            hoveredCoords={hoveredPoint}
-            onHighlightPoint={this.onHighlightPoint}
-            clearHighlightPoint={() => {
-              this.highlightVectorSource.clear();
-            }}
-          />
-        ) : null}
         {currentMot === 'foot' && this.map.getView().getZoom() >= 14 ? (
           <FloorSwitcher />
         ) : null}

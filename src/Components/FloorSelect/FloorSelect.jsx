@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -10,6 +11,7 @@ import { setFloorInfo, showNotification } from '../../store/actions/Map';
 
 const propTypes = {
   index: PropTypes.number.isRequired,
+  disabled: PropTypes.bool.isRequired,
   singleStop: PropTypes.oneOfType([PropTypes.string, PropTypes.array]), // array for an array  of coordinate, string for a station name
 };
 
@@ -17,18 +19,26 @@ const defaultProps = {
   singleStop: null,
 };
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles(theme => ({
   wrapper: {
     width: '12%',
-    paddingLeft: '20px',
-    paddingBottom: '4px',
+    padding: '0 10px 4px 10px',
+    [theme.breakpoints.down('xs')]: {
+      padding: '0 5px 4px 5px',
+    },
+    '& label': {
+      left: '10px',
+      [theme.breakpoints.down('xs')]: {
+        left: '5px',
+      },
+    },
   },
 }));
 
 /**
  * The component that displays the floor selector
  */
-function FloorSelect({ index, singleStop }) {
+function FloorSelect({ index, disabled, singleStop }) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const floorInfo = useSelector(state => state.MapReducer.floorInfo);
@@ -108,11 +118,15 @@ function FloorSelect({ index, singleStop }) {
 
   return (
     <FormControl className={classes.wrapper}>
+      <InputLabel shrink id="rd-floor-select-label">
+        Floor
+      </InputLabel>
       <Select
         renderValue={val => (!val || val === '' ? '0' : val)}
         labelId="rd-floor-select-label"
         value={floor}
         displayEmpty
+        disabled={disabled || !floors.length}
         onChange={evt => {
           const newFloorInfo = [...floorInfo];
           const { value } = evt.target;

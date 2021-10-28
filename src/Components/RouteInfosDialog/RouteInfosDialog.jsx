@@ -1,12 +1,18 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import { Feature } from 'ol';
 import GeoJSON from 'ol/format/GeoJSON';
+import { Point } from 'ol/geom';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 import combine from '@turf/combine';
-import { Point } from 'ol/geom';
-import Dialog from '@geops/react-ui/components/Dialog';
 import {
   LineChart,
   Line,
@@ -21,10 +27,10 @@ import {
 } from 'recharts';
 import { ReactComponent as InterpolatedSvg } from './interpolated_surface.svg';
 import { ReactComponent as SurfaceSvg } from './surface_elevation.svg';
-import { setIsRouteInfoOpen, setDialogPosition } from '../../store/actions/Map';
 import './RouteInfosDialog.scss';
 
 const propTypes = {
+  closeInfo: PropTypes.func.isRequired,
   routes: PropTypes.arrayOf(PropTypes.instanceOf(Feature)).isRequired,
   hoveredCoords: PropTypes.arrayOf(PropTypes.number),
   onHighlightPoint: PropTypes.func.isRequired,
@@ -104,32 +110,19 @@ const getHoveredPointFromHoveredCoords = (hovCoords, linePoints, routeLine) => {
 };
 
 function RouteInfosDialog({
+  closeInfo,
   routes,
   hoveredCoords,
   onHighlightPoint,
   clearHighlightPoint,
 }) {
-  const dispatch = useDispatch();
+  const containerRef = useRef();
   const [length, setLength] = useState(null);
   const [minAltitude, setMinAltitude] = useState(0);
   const [maxAltitude, setMaxAltitude] = useState(null);
   const [routePoints, setRoutePoints] = useState([]);
   const [distanceUnit, setDistanceUnit] = useState(null);
   const [isMeter, setIsMeter] = useState(null);
-
-  const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
-
-  const onDragStop = useCallback(
-    (evt, position) => {
-      dispatch(
-        setDialogPosition({
-          x: position.lastX,
-          y: position.lastY,
-        }),
-      );
-    },
-    [dispatch],
-  );
 
   const renderTooltip = useCallback(
     ({ alt, surfaceElevation, distance }) => {
@@ -200,20 +193,17 @@ function RouteInfosDialog({
     return null;
   }, [hoveredCoords, routePoints, routes]);
 
+  useEffect(() => containerRef.current.scrollIntoView({ behavior: 'smooth' }));
+
   return (
-    <Dialog
-      isOpen
-      title={<span>Route information</span>}
-      isDraggable
-      onDragStop={onDragStop}
-      className="rd-dialog-container"
-      classNameHeader="rd-dialog-header"
-      classNameCloseBt="rd-dialog-close-bt"
-      cancelDraggable=".tm-dialog-body"
-      position={dialogPosition}
-      onClose={() => dispatch(setIsRouteInfoOpen(false))}
-    >
-      <div className="rd-dialog-legend">
+    <div className="rd-info-dialog" ref={containerRef}>
+      <div className="rd-info-close-button">
+        <IconButton aria-label="close" onClick={closeInfo} size="small">
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </div>
+      <div className="rd-info-dialog-header">Route information</div>
+      <div className="rd-info-dialog-legend">
         <span>
           <SurfaceSvg /> surface elevation
         </span>
@@ -221,7 +211,7 @@ function RouteInfosDialog({
           <InterpolatedSvg /> interpolated altitude
         </span>
       </div>
-      <ResponsiveContainer width="90%" height="80%">
+      <ResponsiveContainer width="98%" height="80%">
         <LineChart data={routePoints} onMouseLeave={clearHighlightPoint}>
           <YAxis
             type="number"
@@ -295,7 +285,7 @@ function RouteInfosDialog({
           />
         </LineChart>
       </ResponsiveContainer>
-    </Dialog>
+    </div>
   );
 }
 

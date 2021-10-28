@@ -2,13 +2,47 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap');
 
 .rd-routing-menu {
+  width: 100%;
+  display: flex;
   z-index: 1;
-  position: absolute;
-  width: 500px;
-  max-width: 500px;
-  flex-grow: 1;
-  left: 10px;
-  top: 10px;
+  flex-direction: column;
+
+  > div {
+    z-index: 2;
+    flex-grow: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 100vh;
+  }
+
+  .rd-routing-menu-toggle-close {
+    position: sticky;
+    bottom: 0;
+  }
+
+  .rd-routing-menu-toggle-open {
+    background-color: white;
+    box-shadow: 0 0 5px #555;
+    position: absolute;
+  }
+
+  .rd-routing-menu-toggle-close,
+  .rd-routing-menu-toggle-open {
+    cursor: pointer;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    padding: 0;
+    color: #555;
+    width: 100%;
+    z-index: 1;
+  }
+
+  .rd-routing-menu-toggle-close:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
 
   .rd-routing-menu-header {
     display: flex;
@@ -22,7 +56,7 @@
 
   .rd-route-buttons {
     display: flex;
-    padding: 5px 0 10px 12px;
+    padding: 20px 20px 0 20px;
 
     .rd-button-root,
     .rd-button-disabled {
@@ -59,49 +93,40 @@
   }
 
   .stopsContainer {
-    max-height: 70vh;
-    overflow-y: auto;
-    overflow-x: hidden;
     padding: 0.5rem 0;
   }
 }
 
-@media (min-width: $breakpoint-tablet) {
+@media (min-width: 768px) {
   .rd-routing-menu {
-    width: 500px;
-    max-width: 500px;
-  }
-}
+    width: 588px;
+    flex-direction: row;
 
-@media (max-width: $breakpoint-mobile) {
-  .rd-routing-menu {
-    .rd-route-buttons {
-      padding: 5px 12px 10px 12px;
-
-      .rd-button-root {
-        padding: 5px;
-      }
+    > div {
+      margin-top: 0;
+      position: relative;
     }
-  }
-}
 
-@media (min-width: 481px) and (max-width: 767px) {
-  .rd-routing-menu {
-    width: 350px;
-    max-width: 350px;
-  }
-}
+    .rd-routing-menu-toggle-close,
+    .rd-routing-menu-toggle-open {
+      background-color: #3f51b5;
+      height: 48px;
+      width: 32px;
+      color: white;
+      position: absolute;
+      box-shadow: none;
+    }
 
-@media (max-width: 480px) {
-  .rd-routing-menu {
-    width: 280px;
-    max-width: 280px;
-  }
-}
+    .rd-routing-menu-toggle-close {
+      position: absolute;
+      box-shadow: none;
+      top: 0;
+      right: 0;
+    }
 
-@media (max-width: 420px) {
-  .rd-routing-menu {
-    width: 280px;
-    max-width: 280px;
+    .rd-routing-menu-toggle-close:hover,
+    .rd-routing-menu-toggle-open:hover {
+      background-color: #545db8;
+    }
   }
 }

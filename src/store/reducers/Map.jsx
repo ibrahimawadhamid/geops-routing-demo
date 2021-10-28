@@ -68,6 +68,7 @@ const setFloorInfo = (state, action) => {
 const setCurrentStops = (state, action) => {
   const updatedState = {
     currentStops: action.currentStops,
+    isRouteInfoOpen: false,
   };
   return {
     ...state,
@@ -88,6 +89,7 @@ const setCurrentStopsGeoJSON = (state, action) => {
 const setCurrentMot = (state, action) => {
   const updatedState = {
     currentMot: action.currentMot,
+    isRouteInfoOpen: false,
   };
   return {
     ...state,
@@ -193,6 +195,7 @@ const setResolveHops = (state, action) => {
 const setTracks = (state, action) => {
   const updatedState = {
     tracks: action.tracks,
+    isRouteInfoOpen: false,
   };
   return {
     ...state,
@@ -203,6 +206,7 @@ const setTracks = (state, action) => {
 const setSearchMode = (state, action) => {
   const updatedState = {
     searchMode: action.searchMode,
+    isRouteInfoOpen: false,
   };
   return {
     ...state,

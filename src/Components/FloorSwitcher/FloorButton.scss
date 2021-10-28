@@ -13,14 +13,13 @@
   }
 
   .tm-square-white {
-    transition:
-      border 0.5s ease,
-      color 0.5s ease;
+    transition: border 0.5s ease, color 0.5s ease;
     background: white;
     color: #aaa;
 
     &.tm-active {
       background: $grey-selected;
+      color: white;
     }
 
     &:hover:not(.tm-active) {
