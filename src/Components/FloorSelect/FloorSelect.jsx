@@ -134,7 +134,7 @@ function FloorSelect({ index, disabled, singleStop }) {
           dispatch(setFloorInfo(newFloorInfo));
         }}
       >
-        {floors.map(fl => {
+        {floors.reverse().map(fl => {
           return (
             <MenuItem value={fl} key={`floor-${fl}`}>
               {fl === '' ? '0' : fl}
