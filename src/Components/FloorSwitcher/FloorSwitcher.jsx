@@ -96,7 +96,7 @@ class FloorSwitcher extends PureComponent {
           floors.splice(floors.indexOf('0') + 1, 0, '2D');
         }
         this.setState({
-          floors,
+          floors: floors.reverse(),
         });
       })
       .catch(err => {
