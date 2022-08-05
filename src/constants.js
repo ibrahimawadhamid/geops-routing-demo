@@ -1,3 +1,5 @@
+const isDev = new URL(window.location.href)?.searchParams?.get('api') === 'dev';
+
 /**
  * The valid supported mots by the application
  * @type {string[]}
@@ -24,6 +26,10 @@ export const FLOOR_LEVELS = [-4, -3, -2, -1, 0, '2D', 1, 2, 3, 4];
 export const ROUTING_BASE_URL = 'https://api.geops.io/routing/';
 
 export const STATION_SEARCH_BASE_URL = 'https://api.geops.io/stops/';
+
+export const WALKING_BASE_URL = `https://walking.${
+  isDev ? 'dev.' : ''
+}geops.io/`;
 
 export const DACH_EXTENT = [
   644517.0225,
