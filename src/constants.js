@@ -23,9 +23,13 @@ export const SEARCH_MODES = ['default', 'barrier-free'];
 
 export const FLOOR_LEVELS = [-4, -3, -2, -1, 0, '2D', 1, 2, 3, 4];
 
-export const ROUTING_BASE_URL = 'https://api.geops.io/routing/';
+export const ROUTING_BASE_URL = `https://api.geops.io/routing/${
+  isDev ? 'dev' : 'v1'
+}/`;
 
-export const STATION_SEARCH_BASE_URL = 'https://api.geops.io/stops/';
+export const STATION_SEARCH_BASE_URL = `https://api.geops.io/stops/${
+  isDev ? 'dev' : 'v1'
+}/`;
 
 export const WALKING_BASE_URL = `https://walking.${
   isDev ? 'dev.' : ''
