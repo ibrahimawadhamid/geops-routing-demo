@@ -5,7 +5,7 @@ import Button from '@geops/react-ui/components/Button';
 import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { getBottomLeft, getTopRight } from 'ol/extent';
 import { to4326 } from '../../utils';
-import { FLOOR_LEVELS } from '../../constants';
+import { FLOOR_LEVELS, WALKING_BASE_URL } from '../../constants';
 
 import { propTypeCoordinates } from '../../store/prop-types';
 import { setActiveFloor, showNotification } from '../../store/actions/Map';
@@ -71,7 +71,7 @@ class FloorSwitcher extends PureComponent {
     const { signal } = abortController;
 
     const extent = map.getView().calculateExtent();
-    const reqUrl = `https://walking.geops.io/availableLevels?bbox=${to4326(
+    const reqUrl = `${WALKING_BASE_URL}availableLevels?bbox=${to4326(
       getBottomLeft(extent),
     )
       .reverse()

@@ -1,14 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import qs from 'query-string';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import Footer from '../Footer';
 import MapComponent from '../MapComponent';
 import Permalink from '../Permalink';
 import NotificationHandler from '../NotificationHandler';
-import { VALID_MOTS } from '../../constants';
-
-const { api = 'v1' } = qs.parse(window.location.search);
+import {
+  VALID_MOTS,
+  ROUTING_BASE_URL,
+  STATION_SEARCH_BASE_URL,
+} from '../../constants';
 
 const propTypes = {
   routingUrl: PropTypes.string,
@@ -18,8 +19,8 @@ const propTypes = {
 
 const defaultProps = {
   mots: VALID_MOTS,
-  routingUrl: `https://api.geops.io/routing/${api}/`,
-  stationSearchUrl: `https://api.geops.io/stops/${api}/`,
+  routingUrl: ROUTING_BASE_URL,
+  stationSearchUrl: STATION_SEARCH_BASE_URL,
 };
 
 const fontSize = '1rem';

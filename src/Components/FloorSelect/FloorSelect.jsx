@@ -7,6 +7,7 @@ import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import MenuItem from '@material-ui/core/MenuItem';
 import { to4326 } from '../../utils';
+import { WALKING_BASE_URL } from '../../constants';
 import { setFloorInfo, showNotification } from '../../store/actions/Map';
 
 const propTypes = {
@@ -51,7 +52,7 @@ function FloorSelect({ index, disabled, singleStop }) {
     if (Array.isArray(singleStop)) {
       const { signal } = abortController;
 
-      const reqUrl = `https://walking.geops.io/availableLevels?point=${to4326(
+      const reqUrl = `${WALKING_BASE_URL}availableLevels?point=${to4326(
         singleStop,
       )
         .reverse()
