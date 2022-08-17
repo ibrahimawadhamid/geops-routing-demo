@@ -491,8 +491,11 @@ class MapComponent extends PureComponent {
 
       if (currentMotChanged) {
         this.toggleBasemapMask(layerService.getLayer('data'));
-        const isDev = new URL(window.location.href)?.searchParams?.get('api') === 'dev';
-        onSetMaxExtent(currentMot === 'foot' && !isDev ? DACH_EXTENT : EUROPE_EXTENT);
+        const isDev =
+          new URL(window.location.href)?.searchParams?.get('api') === 'dev';
+        onSetMaxExtent(
+          currentMot === 'foot' && !isDev ? DACH_EXTENT : EUROPE_EXTENT,
+        );
       }
 
       if (
