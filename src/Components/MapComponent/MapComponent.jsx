@@ -105,7 +105,7 @@ class MapComponent extends PureComponent {
     const dataLayer = new MapboxLayer({
       name: 'data',
       visible: true,
-      url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
+      url: `https://maps.geops.io/styles/base_bright_v2/style.json?key=${APIKey}`,
     });
 
     const baseLayerOthers = new MapboxStyleLayer({
