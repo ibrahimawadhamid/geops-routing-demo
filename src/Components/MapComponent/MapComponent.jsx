@@ -105,7 +105,7 @@ class MapComponent extends PureComponent {
     const dataLayer = new MapboxLayer({
       name: 'data',
       visible: true,
-      url: `https://maps.geops.io/styles/travic_v2/style.json?key=${APIKey}`,
+      url: `https://maps.geops.io/styles/base_bright_v2/style.json?key=${APIKey}`,
     });
 
     const baseLayerOthers = new MapboxStyleLayer({
@@ -113,12 +113,6 @@ class MapComponent extends PureComponent {
       mapboxLayer: dataLayer,
       isBaseLayer: true,
       visible: false,
-      styleLayersFilter: ({ metadata }) => {
-        return (
-          metadata &&
-          metadata['routing.filter'] === 'perimeter_mask_routing_europe'
-        );
-      },
     });
 
     const baseLayerFoot = new MapboxStyleLayer({
@@ -126,12 +120,6 @@ class MapComponent extends PureComponent {
       mapboxLayer: dataLayer,
       isBaseLayer: true,
       visible: false,
-      styleLayersFilter: ({ metadata }) => {
-        return (
-          metadata &&
-          metadata['routing.filter'] === 'perimeter_mask_routing_dach'
-        );
-      },
     });
 
     layerService.addLayer(dataLayer);
