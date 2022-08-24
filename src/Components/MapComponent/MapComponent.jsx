@@ -113,12 +113,6 @@ class MapComponent extends PureComponent {
       mapboxLayer: dataLayer,
       isBaseLayer: true,
       visible: false,
-      styleLayersFilter: ({ metadata }) => {
-        return (
-          metadata &&
-          metadata['routing.filter'] === 'perimeter_mask_routing_europe'
-        );
-      },
     });
 
     const baseLayerFoot = new MapboxStyleLayer({
@@ -126,12 +120,6 @@ class MapComponent extends PureComponent {
       mapboxLayer: dataLayer,
       isBaseLayer: true,
       visible: false,
-      styleLayersFilter: ({ metadata }) => {
-        return (
-          metadata &&
-          metadata['routing.filter'] === 'perimeter_mask_routing_dach'
-        );
-      },
     });
 
     layerService.addLayer(dataLayer);
