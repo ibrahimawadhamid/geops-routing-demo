@@ -18,7 +18,6 @@
     "lodash": "^4.17.15",
     "mapbox-gl": "^1.7.0",
     "mobility-toolbox-js": "^1.3.9",
-    "node-sass": "^4.13.1",
     "ol": "6.2.1",
     "prop-types": "^15.7.2",
     "query-string": "^6.12.1",
@@ -33,7 +32,8 @@
     "react-spatial": "1.0.30",
     "recharts": "2.1.4",
     "redux": "^4.0.5",
-    "redux-thunk": "^2.3.0"
+    "redux-thunk": "^2.3.0",
+    "sass": "^1.54.5"
   },
   "peerDependencies": {
     "react": "^16.12.0",
