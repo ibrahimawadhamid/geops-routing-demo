@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -19,16 +20,12 @@ const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down('xs')]: {
       padding: '0 5px 4px 5px',
     },
-  },
-}));
-
-const selectStyles = makeStyles(() => ({
-  select: {
-    paddingRight: '17px !important',
-  },
-  icon: {
-    width: '0.8em',
-    height: '0.8em',
+    '& label': {
+      left: '10px',
+      [theme.breakpoints.down('xs')]: {
+        left: '5px',
+      },
+    },
   },
 }));
 
@@ -37,7 +34,6 @@ const selectStyles = makeStyles(() => ({
  */
 function TrackSelect({ index, disabled }) {
   const classes = useStyles();
-  const selectClasses = selectStyles();
   const dispatch = useDispatch();
   const tracks = useSelector(state => state.MapReducer.tracks);
   const currentMot = useSelector(state => state.MapReducer.currentMot);
@@ -64,8 +60,10 @@ function TrackSelect({ index, disabled }) {
 
   return (
     <FormControl className={classes.wrapper}>
+      <InputLabel shrink id="rd-track-select-label">
+        Track
+      </InputLabel>
       <Select
-        classes={selectClasses}
         renderValue={val => (val === '' ? '-' : val)}
         labelId="rd-track-select-label"
         value={track || ''}

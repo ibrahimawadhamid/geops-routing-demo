@@ -1,0 +1,63 @@
+@import '../../globals.scss';
+
+.tm-floor-button-wrapper {
+  .tm-button {
+    cursor: pointer;
+    height: 50px;
+    width: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #aaa;
+    border-bottom-color: white;
+  }
+
+  .tm-square-white {
+    transition: border 0.5s ease, color 0.5s ease;
+    background: white;
+    color: #aaa;
+
+    &.tm-active {
+      background: $grey-selected;
+      color: white;
+    }
+
+    &:hover:not(.tm-active) {
+      color: $grey-selected;
+      border: 1px solid $grey-selected;
+
+      svg {
+        polyline,
+        circle,
+        path {
+          stroke: #000;
+        }
+      }
+    }
+  }
+}
+
+.tm-floor-tooltip {
+  .tm-menu-tooltip-body {
+    top: -40px;
+    right: 10px;
+  }
+}
+
+.tm-w-s,
+.tm-w-xs {
+  .tm-floor-tooltip {
+    display: none;
+  }
+}
+
+.tm-floor-switcher-mobile {
+  .tm-button {
+    flex-direction: column;
+  }
+
+  .tm-mobile-floor-info {
+    font-size: 60%;
+    padding-bottom: 5px;
+  }
+}

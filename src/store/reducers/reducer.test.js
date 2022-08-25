@@ -3,6 +3,34 @@ import mapReducer from './Map';
 import * as types from '../actions/actionTypes';
 
 describe('map reducer', () => {
+  it('should return the initial state', () => {
+    const test = {
+      center: [949042.143189, 5899715.591163],
+      currentMot: 'rail',
+      floorInfo: ['0', '0'],
+      currentStops: ['', ''],
+      currentStopsGeoJSON: [],
+      dialogPosition: {
+        x: 10,
+        y: 280,
+      },
+      dialogSize: {
+        height: 550,
+        width: 500,
+      },
+      clickLocation: null,
+      notificationMessage: '',
+      notificationType: 'info',
+      isFieldFocused: false,
+      showLoadingBar: false,
+      resolveHops: false,
+      selectedRoutes: [],
+    };
+    Object.keys(test).forEach(state => {
+      expect(mapReducer(undefined, {})[state]).toEqual(test[state]);
+    });
+  });
+
   it('should handle SET_CURRENT_MOT first time', () => {
     expect(
       mapReducer(
@@ -12,7 +40,7 @@ describe('map reducer', () => {
           currentMot: 'bus',
         },
       ),
-    ).toEqual({ currentMot: 'bus' });
+    ).toEqual({ currentMot: 'bus', isRouteInfoOpen: false });
   });
 
   it('should handle SET_CURRENT_MOT second time', () => {
@@ -26,6 +54,7 @@ describe('map reducer', () => {
       ),
     ).toEqual({
       currentMot: 'train',
+      isRouteInfoOpen: false,
     });
   });
 
@@ -47,7 +76,7 @@ describe('map reducer', () => {
         },
       ],
     };
-    const currentStopsGeoJSON = { '0': tempGeoJSON };
+    const currentStopsGeoJSON = [tempGeoJSON];
     expect(
       mapReducer(
         {},

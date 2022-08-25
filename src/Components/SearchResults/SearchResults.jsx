@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
 import Paper from '@material-ui/core/Paper';
@@ -8,7 +7,6 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import MapMarkerIcon from '@material-ui/icons/LocationOn';
-import { unByKey } from 'ol/Observable';
 
 import './SearchResults.scss';
 
@@ -38,48 +36,17 @@ const renderSecondary = (id, code, countryCode, ifopt) => {
  */
 function SearchResults(props) {
   const { currentSearchResults, processClickedResultHandler } = props;
-  const map = useSelector(state => state.MapReducer.olMap);
-  const [maxHeight, setMaxHeight] = useState(null);
-  const ListRef = useRef();
-
-  const updateMenuHeight = useCallback(() => {
-    let newMaxheight;
-
-    if (ListRef.current) {
-      const mapBottom = map.getTarget().getBoundingClientRect().bottom;
-      const elemRect = ListRef.current.getBoundingClientRect();
-      newMaxheight = mapBottom - elemRect.top - 35;
-    }
-
-    if (newMaxheight >= 0) {
-      setMaxHeight(newMaxheight);
-    }
-  }, [map]);
-
-  useEffect(() => {
-    const olEventKey = map.on('change:size', () => updateMenuHeight());
-
-    return () => {
-      unByKey(olEventKey);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    updateMenuHeight();
-  }, [updateMenuHeight, currentSearchResults]);
 
   if (currentSearchResults.length === 0) {
     return null;
   }
   return (
-    <Paper square elevation={3} ref={ListRef}>
+    <Paper square elevation={3}>
       <List
         component="nav"
         className="rd-result-list"
         aria-label="search results"
         style={{
-          maxHeight,
           overflowY: 'scroll',
           paddingBottom: 0,
           paddingTop: 0,

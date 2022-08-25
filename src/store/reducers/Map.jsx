@@ -1,11 +1,16 @@
 import { Map } from 'ol';
+import LayerService from 'react-spatial/LayerService';
 import * as actionTypes from '../actions/actionTypes';
+import { SEARCH_MODES, EUROPE_EXTENT } from '../../constants';
 
 const initialState = {
   center: [949042.143189, 5899715.591163],
+  maxExtent: EUROPE_EXTENT,
+  activeFloor: '2D',
   currentMot: 'rail',
+  floorInfo: ['0', '0'],
   currentStops: ['', ''],
-  currentStopsGeoJSON: {},
+  currentStopsGeoJSON: [],
   clickLocation: null,
   notificationMessage: '',
   notificationType: 'info',
@@ -17,11 +22,17 @@ const initialState = {
     x: 10,
     y: 280,
   },
+  dialogSize: {
+    height: 550,
+    width: 500,
+  },
   olMap: new Map({
     controls: [],
   }),
   resolveHops: false,
+  searchMode: SEARCH_MODES[0],
   tracks: [null, null],
+  layerService: new LayerService([]),
 };
 
 const setCenter = (state, action) => {
@@ -34,9 +45,30 @@ const setCenter = (state, action) => {
   };
 };
 
+const setActiveFloor = (state, action) => {
+  const updatedState = {
+    activeFloor: action.activeFloor,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
+const setFloorInfo = (state, action) => {
+  const updatedState = {
+    floorInfo: action.floorInfo,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
 const setCurrentStops = (state, action) => {
   const updatedState = {
     currentStops: action.currentStops,
+    isRouteInfoOpen: false,
   };
   return {
     ...state,
@@ -57,6 +89,7 @@ const setCurrentStopsGeoJSON = (state, action) => {
 const setCurrentMot = (state, action) => {
   const updatedState = {
     currentMot: action.currentMot,
+    isRouteInfoOpen: false,
   };
   return {
     ...state,
@@ -135,6 +168,20 @@ const setDialogPosition = (state, action) => {
   };
 };
 
+const setDialogSize = (state, action) => {
+  return {
+    ...state,
+    dialogSize: {
+      height: action.dialogSize.height,
+      width: action.dialogSize.width,
+    },
+    dialogPosition: {
+      x: action.dialogSize.x,
+      y: action.dialogSize.y,
+    },
+  };
+};
+
 const setResolveHops = (state, action) => {
   const updatedState = {
     resolveHops: action.resolveHops,
@@ -148,6 +195,28 @@ const setResolveHops = (state, action) => {
 const setTracks = (state, action) => {
   const updatedState = {
     tracks: action.tracks,
+    isRouteInfoOpen: false,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
+const setSearchMode = (state, action) => {
+  const updatedState = {
+    searchMode: action.searchMode,
+    isRouteInfoOpen: false,
+  };
+  return {
+    ...state,
+    ...updatedState,
+  };
+};
+
+const setMaxExtent = (state, action) => {
+  const updatedState = {
+    maxExtent: action.maxExtent,
   };
   return {
     ...state,
@@ -159,6 +228,10 @@ const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_CENTER:
       return setCenter(state, action);
+    case actionTypes.SET_ACTIVE_FLOOR:
+      return setActiveFloor(state, action);
+    case actionTypes.SET_FLOOR_INFO:
+      return setFloorInfo(state, action);
     case actionTypes.SET_CURRENT_STOPS:
       return setCurrentStops(state, action);
     case actionTypes.SET_CURRENT_STOPS_GEOJSON:
@@ -179,10 +252,16 @@ const reducer = (state = initialState, action) => {
       return setIsRouteInfoOpen(state, action);
     case actionTypes.SET_DIALOG_POSITION:
       return setDialogPosition(state, action);
+    case actionTypes.SET_DIALOG_SIZE:
+      return setDialogSize(state, action);
+    case actionTypes.SET_SEARCH_MODE:
+      return setSearchMode(state, action);
     case actionTypes.SET_RESOLVE_HOPS:
       return setResolveHops(state, action);
     case actionTypes.SET_TRACKS:
       return setTracks(state, action);
+    case actionTypes.SET_MAX_EXTENT:
+      return setMaxExtent(state, action);
     default:
       return state;
   }

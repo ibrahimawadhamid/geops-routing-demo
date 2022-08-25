@@ -1,3 +1,1 @@
-import RoutingMenu from './RoutingMenu';
-
-export default RoutingMenu;
+export { default } from './RoutingMenu';

@@ -1,0 +1,52 @@
+@import '../../globals.scss';
+
+.tm-floor-switcher,
+.tm-floor-switcher-mobile {
+  position: absolute;
+  right: 10px;
+  bottom: 20px;
+  box-shadow: 0 0 7px rgba(0, 0, 0, 0.4);
+
+  // Remove ol and  li styles,
+  &,
+  li {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+}
+
+.tm-floor-switcher-mobile {
+  .tm-button {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    color: black;
+    border: 1px solid #aaa;
+
+    &.tm-active {
+      color: white;
+    }
+  }
+
+  .tm-floor-button-mobile {
+    font-size: 120%;
+    border: 1px solid #aaa;
+    text-align: center;
+    padding: 9px 7px 4px 7px;
+    color: #000;
+    background: white;
+
+    &.tm-prev-floor {
+      border-bottom: 0;
+    }
+
+    &.tm-next-floor {
+      border-top: 0;
+    }
+
+    &.disabled {
+      color: #aaa;
+    }
+  }
+}

@@ -10,6 +10,7 @@ import {
   setCurrentStopsGeoJSON,
   setCurrentMot,
   setCenter,
+  setFloorInfo,
   setResolveHops,
   setTracks,
 } from '../../store/actions/Map';
@@ -42,20 +43,15 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
       /* Convert coordinates to 3857 */
       const coords3857 = to3857(coordArray);
       geoJson = {
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            properties: {
-              id: coords3857,
-              type: 'coordinates',
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: coords3857,
-            },
-          },
-        ],
+        type: 'Feature',
+        properties: {
+          id: coords3857.toString(),
+          type: 'coordinates',
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: coords3857,
+        },
       };
     }
     return Promise.resolve(geoJson);
@@ -81,9 +77,7 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
     .then(response => {
       /* Convert coordinates to 3857 */
       const feature = response.features[0];
-      feature.geometry.coordinates = to3857(
-        response.features[0].geometry.coordinates,
-      );
+      feature.geometry.coordinates = to3857(feature.geometry.coordinates);
       return feature;
     })
     .catch(() => {
@@ -93,21 +87,19 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
     });
 };
 
-const compileViaString = (currentStopsGeoJson, tracks) => {
-  if (!currentStopsGeoJson || Object.keys(currentStopsGeoJson).length < 2) {
+const compileViaString = (currentStopsGeoJson = [], tracks) => {
+  if (!currentStopsGeoJson || currentStopsGeoJson.length < 2) {
     return null;
   }
 
-  const uidStrings = Object.keys(currentStopsGeoJson).map((key, idx) => {
-    if (currentStopsGeoJson[key].features) {
-      return `${to4326(
-        currentStopsGeoJson[key].features[0].geometry.coordinates,
-      )}`;
-    }
-    return `!${currentStopsGeoJson[key].properties.uid}${
-      tracks[idx] ? `$${tracks[idx]}` : ''
-    }`;
-  });
+  const uidStrings = currentStopsGeoJson
+    .filter(val => !!val)
+    .map((val, idx) => {
+      if (!val.properties.uid) {
+        return `${to4326(val.geometry.coordinates)}`;
+      }
+      return `!${val.properties.uid}${tracks[idx] ? `$${tracks[idx]}` : ''}`;
+    });
   return uidStrings.join('|');
 };
 
@@ -118,6 +110,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
   const tracks = useSelector(state => state.MapReducer.tracks);
   const appState = useSelector(state => state.MapReducer);
   const currentMot = useSelector(state => state.MapReducer.currentMot);
+  const floorInfo = useSelector(state => state.MapReducer.floorInfo);
   const currentStops = useSelector(state => state.MapReducer.currentStops);
   const currentStopsGeoJSON = useSelector(
     state => state.MapReducer.currentStopsGeoJSON,
@@ -151,6 +144,10 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
         dispatch(setCurrentMot(newMot));
       }
 
+      if (urlSearch.floorInfo) {
+        dispatch(setFloorInfo(urlSearch.floorInfo.split(',')));
+      }
+
       if (urlSearch.via) {
         // Set via stations if defined
         newParams.via = urlSearch.via;
@@ -174,19 +171,15 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
                 if (!stop) {
                   return '';
                 }
-                if (stop.type === 'FeatureCollection') {
-                  return stop.features[0].geometry.coordinates;
+                if (!stop.properties.name) {
+                  return stop.geometry.coordinates;
                 }
                 return stop.properties.name;
               }),
             ),
           );
-          const geoJsonObject = {};
-          values
-            .filter(stop => !!stop)
-            // eslint-disable-next-line no-return-assign
-            .forEach((stop, idx) => (geoJsonObject[`${idx}`] = stop));
-          dispatch(setCurrentStopsGeoJSON(geoJsonObject));
+          const newCurrentStopsGeoJSON = [...values.filter(stop => !!stop)];
+          dispatch(setCurrentStopsGeoJSON(newCurrentStopsGeoJSON));
         });
       }
 
@@ -204,14 +197,24 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     newParams.z = map.getView().getZoom();
     [newParams.x] = center;
     [, newParams.y] = center;
+    newParams.floorInfo = floorInfo
+      .map(f => {
+        if (f) {
+          return f.toString().replace('$', '');
+        }
+        return '';
+      })
+      .join(',');
+
     newParams.mot = currentMot;
     newParams['resolve-hops'] = resolveHops;
-    if (Object.keys(currentStopsGeoJSON).length !== 0) {
+    if (currentStopsGeoJSON.length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON, tracks);
     }
     setParams(newParams);
   }, [
     currentMot,
+    floorInfo,
     currentStops,
     currentStopsGeoJSON,
     center,

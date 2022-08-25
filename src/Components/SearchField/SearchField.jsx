@@ -10,12 +10,14 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Adjust from '@material-ui/icons/Adjust';
 import Room from '@material-ui/icons/Room';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import DragIndicatorIcon from '@material-ui/icons/DragIndicator';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import RadioButtonCheckedIcon from '@material-ui/icons/RadioButtonChecked';
+import FloorSelect from '../FloorSelect';
 import TrackSelect from '../TrackSelect';
 import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
-import { setIsFieldFocused } from '../../store/actions/Map';
+import { setIsFieldFocused, setIsRouteInfoOpen } from '../../store/actions/Map';
 
 const useStyles = makeStyles(theme => ({
   gridContainer: {
@@ -34,11 +36,14 @@ const useStyles = makeStyles(theme => ({
     },
   },
   fieldWrapper: {
-    maxWidth: '58%',
+    maxWidth: '54%',
     marginLeft: '5px',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down('xs')]: {
       maxWidth: '50%',
     },
+  },
+  buttonIcon: {
+    color: 'gray !important',
   },
   buttonWrapper: {
     maxWidth: '26px',
@@ -57,6 +62,7 @@ function SearchField(props) {
     index,
     addNewSearchFieldHandler,
     currentStops,
+    currentMot,
     removeSearchFieldHandler,
     searchStopsHandler,
     singleStop,
@@ -83,57 +89,68 @@ function SearchField(props) {
     // Start station field
     fieldLeftIcon = (
       <Tooltip title="Pan to the feature">
-        <IconButton
-          onClick={() => onPanViaClick(singleStop, index)}
-          className={classes.button}
-          aria-label="Pan to the feature"
-          size="small"
-        >
-          <RadioButtonCheckedIcon fontSize="small" color="primary" />
-        </IconButton>
+        <span>
+          <IconButton
+            onClick={() => onPanViaClick(singleStop, index)}
+            className={classes.button}
+            aria-label="Pan to the feature"
+            size="small"
+          >
+            <RadioButtonCheckedIcon fontSize="small" color="primary" />
+          </IconButton>
+        </span>
       </Tooltip>
     );
     searchFieldLabel = 'Start';
     fieldRightIcon = (
       <Grid item xs={1} className={classes.buttonWrapper}>
-        <Tooltip title="Add Hop">
-          <IconButton
-            onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-            disabled={addNextHopDisabled || showLoadingBar}
-            className={classes.button}
-            aria-label="Add Hop"
-            size="small"
-          >
-            <AddCircleOutlineIcon fontSize="small" />
-          </IconButton>
+        <Tooltip title="Add Via Point">
+          <span>
+            <IconButton
+              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
+              className={classes.button}
+              aria-label="Add Via Point"
+              size="small"
+              disabled={addNextHopDisabled || showLoadingBar}
+            >
+              <AddCircleOutlineIcon
+                fontSize="small"
+                className={classes.buttonIcon}
+              />
+            </IconButton>
+          </span>
         </Tooltip>
       </Grid>
     );
   } else if (index === currentStops.length - 1) {
     fieldLeftIcon = (
       <Tooltip title="Pan to the feature">
-        <IconButton
-          onClick={() => onPanViaClick(singleStop, index)}
-          className={classes.button}
-          aria-label="Pan to the feature"
-          size="small"
-        >
-          <Room color="primary" />
-        </IconButton>
+        <span>
+          <IconButton
+            onClick={() => onPanViaClick(singleStop, index)}
+            className={classes.button}
+            aria-label="Pan to the feature"
+            size="small"
+          >
+            <Room color="primary" />
+          </IconButton>
+        </span>
       </Tooltip>
     );
     searchFieldLabel = 'End';
   } else {
     fieldLeftIcon = (
       <Tooltip title="Pan to the feature">
-        <IconButton
-          onClick={() => onPanViaClick(singleStop, index)}
-          className={classes.button}
-          aria-label="Pan to the feature"
-          size="small"
-        >
-          <Adjust fontSize="small" color="primary" />
-        </IconButton>
+        <span>
+          <IconButton
+            onClick={() => onPanViaClick(singleStop, index)}
+            className={classes.button}
+            aria-label="Pan to the feature"
+            size="small"
+          >
+            <Adjust fontSize="small" color="primary" />
+          </IconButton>
+        </span>
       </Tooltip>
     );
     searchFieldSize = 9;
@@ -141,29 +158,41 @@ function SearchField(props) {
     fieldRightIcon = (
       <>
         <Grid item xs={1} className={classes.buttonWrapper}>
-          <Tooltip title="Add Hop">
-            <IconButton
-              disabled={addNextHopDisabled || showLoadingBar}
-              onClick={() => addNewSearchFieldHandler(currentStops, index + 1)}
-              className={classes.button}
-              aria-label="addHop"
-              size="small"
-            >
-              <AddCircleOutlineIcon fontSize="small" />
-            </IconButton>
+          <Tooltip title="Add Via Point">
+            <span>
+              <IconButton
+                onClick={() =>
+                  addNewSearchFieldHandler(currentStops, index + 1)
+                }
+                className={classes.button}
+                aria-label="Add Via Point"
+                size="small"
+                disabled={addNextHopDisabled || showLoadingBar}
+              >
+                <AddCircleOutlineIcon
+                  fontSize="small"
+                  className={classes.buttonIcon}
+                />
+              </IconButton>
+            </span>
           </Tooltip>
         </Grid>
         <Grid item xs={1} className={classes.buttonWrapper}>
-          <Tooltip title="Remove Hop">
-            <IconButton
-              onClick={() => removeSearchFieldHandler(index)}
-              className={classes.button}
-              aria-label="removeHop"
-              size="small"
-              disabled={showLoadingBar}
-            >
-              <RemoveCircleOutlineIcon fontSize="small" />
-            </IconButton>
+          <Tooltip title="Remove Via Point">
+            <span>
+              <IconButton
+                onClick={() => removeSearchFieldHandler(index)}
+                className={classes.button}
+                aria-label="removeHop"
+                size="small"
+                disabled={showLoadingBar}
+              >
+                <RemoveCircleOutlineIcon
+                  fontSize="small"
+                  className={classes.buttonIcon}
+                />
+              </IconButton>
+            </span>
           </Tooltip>
         </Grid>
       </>
@@ -176,6 +205,20 @@ function SearchField(props) {
       className={classes.gridContainer}
       alignItems="flex-end"
     >
+      <Grid item xs={1}>
+        <Tooltip title="Change order of the via points">
+          <span>
+            <IconButton
+              className={classes.button}
+              aria-label="dragHop"
+              size="small"
+              disabled
+            >
+              <DragIndicatorIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Grid>
       <Grid item xs={1}>
         {fieldLeftIcon}
       </Grid>
@@ -191,6 +234,8 @@ function SearchField(props) {
           value={formatSingleStop(singleStop)}
           onKeyDown={processHighlightedResultSelectHandler}
           onFocus={() => {
+            // We close the route infos dialog otherwise we loose the focus
+            dispatch(setIsRouteInfoOpen(false));
             dispatch(setIsFieldFocused(true));
             onFieldFocusHandler(index);
           }}
@@ -206,7 +251,16 @@ function SearchField(props) {
           }}
         />
       </Grid>
-      <TrackSelect index={index} disabled={!isStationName} />
+      {currentMot === 'foot' ? (
+        <FloorSelect
+          index={index}
+          disabled={isStationName}
+          singleStop={singleStop}
+        />
+      ) : null}
+      {currentMot !== 'foot' ? (
+        <TrackSelect index={index} disabled={!isStationName} />
+      ) : null}
       {fieldRightIcon}
     </Grid>
   );
@@ -216,6 +270,7 @@ SearchField.propTypes = {
   index: PropTypes.number.isRequired,
   addNewSearchFieldHandler: PropTypes.func.isRequired,
   currentStops: propTypeCurrentStops,
+  currentMot: PropTypes.string.isRequired,
   removeSearchFieldHandler: PropTypes.func.isRequired,
   searchStopsHandler: PropTypes.func.isRequired,
   singleStop: PropTypes.oneOfType([

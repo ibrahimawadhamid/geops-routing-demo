@@ -37,7 +37,7 @@ describe('actions', () => {
         },
       ],
     };
-    const currentStopsGeoJSON = { '0': tempGeoJSON };
+    const currentStopsGeoJSON = [tempGeoJSON];
     const expectedAction = {
       type: types.SET_CURRENT_STOPS_GEOJSON,
       currentStopsGeoJSON,

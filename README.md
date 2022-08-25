@@ -1,8 +1,7 @@
 
 # geOps Routing Demo
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/8a6049ca-1c43-4cb7-971e-08911d474bfb/deploy-status)](https://app.netlify.com/sites/dreamy-goldberg-5df06f/deploys)
-
+![Vercel](https://vercelbadge.vercel.app/api/geops/geops-routing-demo)
 React app showing how to use the geOps Routing API.
 
 ## Check the [Demo](https://geops-routing-demo.netlify.app/)
@@ -12,7 +11,7 @@ React app showing how to use the geOps Routing API.
 ## Quick start
 
 ```bash
-git clone https://github.com/ibrahimawadhamid/geops-routing-demo.git
+git clone https://github.com/geops/geops-routing-demo.git
 cd geops-routing-demo
 yarn install
 yarn start

@@ -7,6 +7,20 @@ export const setCenter = center => {
   };
 };
 
+export const setActiveFloor = activeFloor => {
+  return {
+    type: actionTypes.SET_ACTIVE_FLOOR,
+    activeFloor,
+  };
+};
+
+export const setFloorInfo = floorInfo => {
+  return {
+    type: actionTypes.SET_FLOOR_INFO,
+    floorInfo,
+  };
+};
+
 export const setCurrentStops = currentStops => {
   return {
     type: actionTypes.SET_CURRENT_STOPS,
@@ -78,6 +92,13 @@ export const setDialogPosition = dialogPosition => {
   };
 };
 
+export const setDialogSize = dialogSize => {
+  return {
+    type: actionTypes.SET_DIALOG_SIZE,
+    dialogSize,
+  };
+};
+
 export const setResolveHops = resolveHops => {
   return {
     type: actionTypes.SET_RESOLVE_HOPS,
@@ -89,5 +110,19 @@ export const setTracks = tracks => {
   return {
     type: actionTypes.SET_TRACKS,
     tracks,
+  };
+};
+
+export const setSearchMode = searchMode => {
+  return {
+    type: actionTypes.SET_SEARCH_MODE,
+    searchMode,
+  };
+};
+
+export const setMaxExtent = maxExtent => {
+  return {
+    type: actionTypes.SET_MAX_EXTENT,
+    maxExtent,
   };
 };
