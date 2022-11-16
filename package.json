@@ -2,8 +2,8 @@
   "name": "geops-routing-demo",
   "description": "Sample component that uses geOps Routing API",
   "main": "build/index.js",
-  "version": "0.6.6",
-  "homepage": "https://geops-routing-demo.netlify.app/",
+  "version": "1.0.0",
+  "homepage": "https://routing-demo.geops.io/",
   "dependencies": {
     "@geops/react-ui": "^1.0.8",
     "@material-ui/core": "^4.8.3",
@@ -20,7 +20,6 @@
     "mobility-toolbox-js": "^1.3.9",
     "ol": "6.2.1",
     "prop-types": "^15.7.2",
-    "query-string": "^6.12.1",
     "react": "16.14.0",
     "react-app-polyfill": "2.0.0",
     "react-beautiful-dnd": "^13.0.0",
@@ -28,7 +27,6 @@
     "react-icons": "^4.2.0",
     "react-id-generator": "^3.0.0",
     "react-redux": "^7.1.3",
-    "react-scripts": "5.0.1",
     "react-spatial": "1.0.30",
     "recharts": "2.1.4",
     "redux": "^4.0.5",
@@ -36,37 +34,24 @@
     "sass": "^1.54.5"
   },
   "peerDependencies": {
-    "eslint": "6.6.0",
     "react": "16.14.0",
     "react-dom": "16.14.0"
   },
   "devDependencies": {
-    "@babel/cli": "7.18.10",
-    "@babel/core": "^7.8.3",
-    "@babel/eslint-parser": "7.18.9",
-    "@babel/plugin-proposal-class-properties": "^7.8.3",
-    "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
-    "@babel/preset-env": "^7.8.3",
-    "@babel/preset-es2015": "^7.0.0-beta.53",
-    "@babel/preset-react": "^7.8.3",
-    "babel-jest": "^24.9.0",
-    "babel-loader": "8.0.6",
-    "babel-plugin-transform-react-jsx": "^6.24.1",
     "better-docs": "^1.4.7",
     "css-loader": "^3.4.2",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
-    "eslint": "7.32.0",
-    "eslint-config-airbnb": "18.2.1",
-    "eslint-config-prettier": "8.3.0",
+    "eslint-config-airbnb": "19.0.4",
+    "eslint-config-prettier": "8.5.0",
     "eslint-plugin-css-modules": "2.11.0",
     "eslint-plugin-cypress": "2.12.1",
-    "eslint-plugin-import": "2.24.2",
+    "eslint-plugin-import": "2.26.0",
     "eslint-plugin-jest": "^23.6.0",
-    "eslint-plugin-jsx-a11y": "6.4.1",
-    "eslint-plugin-prettier": "4.0.0",
-    "eslint-plugin-react": "7.26.1",
-    "eslint-plugin-react-hooks": "4.2.0",
+    "eslint-plugin-jsx-a11y": "6.6.1",
+    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-react": "7.31.10",
+    "eslint-plugin-react-hooks": "4.6.0",
     "fixpack": "^2.3.1",
     "gh-pages": "^2.2.0",
     "html-webpack-plugin": "^3.2.0",
@@ -75,6 +60,7 @@
     "jsdoc": "^3.6.3",
     "lint-staged": "10.4.0",
     "prettier": "2.7.1",
+    "react-scripts": "5.0.1",
     "react-test-renderer": "^16.12.0",
     "redux-mock-store": "^1.5.4",
     "style-loader": "^1.1.2",
@@ -90,7 +76,7 @@
     "eject": "react-scripts eject",
     "format": "prettier --write 'src/**/*.{js,jsx}' && eslint 'src/**/*.{js,jsx}' --fix && stylelint 'src/**/*.css' 'src/**/*.scss' --fix",
     "lint": "eslint src/**/*.js src/**/*.jsx",
-    "start": "react-scripts start",
+    "start": "ESLINT_NO_DEV_ERRORS=true  react-scripts start",
     "test": "react-scripts test  --env=jsdom --transformIgnorePatterns \"/node_modules/(?!(ol|react-spatial)/).*/\""
   },
   "browserslist": [
@@ -107,7 +93,11 @@
       "es6": true,
       "jest": true
     },
-    "parser": "@babel/eslint-parser",
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "jsx": true,
+      "impliedStrict": true
+    },
     "extends": [
       "airbnb",
       "airbnb/hooks",
@@ -119,8 +109,8 @@
     "rules": {
       "linebreak-style": 0,
       "arrow-body-style": 0,
-      "no-restricted-exports": 0,
       "default-param-last": 0,
+      "no-restricted-exports": 0,
       "react/jsx-filename-extension": [
         1,
         {
