@@ -10,7 +10,7 @@ import { transform } from 'ol/proj';
  * @returns {Icon} MotIcon
  * @category Utils
  */
-export const findMotIcon = name => {
+export const findMotIcon = (name) => {
   let result = null;
   const capitalName = name.charAt(0).toUpperCase() + name.slice(1);
   switch (name) {
@@ -28,11 +28,48 @@ export const findMotIcon = name => {
 };
 
 export const to4326 = (coord, decimal = 5) => {
-  return transform(coord, 'EPSG:3857', 'EPSG:4326').map(c =>
+  return transform(coord, 'EPSG:3857', 'EPSG:4326').map((c) =>
     c.toFixed(decimal),
   );
 };
 
-export const to3857 = coord => {
+export const to3857 = (coord) => {
   return transform(coord, 'EPSG:4326', 'EPSG:3857');
+};
+
+export const getGeneralization = (mot, zoom) => {
+  if (mot === 'rail') {
+    if (zoom >= 14) {
+      return null;
+    }
+    if (zoom < 14 && zoom >= 11) {
+      return 'gen100';
+    }
+    if (zoom < 11 && zoom >= 9) {
+      return 'gen30';
+    }
+    if (zoom < 9 && zoom >= 8) {
+      return 'gen10';
+    }
+    return 'gen5';
+  }
+
+  if (/^(bus|tram|subway)$/.test(mot)) {
+    if (zoom >= 14) {
+      return null;
+    }
+    return 'gen100';
+  }
+
+  if (/^(gondola|funicular|ferry)$/.test(mot)) {
+    if (zoom >= 15) {
+      return null;
+    }
+    if (zoom > 13 && zoom <= 15) {
+      return 'gen150';
+    }
+    return 'gen100';
+  }
+
+  return null;
 };

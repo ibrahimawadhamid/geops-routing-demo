@@ -13,7 +13,7 @@ const propTypes = {
   disabled: PropTypes.bool.isRequired,
 };
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   wrapper: {
     width: '12%',
     padding: '0 10px 4px 10px',
@@ -27,6 +27,9 @@ const useStyles = makeStyles(theme => ({
       },
     },
   },
+  select: {
+    textAlign: 'center',
+  },
 }));
 
 /**
@@ -35,10 +38,10 @@ const useStyles = makeStyles(theme => ({
 function TrackSelect({ index, disabled }) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const tracks = useSelector(state => state.MapReducer.tracks);
-  const currentMot = useSelector(state => state.MapReducer.currentMot);
+  const tracks = useSelector((state) => state.MapReducer.tracks);
+  const currentMot = useSelector((state) => state.MapReducer.currentMot);
   const currentStopsGeoJSON = useSelector(
-    state => state.MapReducer.currentStopsGeoJSON,
+    (state) => state.MapReducer.currentStopsGeoJSON,
   );
   const track = useMemo(() => tracks[index], [index, tracks]);
 
@@ -64,19 +67,20 @@ function TrackSelect({ index, disabled }) {
         Track
       </InputLabel>
       <Select
-        renderValue={val => (val === '' ? '-' : val)}
+        renderValue={(val) => (val === '' ? '-' : val)}
         labelId="rd-track-select-label"
         value={track || ''}
         displayEmpty
         disabled={disabled || !tracksValues.length}
-        onChange={evt => {
+        onChange={(evt) => {
           const newTracks = [...tracks];
           const { value } = evt.target;
           newTracks[index] = value;
           dispatch(setTracks(newTracks));
         }}
+        classes={{ select: classes.select }}
       >
-        {tracksValues.map(t => {
+        {tracksValues.map((t) => {
           return (
             <MenuItem value={t} key={`track-${t}`}>
               {t === '' ? '-' : t}

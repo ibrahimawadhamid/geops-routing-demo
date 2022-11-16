@@ -1,5 +1,6 @@
 export {
   setCenter,
+  setZoom,
   setActiveFloor,
   setFloorInfo,
   setCurrentStops,
@@ -16,4 +17,7 @@ export {
   setSearchMode,
   setTracks,
   setMaxExtent,
+  setGeneralizationEnabled,
+  setGeneralizationGraph,
+  setGeneralizationActive,
 } from './Map';

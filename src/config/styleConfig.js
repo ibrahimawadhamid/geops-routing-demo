@@ -2,13 +2,12 @@
 import { Style, Circle, Stroke, Fill } from 'ol/style';
 
 // Convert '0.0' to '0'
-const cleanFloor = floor => {
-  return !isNaN(floor) ? parseFloat(floor, 10).toString() : floor;
-};
+const cleanFloor = (floor) =>
+  !isNaN(floor) ? parseFloat(floor, 10).toString() : floor;
 
-const lineStyler = lineStyle => {
-  return lineStyle.map(
-    style =>
+const lineStyler = (lineStyle) =>
+  lineStyle.map(
+    (style) =>
       new Style({
         stroke: new Stroke({
           color: style[0],
@@ -17,7 +16,6 @@ const lineStyler = lineStyle => {
         }),
       }),
   );
-};
 
 const railLineStyle = lineStyler([
   ['darkred', 6],
@@ -62,11 +60,11 @@ export const floorsColor = {
   '-3': '#ADE8F4',
   '-2': '#90E0EF',
   '-1': '#48CAE4',
-  '0': '#00B4D8',
-  '1': '#0096C7',
-  '2': '#0077B6',
-  '3': '#023E8A',
-  '4': '#03045E',
+  0: '#00B4D8',
+  1: '#0096C7',
+  2: '#0077B6',
+  3: '#023E8A',
+  4: '#03045E',
 };
 
 const floorsColorGrey = {
@@ -74,11 +72,11 @@ const floorsColorGrey = {
   '-3': '#D8D8D8',
   '-2': '#CACACA',
   '-1': '#A7A7A7',
-  '0': '#848484',
-  '1': '#747474',
-  '2': '#646464',
-  '3': '#434343',
-  '4': '#222222',
+  0: '#848484',
+  1: '#747474',
+  2: '#646464',
+  3: '#434343',
+  4: '#222222',
 };
 
 const getPedestrianStyleColor = (floor, activeFloor) => {
@@ -90,8 +88,8 @@ const getPedestrianStyleColor = (floor, activeFloor) => {
   return floorColor || 'black';
 };
 
-const pedestrianGeopsPointStyle = (floor, activeFloor) => {
-  return new Style({
+const pedestrianGeopsPointStyle = (floor, activeFloor) =>
+  new Style({
     image: new Circle({
       radius: 8,
       fill: new Fill({
@@ -99,7 +97,6 @@ const pedestrianGeopsPointStyle = (floor, activeFloor) => {
       }),
     }),
   });
-};
 
 const busPointStyle = new Style({
   image: new Circle({

@@ -84,7 +84,7 @@ const getHoveredPointFromHoveredCoords = (hovCoords, linePoints, routeLine) => {
 
   const turfClosestPt = nearestPointOnLine(line, pt);
   const lineCoordinates = line.geometry.coordinates;
-  const nearestPts = lineCoordinates.map(coords => {
+  const nearestPts = lineCoordinates.map((coords) => {
     return coords[turfClosestPt.properties.index];
   });
   const nearestPt = nearestPts.reduce((prev, curr) => {
@@ -144,11 +144,13 @@ function RouteInfosDialog({
   useEffect(() => {
     const pointArray = [];
     const coords = [].concat(
-      ...routes.map(r => r.getGeometry().getFlatCoordinates()),
+      ...routes.map((r) => r.getGeometry().getFlatCoordinates()),
     );
-    const distances = [].concat(...routes.map(r => r.get('vertex_distances')));
+    const distances = [].concat(
+      ...routes.map((r) => r.get('vertex_distances')),
+    );
     const lgth = routes
-      .map(r => r.get('line_length'))
+      .map((r) => r.get('line_length'))
       .reduce((a, b) => a + b, 0);
     setLength(lgth);
     setDistanceUnit(lgth > 1000 ? 'km' : 'm');
@@ -156,10 +158,10 @@ function RouteInfosDialog({
 
     const xArray = everyNth(coords, 3, 0);
     const yArray = everyNth(coords, 3, 1);
-    const altitudesArray = everyNth(coords, 3, 2).map(el => Math.round(el));
+    const altitudesArray = everyNth(coords, 3, 2).map((el) => Math.round(el));
     const surfaceElevation = [].concat(
-      ...routes.map(r =>
-        (r.get('surface_elevations') || []).map(el => Math.round(el)),
+      ...routes.map((r) =>
+        (r.get('surface_elevations') || []).map((el) => Math.round(el)),
       ),
     );
     setMinAltitude(Math.min(...surfaceElevation.concat(altitudesArray)));
@@ -224,7 +226,7 @@ function RouteInfosDialog({
           <XAxis
             type="number"
             dataKey="distance"
-            tickFormatter={dist => tickFormatter(dist, isMeter)}
+            tickFormatter={(dist) => tickFormatter(dist, isMeter)}
           >
             <Label value={distanceUnit} offset={10} position="right" />
           </XAxis>
@@ -267,7 +269,7 @@ function RouteInfosDialog({
                   }
                 : null
             }
-            content={content => {
+            content={(content) => {
               if (hoveredPoint) {
                 // Render toltip is we are hovering the route
                 return renderTooltip(hoveredPoint);

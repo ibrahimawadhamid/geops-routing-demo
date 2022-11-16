@@ -20,7 +20,7 @@ const defaultProps = {
   singleStop: null,
 };
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   wrapper: {
     width: '12%',
     padding: '0 10px 4px 10px',
@@ -42,7 +42,7 @@ const useStyles = makeStyles(theme => ({
 function FloorSelect({ index, disabled, singleStop }) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const floorInfo = useSelector(state => state.MapReducer.floorInfo);
+  const floorInfo = useSelector((state) => state.MapReducer.floorInfo);
   const floor = useMemo(() => floorInfo[index], [index, floorInfo]);
   const [floors, setFloors] = useState([floor || '0']);
 
@@ -59,8 +59,8 @@ function FloorSelect({ index, disabled, singleStop }) {
         .join(',')}&distance=0.006`;
 
       fetch(reqUrl, { signal })
-        .then(response => response.json())
-        .then(response => {
+        .then((response) => response.json())
+        .then((response) => {
           if (response.error) {
             dispatch(
               showNotification("Couldn't find available levels", 'warning'),
@@ -95,7 +95,7 @@ function FloorSelect({ index, disabled, singleStop }) {
 
           setFloors(newFloors);
         })
-        .catch(err => {
+        .catch((err) => {
           if (err.name === 'AbortError') {
             // eslint-disable-next-line no-console
             console.warn(`Abort ${reqUrl}`);
@@ -123,19 +123,19 @@ function FloorSelect({ index, disabled, singleStop }) {
         Floor
       </InputLabel>
       <Select
-        renderValue={val => (!val || val === '' ? '0' : val)}
+        renderValue={(val) => (!val || val === '' ? '0' : val)}
         labelId="rd-floor-select-label"
         value={floor}
         displayEmpty
         disabled={disabled || !floors.length}
-        onChange={evt => {
+        onChange={(evt) => {
           const newFloorInfo = [...floorInfo];
           const { value } = evt.target;
           newFloorInfo[index] = value;
           dispatch(setFloorInfo(newFloorInfo));
         }}
       >
-        {floors.reverse().map(fl => {
+        {floors.reverse().map((fl) => {
           return (
             <MenuItem value={fl} key={`floor-${fl}`}>
               {fl === '' ? '0' : fl}

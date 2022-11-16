@@ -35,8 +35,8 @@ const shouldDisplayButton = (map, coord) => {
 function MapFloorSwitcher({ route, nextRoute }) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const map = useSelector(state => state.MapReducer.olMap);
-  const activeFloor = useSelector(state => state.MapReducer.activeFloor);
+  const map = useSelector((state) => state.MapReducer.olMap);
+  const activeFloor = useSelector((state) => state.MapReducer.activeFloor);
   const coord = route.getGeometry().getLastCoordinate();
   const [isInExtent, setInExtent] = useState(shouldDisplayButton(map, coord));
 

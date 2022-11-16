@@ -19,7 +19,7 @@ import { propTypeCurrentStops } from '../../store/prop-types';
 import { to4326 } from '../../utils';
 import { setIsFieldFocused, setIsRouteInfoOpen } from '../../store/actions/Map';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   gridContainer: {
     width: '100%',
     padding: '0px 0px 0px 20px',
@@ -57,7 +57,9 @@ const useStyles = makeStyles(theme => ({
 function SearchField(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const showLoadingBar = useSelector(state => state.MapReducer.showLoadingBar);
+  const showLoadingBar = useSelector(
+    (state) => state.MapReducer.showLoadingBar,
+  );
   const {
     index,
     addNewSearchFieldHandler,
@@ -76,7 +78,7 @@ function SearchField(props) {
   let searchFieldLabel = '';
   let fieldRightIcon = null;
 
-  const formatSingleStop = val => (Array.isArray(val) ? to4326(val) : val);
+  const formatSingleStop = (val) => (Array.isArray(val) ? to4326(val) : val);
   const isStationName = useMemo(
     () => typeof singleStop === 'string' && singleStop !== '',
     [singleStop],
@@ -230,7 +232,7 @@ function SearchField(props) {
           inputRef={inputReference}
           label={searchFieldLabel}
           color="primary"
-          onChange={e => searchStopsHandler(e, index)}
+          onChange={(e) => searchStopsHandler(e, index)}
           value={formatSingleStop(singleStop)}
           onKeyDown={processHighlightedResultSelectHandler}
           onFocus={() => {
@@ -244,7 +246,7 @@ function SearchField(props) {
               dispatch(setIsFieldFocused(false));
             }, 500)
           }
-          onClick={event => {
+          onClick={(event) => {
             if (event.target.select) {
               event.target.select();
             }
