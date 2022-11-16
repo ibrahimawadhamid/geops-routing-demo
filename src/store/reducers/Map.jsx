@@ -36,6 +36,7 @@ const initialState = {
   generalizationEnabled: false,
   generalizationGraph: null,
   generalizationActive: false,
+  zoom: 6,
 };
 
 const setZoom = (state, action) => {

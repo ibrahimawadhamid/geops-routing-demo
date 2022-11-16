@@ -21,7 +21,7 @@ import MapFloorSwitcher from '../MapFloorSwitcher';
 import RoutingMenu from '../RoutingMenu';
 import FloorSwitcher from '../FloorSwitcher';
 import LevelLayer from '../../layers/LevelLayer';
-import { getGeneralization, to4326 } from '../../utils';
+import { getGeneralization, graphs, to4326 } from '../../utils';
 import {
   lineStyleFunction,
   pointStyleFunction,
@@ -49,7 +49,6 @@ import * as actions from '../../store/actions';
  */
 
 let abortController = new AbortController();
-const defaultZoom = 6;
 let cbKey = null;
 
 /**
@@ -166,11 +165,13 @@ class MapComponent extends PureComponent {
           source: this.routeVectorSource,
           style: (feature) => {
             const { currentMot, activeFloor: activeFloorr } = this.props;
+
             return lineStyleFunction(
               currentMot,
               this.hoveredRoute === feature,
               feature.get('floor'),
               activeFloorr,
+              feature.get('graph'),
             );
           },
         }),
@@ -622,70 +623,82 @@ class MapComponent extends PureComponent {
       return Promise.resolve();
     }
 
-    const { signal } = abortController;
+    dispatchShowLoadingBar(true);
+    this.routeVectorSource.clear();
 
-    const calculateElevation = !!(isRouteInfoOpen || useElevation);
-    let reqUrl =
-      `${routingUrl}` +
-      `?via=${hops.join(
-        '|',
-      )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
-      `&elevation=${calculateElevation ? 1 : 0}` +
-      `&interpolate_elevation=${calculateElevation}` +
-      `&length=true&coord-radius=100.0&coord-punish=1000.0` +
-      `&barrierefrei=${searchMode === 'barrier-free' ? 'true' : 'false'}`;
+    const fetchRoute = (graph, multi) => {
+      const { signal } = abortController;
+      const calculateElevation = !!(isRouteInfoOpen || useElevation);
+      let reqUrl =
+        `${routingUrl}` +
+        `?via=${hops.join(
+          '|',
+        )}&mot=${currentMot}&resolve-hops=${resolveHops}&key=${APIKey}` +
+        `&elevation=${calculateElevation ? 1 : 0}` +
+        `&interpolate_elevation=${calculateElevation}` +
+        `&length=true&coord-radius=100.0&coord-punish=1000.0` +
+        `&barrierefrei=${searchMode === 'barrier-free' ? 'true' : 'false'}`;
+      if (graph) {
+        reqUrl += `&graph=${graph}`;
+      }
+      return fetch(reqUrl, { signal })
+        .then((response) => response.json())
+        .then((response) => {
+          const { maxExtent } = this.props;
+          dispatchShowLoadingBar(false);
+          if (response.error) {
+            dispatchShowNotification("Couldn't find route", 'error');
+            dispatchSetSelectedRoutes([]);
+            return;
+          }
+          // A route was found, prepare to draw it.
+          const feats = this.formatFromLonLat.readFeatures(response);
+          if (multi && feats.length === 1) {
+            feats[0].set('graph', graph || 'osm');
+            if (!graph) {
+              // Set the ungeneralized toute for the route info profile
+              dispatchSetSelectedRoutes(feats);
+            }
+          } else {
+            dispatchSetSelectedRoutes(feats);
+          }
+          this.routeVectorSource.addFeatures(feats);
 
-    // const graph = new URLSearchParams(window.location.search).get('graph');
-    // const graph = getGeneralization(currentMot, this.map.getView().getZoom())
+          if (!containsExtent(maxExtent, this.routeVectorSource.getExtent())) {
+            // Throw error message, clear route and abort if the route is outside map max extent (e.g. when switching to foot routing)
+            this.routeVectorSource.clear();
+            dispatchShowNotification(
+              'Defined route is outside map extent',
+              'error',
+            );
+            return;
+          }
 
-    if (generalizationGraph) {
-      reqUrl += `&graph=${generalizationGraph}`;
+          this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
+        })
+        .catch((err) => {
+          if (err.name === 'AbortError') {
+            // eslint-disable-next-line no-console
+            console.warn(`Abort ${reqUrl}`);
+            return;
+          }
+          dispatchShowLoadingBar(false);
+          dispatchSetSelectedRoutes([]);
+          // It's important to rethrow all other errors so you don't silence them!
+          // For example, any error thrown by setState(), will pass through here.
+          throw err;
+        });
+    };
+
+    if (generalizationGraph === 'all') {
+      const allRoutes = (graphs[currentMot] || [null]).map((grph) =>
+        fetchRoute(grph, true),
+      );
+
+      return Promise.all(allRoutes);
     }
 
-    dispatchShowLoadingBar(true);
-
-    return fetch(reqUrl, { signal })
-      .then((response) => response.json())
-      .then((response) => {
-        const { maxExtent } = this.props;
-        dispatchShowLoadingBar(false);
-        if (response.error) {
-          dispatchShowNotification("Couldn't find route", 'error');
-          dispatchSetSelectedRoutes([]);
-          return;
-        }
-        // A route was found, prepare to draw it.
-        this.routeVectorSource.clear();
-        const feats = this.formatFromLonLat.readFeatures(response);
-        this.routeVectorSource.addFeatures(feats);
-
-        if (!containsExtent(maxExtent, this.routeVectorSource.getExtent())) {
-          // Throw error message, clear route and abort if the route is outside map max extent (e.g. when switching to foot routing)
-          this.routeVectorSource.clear();
-          dispatchShowNotification(
-            'Defined route is outside map extent',
-            'error',
-          );
-          return;
-        }
-
-        this.setIsActiveRoute(!!this.routeVectorSource.getFeatures().length);
-
-        // Don't use this.routeVectorSource.getFeatures() here, we need to keep the order.
-        dispatchSetSelectedRoutes(feats);
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') {
-          // eslint-disable-next-line no-console
-          console.warn(`Abort ${reqUrl}`);
-          return;
-        }
-        dispatchShowLoadingBar(false);
-        dispatchSetSelectedRoutes([]);
-        // It's important to rethrow all other errors so you don't silence them!
-        // For example, any error thrown by setState(), will pass through here.
-        throw err;
-      });
+    return fetchRoute(generalizationGraph);
   }
 
   toggleBasemapMask(mapboxLayer) {
@@ -709,6 +722,11 @@ class MapComponent extends PureComponent {
       dispatchSetGeneralizationGraph,
       generalizationActive,
     } = this.props;
+    const graphParam = new URLSearchParams(window.location.search).get('graph');
+    if (graphParam) {
+      dispatchSetGeneralizationGraph(graphParam);
+      return;
+    }
     if (!generalizationActive) {
       dispatchSetGeneralizationGraph(null);
       return;
@@ -791,6 +809,7 @@ class MapComponent extends PureComponent {
   render() {
     const {
       center,
+      zoom,
       mots,
       currentMot,
       APIKey,
@@ -827,7 +846,7 @@ class MapComponent extends PureComponent {
           layers={this.layers}
           onMapMoved={(evt) => this.onMapMoved(evt)}
           onFeaturesHover={(evt) => this.onFeaturesHover(evt)}
-          zoom={defaultZoom}
+          zoom={zoom}
           tabIndex={null}
           map={this.map}
           viewOptions={{

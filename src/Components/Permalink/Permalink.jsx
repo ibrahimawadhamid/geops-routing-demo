@@ -12,6 +12,7 @@ import {
   setFloorInfo,
   setResolveHops,
   setGeneralizationEnabled,
+  setGeneralizationGraph,
   setTracks,
 } from '../../store/actions/Map';
 
@@ -131,6 +132,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       const viaParam = urlSearch.get('via');
       const resolveHopsParam = urlSearch.get('resolve-hops');
       const generalizationParam = urlSearch.get('generalization');
+      const graphParam = urlSearch.get('graph');
 
       if (zParam && !isNaN(parseFloat(zParam))) {
         // Set zoom if defined
@@ -197,8 +199,12 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
         dispatch(setResolveHops(resolveHopsParam === 'true'));
       }
 
-      if (generalizationParam) {
+      if (generalizationParam && !graphParam) {
         dispatch(setGeneralizationEnabled(generalizationParam === 'true'));
+      }
+
+      if (graphParam) {
+        dispatch(setGeneralizationGraph(graphParam));
       }
     }
     setParams(newParams);

@@ -37,38 +37,49 @@ export const to3857 = (coord) => {
   return transform(coord, 'EPSG:4326', 'EPSG:3857');
 };
 
+export const graphs = {
+  rail: [null, 'gen100', 'gen30', 'gen10', 'gen5'],
+  bus: [null, 'gen100'],
+  tram: [null, 'gen100'],
+  subway: [null, 'gen100'],
+  gondola: [null, 'gen100', 'gen150'],
+  funicular: [null, 'gen100', 'gen150'],
+  ferry: [null, 'gen100', 'gen150'],
+};
+
 export const getGeneralization = (mot, zoom) => {
+  const graph = graphs[mot] || null;
   if (mot === 'rail') {
     if (zoom >= 14) {
-      return null;
+      return graph[0];
     }
     if (zoom < 14 && zoom >= 11) {
-      return 'gen100';
+      return graph[1];
     }
     if (zoom < 11 && zoom >= 9) {
-      return 'gen30';
+      return graph[2];
     }
     if (zoom < 9 && zoom >= 8) {
-      return 'gen10';
+      return graph[3];
     }
-    return 'gen5';
+    return graph[4];
   }
 
   if (/^(bus|tram|subway)$/.test(mot)) {
     if (zoom >= 14) {
-      return null;
+      return graph[0];
     }
-    return 'gen100';
+    return graph[1];
   }
 
   if (/^(gondola|funicular|ferry)$/.test(mot)) {
     if (zoom >= 15) {
-      return null;
+      return graph[0];
     }
     if (zoom > 13 && zoom <= 15) {
-      return 'gen150';
+      return graph[1];
     }
-    return 'gen100';
+    return graph[2];
   }
 
   return null;

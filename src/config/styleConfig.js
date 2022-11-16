@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-import { Style, Circle, Stroke, Fill } from 'ol/style';
+import { Style, Circle, Stroke, Fill, Text } from 'ol/style';
 
 // Convert '0.0' to '0'
 const cleanFloor = (floor) =>
@@ -127,18 +127,34 @@ const pointStyleFunction = (mot, floor, activeFloor) => {
   return othersPointStyle;
 };
 
-const lineStyleFunction = (mot, isHovered, floor, activeFloor) => {
+const lineStyleFunction = (mot, isHovered, floor, activeFloor, text) => {
+  let style;
   if (mot === 'rail') {
-    return isHovered ? railLineHoveredStyle : railLineStyle;
-  }
-  if (mot === 'bus') {
-    return isHovered ? busLineHoveredStyle : busLineStyle;
-  }
-  if (mot === 'foot') {
+    style = isHovered ? railLineHoveredStyle : railLineStyle;
+  } else if (mot === 'bus') {
+    style = isHovered ? busLineHoveredStyle : busLineStyle;
+  } else if (mot === 'foot') {
     const floorColor = getPedestrianStyleColor(floor, activeFloor);
-    return lineStyler([[floorColor, 7, [1, 10]]]);
+    style = lineStyler([[floorColor, 7, [1, 10]]]);
+  } else {
+    style = isHovered ? othersLineHoveredStyle : othersLineStyle;
   }
-  return isHovered ? othersLineHoveredStyle : othersLineStyle;
+  if (text) {
+    style[0].setText(
+      new Text({
+        text,
+        scale: 2,
+        fill: new Fill({
+          color: 'white',
+        }),
+        stroke: new Stroke({
+          color: [0, 0, 0],
+          width: 2,
+        }),
+      }),
+    );
+  }
+  return style;
 };
 
 export { lineStyleFunction, pointStyleFunction };
