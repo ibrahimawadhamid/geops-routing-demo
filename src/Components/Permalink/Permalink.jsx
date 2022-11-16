@@ -13,6 +13,7 @@ import {
   setResolveHops,
   setGeneralizationEnabled,
   setGeneralizationGraph,
+  setGeneralizationActive,
   setTracks,
 } from '../../store/actions/Map';
 
@@ -201,6 +202,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
 
       if (generalizationParam && !graphParam) {
         dispatch(setGeneralizationEnabled(generalizationParam === 'true'));
+        dispatch(setGeneralizationActive(generalizationParam === 'true'));
       }
 
       if (graphParam) {
