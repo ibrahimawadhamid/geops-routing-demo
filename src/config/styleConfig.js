@@ -5,8 +5,8 @@ import { Style, Circle, Stroke, Fill, Text } from 'ol/style';
 const cleanFloor = (floor) =>
   !isNaN(floor) ? parseFloat(floor, 10).toString() : floor;
 
-const lineStyler = (lineStyle) =>
-  lineStyle.map(
+const lineStyler = (lineStyle) => {
+  return lineStyle.map(
     (style) =>
       new Style({
         stroke: new Stroke({
@@ -16,6 +16,7 @@ const lineStyler = (lineStyle) =>
         }),
       }),
   );
+};
 
 const railLineStyle = lineStyler([
   ['darkred', 6],

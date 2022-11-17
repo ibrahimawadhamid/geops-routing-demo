@@ -56,19 +56,6 @@ let cbKey = null;
  * @category Map
  */
 class MapComponent extends PureComponent {
-  static getExtentCenter = (extent) => {
-    const X = extent[0] + (extent[2] - extent[0]) / 2;
-    const Y = extent[1] + (extent[3] - extent[1]) / 2;
-    return [X, Y];
-  };
-
-  static indexInGeom = (lineGeom, point) => {
-    const firstBreakIdx = lineGeom.indexOf(point[0]);
-    const secondBreakIdx = lineGeom.indexOf(point[1]);
-
-    return firstBreakIdx === secondBreakIdx - 1;
-  };
-
   /**
    * Default constructor, gets called automatically upon initialization.
    * @param {...MapComponentProps} props Props received so that the component can function properly.
