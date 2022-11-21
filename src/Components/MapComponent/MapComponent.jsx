@@ -63,13 +63,7 @@ class MapComponent extends PureComponent {
    */
   constructor(props) {
     super(props);
-    const {
-      APIKey,
-      dispatchSetClickLocation,
-      olMap,
-      activeFloor,
-      layerService,
-    } = this.props;
+    const { dispatchSetClickLocation, olMap, layerService } = this.props;
     this.map = olMap;
     this.hoveredRoute = null;
     this.initialRouteDrag = null;
@@ -80,6 +74,7 @@ class MapComponent extends PureComponent {
     };
     this.onHighlightPoint = this.onHighlightPoint.bind(this);
     this.drawNewRoute = this.drawNewRoute.bind(this);
+    this.loadBaseLayers = this.loadBaseLayers.bind(this);
 
     this.projection = 'EPSG:3857';
     this.format = new GeoJSON();
@@ -87,57 +82,6 @@ class MapComponent extends PureComponent {
       dataProjection: 'EPSG:4326',
       featureProjection: 'EPSG:3857',
     });
-
-    const dataLayer = new MapboxLayer({
-      name: 'data',
-      visible: true,
-      url: `https://maps.geops.io/styles/base_bright_v2/style.json?key=${APIKey}`,
-    });
-
-    const baseLayerOthers = new MapboxStyleLayer({
-      name: 'basemap.others',
-      mapboxLayer: dataLayer,
-      isBaseLayer: true,
-      visible: false,
-    });
-
-    const baseLayerFoot = new MapboxStyleLayer({
-      name: 'basemap.foot',
-      mapboxLayer: dataLayer,
-      isBaseLayer: true,
-      visible: false,
-    });
-
-    layerService.addLayer(dataLayer);
-    layerService.addLayer(baseLayerOthers);
-    layerService.addLayer(baseLayerFoot);
-
-    this.toggleBasemapMask(layerService.getLayer('data'));
-
-    // Define LevelLayer
-    const geschosseLayer = new Layer({
-      name: 'ch.sbb.geschosse',
-      visible: true,
-    });
-
-    geschosseLayer.children = FLOOR_LEVELS.map((level) => {
-      return new LevelLayer({
-        name: `ch.sbb.geschosse${level}`,
-        visible: level === activeFloor,
-        mapboxLayer: dataLayer,
-        styleLayersFilter: ({ metadata }) =>
-          metadata &&
-          (metadata['geops.filter'] === '2D' ||
-            metadata['geops.filter'] === 'level') &&
-          // Return the filter if it exists
-          metadata['geops.filter'],
-        level,
-        properties: {
-          radioGroup: 'ch.sbb.geschosse-layer',
-        },
-      });
-    });
-    layerService.addLayer(geschosseLayer);
 
     // Define route vectorLayer.
     this.routeVectorSource = new VectorSource({
@@ -194,6 +138,9 @@ class MapComponent extends PureComponent {
     this.markerVectorLayer = layerService.getLayer('markerLayer');
     this.routeVectorLayer = layerService.getLayer('routeLayer');
     this.layers = [...layerService.getLayers()];
+
+    this.loadBaseLayers();
+    this.toggleBasemapMask(layerService.getLayer('data'));
 
     const translate = new Translate({
       layers: [this.markerVectorLayer.olLayer],
@@ -438,6 +385,10 @@ class MapComponent extends PureComponent {
     const generalizationActiveChanged =
       generalizationActive !== prevProps.generalizationActive;
 
+    if (generalizationActiveChanged) {
+      this.loadBaseLayers();
+    }
+
     if (zoomChanged || currentMotChanged || generalizationActiveChanged) {
       this.updateGeneralization();
     }
@@ -467,9 +418,10 @@ class MapComponent extends PureComponent {
             );
           });
         } else {
-          this.markerVectorSource
-            .getFeatures()
-            .forEach((f) => f.setStyle(pointStyleFunction(currentMot)));
+          this.markerVectorSource.getFeatures().forEach((f) => {
+            const pointStyle = pointStyleFunction(currentMot);
+            f.setStyle(pointStyle);
+          });
         }
       });
       // Remove the old route if exists
@@ -547,6 +499,72 @@ class MapComponent extends PureComponent {
 
   setIsActiveRoute(isActiveRoute) {
     this.setState({ isActiveRoute });
+  }
+
+  loadBaseLayers() {
+    const {
+      APIKey,
+      generalizationActive,
+      generalizationEnabled,
+      layerService,
+      activeFloor,
+    } = this.props;
+
+    this.dataLayer = new MapboxLayer({
+      name: 'data',
+      visible: true,
+      url: `https://maps.geops.io/styles/travic_v2${
+        generalizationEnabled && generalizationActive ? '_generalized' : ''
+      }/style.json?key=${APIKey}`,
+    });
+
+    this.baseLayerOthers = new MapboxStyleLayer({
+      name: 'basemap.others',
+      mapboxLayer: this.dataLayer,
+      isBaseLayer: true,
+      visible: false,
+    });
+
+    this.baseLayerFoot = new MapboxStyleLayer({
+      name: 'basemap.foot',
+      mapboxLayer: this.dataLayer,
+      isBaseLayer: true,
+      visible: false,
+    });
+
+    // Define LevelLayer
+    this.geschosseLayer = new Layer({
+      name: 'ch.sbb.geschosse',
+      visible: true,
+    });
+
+    this.geschosseLayer.children = FLOOR_LEVELS.map((level) => {
+      return new LevelLayer({
+        name: `ch.sbb.geschosse${level}`,
+        visible: level === activeFloor,
+        mapboxLayer: this.dataLayer,
+        styleLayersFilter: ({ metadata }) =>
+          metadata &&
+          (metadata['geops.filter'] === '2D' ||
+            metadata['geops.filter'] === 'level') &&
+          // Return the filter if it exists
+          metadata['geops.filter'],
+        level,
+        properties: {
+          radioGroup: 'ch.sbb.geschosse-layer',
+        },
+      });
+    });
+    const allLayers = [
+      this.dataLayer,
+      this.baseLayerOthers,
+      this.baseLayerFoot,
+      this.geschosseLayer,
+      this.routeVectorLayer,
+      this.markerVectorLayer,
+    ];
+    layerService.setLayers(allLayers);
+    this.layers = allLayers;
   }
 
   /**
@@ -963,6 +981,7 @@ MapComponent.propTypes = {
   searchMode: PropTypes.string.isRequired,
   layerService: PropTypes.object.isRequired,
   maxExtent: PropTypes.arrayOf(PropTypes.number).isRequired,
+  generalizationEnabled: PropTypes.bool.isRequired,
   generalizationActive: PropTypes.bool.isRequired,
   generalizationGraph: PropTypes.string,
 };

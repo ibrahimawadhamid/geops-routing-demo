@@ -118,6 +118,9 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     (state) => state.MapReducer.currentStopsGeoJSON,
   );
   const resolveHops = useSelector((state) => state.MapReducer.resolveHops);
+  const generalizationActive = useSelector(
+    (state) => state.MapReducer.generalizationActive,
+  );
   const map = appState.olMap;
   const [params, setParams] = useState({});
 
@@ -133,6 +136,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       const viaParam = urlSearch.get('via');
       const resolveHopsParam = urlSearch.get('resolve-hops');
       const generalizationParam = urlSearch.get('generalization');
+      const generalizationActiveParam = urlSearch.get('generalizationActive');
       const graphParam = urlSearch.get('graph');
 
       if (zParam && !isNaN(parseFloat(zParam))) {
@@ -202,7 +206,9 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
 
       if (generalizationParam && !graphParam) {
         dispatch(setGeneralizationEnabled(generalizationParam === 'true'));
-        dispatch(setGeneralizationActive(generalizationParam === 'true'));
+        dispatch(
+          setGeneralizationActive(generalizationActiveParam !== 'false'),
+        );
       }
 
       if (graphParam) {
@@ -233,8 +239,10 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     if (currentStopsGeoJSON.length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON, tracks);
     }
+    newParams.generalizationActive = generalizationActive;
     setParams(newParams);
   }, [
+    generalizationActive,
     currentMot,
     floorInfo,
     currentStops,

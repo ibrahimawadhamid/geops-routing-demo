@@ -116,16 +116,17 @@ const othersPointStyle = new Style({
 });
 
 const pointStyleFunction = (mot, floor, activeFloor) => {
+  let style = othersPointStyle;
   if (mot === 'rail') {
-    return railPointStyle;
+    style = railPointStyle;
   }
   if (mot === 'bus') {
-    return busPointStyle;
+    style = busPointStyle;
   }
   if (mot === 'foot') {
-    return pedestrianGeopsPointStyle(floor, activeFloor);
+    style = pedestrianGeopsPointStyle(floor, activeFloor);
   }
-  return othersPointStyle;
+  return style;
 };
 
 const lineStyleFunction = (mot, isHovered, floor, activeFloor, text) => {
