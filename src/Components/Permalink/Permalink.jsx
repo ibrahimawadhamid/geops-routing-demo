@@ -118,6 +118,9 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     (state) => state.MapReducer.currentStopsGeoJSON,
   );
   const resolveHops = useSelector((state) => state.MapReducer.resolveHops);
+  const generalizationEnabled = useSelector(
+    (state) => state.MapReducer.generalizationEnabled,
+  );
   const generalizationActive = useSelector(
     (state) => state.MapReducer.generalizationActive,
   );
@@ -207,7 +210,10 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       if (generalizationParam && !graphParam) {
         dispatch(setGeneralizationEnabled(generalizationParam === 'true'));
         dispatch(
-          setGeneralizationActive(generalizationActiveParam !== 'false'),
+          setGeneralizationActive(
+            generalizationParam !== 'false' &&
+              generalizationActiveParam !== 'false',
+          ),
         );
       }
 
@@ -239,10 +245,17 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     if (currentStopsGeoJSON.length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON, tracks);
     }
-    newParams.generalizationActive = generalizationActive;
+
+    if (generalizationEnabled) {
+      newParams.generalizationActive = generalizationActive;
+    } else {
+      newParams.generalizationActive = undefined;
+    }
+
     setParams(newParams);
   }, [
     generalizationActive,
+    generalizationEnabled,
     currentMot,
     floorInfo,
     currentStops,
