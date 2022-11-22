@@ -18,8 +18,10 @@ const defaultProps = {
 
 function Dialog({ onClose, title, children, isResizable }) {
   const dispatch = useDispatch();
-  const dialogSize = useSelector(state => state.MapReducer.dialogSize);
-  const dialogPosition = useSelector(state => state.MapReducer.dialogPosition);
+  const dialogSize = useSelector((state) => state.MapReducer.dialogSize);
+  const dialogPosition = useSelector(
+    (state) => state.MapReducer.dialogPosition,
+  );
 
   const onDragStop = (evt, position) => {
     dispatch(

@@ -97,14 +97,14 @@ class NotificationHandler extends React.Component {
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     onShowNotification: (notificationMessage, notificationType) =>
       dispatch(showNotification(notificationMessage, notificationType)),
   };
 };
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     notificationMessage: state.MapReducer.notificationMessage,
     notificationType: state.MapReducer.notificationType,

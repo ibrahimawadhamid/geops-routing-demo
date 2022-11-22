@@ -26,7 +26,7 @@ describe('map reducer', () => {
       resolveHops: false,
       selectedRoutes: [],
     };
-    Object.keys(test).forEach(state => {
+    Object.keys(test).forEach((state) => {
       expect(mapReducer(undefined, {})[state]).toEqual(test[state]);
     });
   });

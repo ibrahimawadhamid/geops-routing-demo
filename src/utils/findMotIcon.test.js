@@ -3,7 +3,7 @@ import React from 'react';
 import DirectionsBusIcon from '@material-ui/icons/DirectionsBus';
 import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
 import DirectionsRailwayIcon from '@material-ui/icons/DirectionsRailway';
-import { findMotIcon } from './utils';
+import findMotIcon from './findMotIcon';
 
 describe('utils', () => {
   it('should return the correct icon', () => {

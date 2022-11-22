@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import RSPermalink from 'react-spatial/components/Permalink';
-import qs from 'query-string';
 import { to4326, to3857 } from '../../utils';
 import {
   setCurrentStops,
@@ -12,13 +11,16 @@ import {
   setCenter,
   setFloorInfo,
   setResolveHops,
+  setGeneralizationEnabled,
+  setGeneralizationGraph,
+  setGeneralizationActive,
   setTracks,
 } from '../../store/actions/Map';
 
 const abortController = new AbortController();
 const { signal } = abortController;
 
-const validateUrlCoordinates = coordArray => {
+const validateUrlCoordinates = (coordArray) => {
   /* Check if the x and y values are xy-coordinates */
   if (
     isFinite(coordArray[1]) &&
@@ -37,8 +39,8 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
     let geoJson;
     const coordArray = viaString
       .split(',')
-      .filter(val => !isNaN(val))
-      .map(string => parseFloat(string));
+      .filter((val) => !isNaN(val))
+      .map((string) => parseFloat(string));
     if (coordArray.length === 2 && validateUrlCoordinates(coordArray)) {
       /* Convert coordinates to 3857 */
       const coords3857 = to3857(coordArray);
@@ -73,8 +75,8 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
   }
 
   return fetch(reqUrl, { signal })
-    .then(response => response.json())
-    .then(response => {
+    .then((response) => response.json())
+    .then((response) => {
       /* Convert coordinates to 3857 */
       const feature = response.features[0];
       feature.geometry.coordinates = to3857(feature.geometry.coordinates);
@@ -93,7 +95,7 @@ const compileViaString = (currentStopsGeoJson = [], tracks) => {
   }
 
   const uidStrings = currentStopsGeoJson
-    .filter(val => !!val)
+    .filter((val) => !!val)
     .map((val, idx) => {
       if (!val.properties.uid) {
         return `${to4326(val.geometry.coordinates)}`;
@@ -105,17 +107,23 @@ const compileViaString = (currentStopsGeoJson = [], tracks) => {
 
 function Permalink({ mots, APIKey, stationSearchUrl }) {
   const dispatch = useDispatch();
-  const urlSearch = qs.parse(window.location.search);
-  const center = useSelector(state => state.MapReducer.center);
-  const tracks = useSelector(state => state.MapReducer.tracks);
-  const appState = useSelector(state => state.MapReducer);
-  const currentMot = useSelector(state => state.MapReducer.currentMot);
-  const floorInfo = useSelector(state => state.MapReducer.floorInfo);
-  const currentStops = useSelector(state => state.MapReducer.currentStops);
+  const urlSearch = new URLSearchParams(window.location.search);
+  const center = useSelector((state) => state.MapReducer.center);
+  const tracks = useSelector((state) => state.MapReducer.tracks);
+  const appState = useSelector((state) => state.MapReducer);
+  const currentMot = useSelector((state) => state.MapReducer.currentMot);
+  const floorInfo = useSelector((state) => state.MapReducer.floorInfo);
+  const currentStops = useSelector((state) => state.MapReducer.currentStops);
   const currentStopsGeoJSON = useSelector(
-    state => state.MapReducer.currentStopsGeoJSON,
+    (state) => state.MapReducer.currentStopsGeoJSON,
   );
-  const resolveHops = useSelector(state => state.MapReducer.resolveHops);
+  const resolveHops = useSelector((state) => state.MapReducer.resolveHops);
+  const generalizationEnabled = useSelector(
+    (state) => state.MapReducer.generalizationEnabled,
+  );
+  const generalizationActive = useSelector(
+    (state) => state.MapReducer.generalizationActive,
+  );
   const map = appState.olMap;
   const [params, setParams] = useState({});
 
@@ -123,51 +131,63 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
   useEffect(() => {
     const newParams = {};
     if (urlSearch) {
-      if (urlSearch.z && !isNaN(parseFloat(urlSearch.z))) {
+      const zParam = urlSearch.get('z');
+      const xParam = urlSearch.get('x');
+      const yParam = urlSearch.get('y');
+      const motParam = urlSearch.get('mot');
+      const floorInfoParam = urlSearch.get('floorInfo');
+      const viaParam = urlSearch.get('via');
+      const resolveHopsParam = urlSearch.get('resolve-hops');
+      const generalizationParam = urlSearch.get('generalization');
+      const generalizationActiveParam = urlSearch.get('generalizationActive');
+      const graphParam = urlSearch.get('graph');
+
+      if (zParam && !isNaN(parseFloat(zParam))) {
         // Set zoom if defined
-        map.getView().setZoom(urlSearch.z);
-      }
-      if (
-        urlSearch.x &&
-        !isNaN(parseFloat(urlSearch.x)) &&
-        urlSearch.y &&
-        !isNaN(parseFloat(urlSearch.y))
-      ) {
-        // Set center if defined
-        dispatch(setCenter([parseFloat(urlSearch.x), parseFloat(urlSearch.y)]));
+        map.getView().setZoom(zParam);
       }
 
-      if (urlSearch.mot) {
+      if (
+        xParam &&
+        !isNaN(parseFloat(xParam)) &&
+        yParam &&
+        !isNaN(parseFloat(yParam))
+      ) {
+        // Set center if defined
+        dispatch(setCenter([parseFloat(xParam), parseFloat(yParam)]));
+      }
+
+      if (motParam) {
         // Set current mot if defined
-        const newMot = mots.find(mot => mot === urlSearch.mot) || mots[0];
+        const newMot = mots.find((mot) => mot === motParam) || mots[0];
         newParams.mot = newMot;
         dispatch(setCurrentMot(newMot));
       }
 
-      if (urlSearch.floorInfo) {
-        dispatch(setFloorInfo(urlSearch.floorInfo.split(',')));
+      if (floorInfoParam) {
+        dispatch(setFloorInfo(floorInfoParam.split(',')));
       }
 
-      if (urlSearch.via) {
+      if (viaParam) {
         // Set via stations if defined
-        newParams.via = urlSearch.via;
-        const viaArray = urlSearch.via.split('|');
-        const geoJsonArray = viaArray.map(viaString =>
+        newParams.via = viaParam;
+        const viaArray = viaParam.split('|');
+        const geoJsonArray = viaArray.map((viaString) =>
           getGeoJson(viaString.split('$')[0], APIKey, stationSearchUrl),
         );
         dispatch(
           setTracks(
-            viaArray.map(stop => {
+            viaArray.map((stop) => {
               const track = stop.split('$')[1];
               return track || '';
             }),
           ),
         );
 
-        Promise.all(geoJsonArray).then(values => {
+        Promise.all(geoJsonArray).then((values) => {
           dispatch(
             setCurrentStops(
-              values.map(stop => {
+              values.map((stop) => {
                 if (!stop) {
                   return '';
                 }
@@ -178,13 +198,27 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
               }),
             ),
           );
-          const newCurrentStopsGeoJSON = [...values.filter(stop => !!stop)];
+          const newCurrentStopsGeoJSON = [...values.filter((stop) => !!stop)];
           dispatch(setCurrentStopsGeoJSON(newCurrentStopsGeoJSON));
         });
       }
 
-      if (urlSearch['resolve-hops']) {
-        dispatch(setResolveHops(urlSearch['resolve-hops'] === 'true'));
+      if (resolveHopsParam) {
+        dispatch(setResolveHops(resolveHopsParam === 'true'));
+      }
+
+      if (generalizationParam && !graphParam) {
+        dispatch(setGeneralizationEnabled(generalizationParam === 'true'));
+        dispatch(
+          setGeneralizationActive(
+            generalizationParam !== 'false' &&
+              generalizationActiveParam !== 'false',
+          ),
+        );
+      }
+
+      if (graphParam) {
+        dispatch(setGeneralizationGraph(graphParam));
       }
     }
     setParams(newParams);
@@ -198,7 +232,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     [newParams.x] = center;
     [, newParams.y] = center;
     newParams.floorInfo = floorInfo
-      .map(f => {
+      .map((f) => {
         if (f) {
           return f.toString().replace('$', '');
         }
@@ -211,8 +245,17 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     if (currentStopsGeoJSON.length !== 0) {
       newParams.via = compileViaString(currentStopsGeoJSON, tracks);
     }
+
+    if (generalizationEnabled) {
+      newParams.generalizationActive = generalizationActive;
+    } else {
+      newParams.generalizationActive = undefined;
+    }
+
     setParams(newParams);
   }, [
+    generalizationActive,
+    generalizationEnabled,
     currentMot,
     floorInfo,
     currentStops,

@@ -13,7 +13,7 @@ configure({ adapter: new Adapter() });
 describe('Permalink', () => {
   const setState = jest.fn();
   const useStateSpy = jest.spyOn(React, 'useState');
-  useStateSpy.mockImplementation(init => [init, setState]);
+  useStateSpy.mockImplementation((init) => [init, setState]);
   const mockStore = configureStore([thunk]);
   let store;
 

@@ -18,7 +18,7 @@ class MapboxStyleLayer extends Layer {
     this.style = options.style;
     this.mapboxLayer = options.mapboxLayer;
     this.styleLayersFilter = options.styleLayersFilter;
-    this.featureInfoFilter = options.featureInfoFilter || (obj => obj);
+    this.featureInfoFilter = options.featureInfoFilter || ((obj) => obj);
     this.queryRenderedLayersFilter = options.queryRenderedLayersFilter;
     this.highlightedFeatures = [];
     this.selectedFeatures = [];
@@ -30,10 +30,8 @@ class MapboxStyleLayer extends Layer {
 
     this.hidePopupFunc = options.hidePopup;
     if (!this.styleLayersFilter && this.styleLayers) {
-      const ids = this.styleLayers.map(s => s.id);
-      this.styleLayersFilter = styleLayer => {
-        return ids.includes(styleLayer.id);
-      };
+      const ids = this.styleLayers.map((s) => s.id);
+      this.styleLayersFilter = (styleLayer) => ids.includes(styleLayer.id);
     }
   }
 
@@ -108,7 +106,7 @@ class MapboxStyleLayer extends Layer {
       return;
     }
 
-    this.styleLayers.forEach(styleLayer => {
+    this.styleLayers.forEach((styleLayer) => {
       const { id, source } = styleLayer;
       if (mbMap.getSource(source) && !mbMap.getLayer(id)) {
         mbMap.addLayer(styleLayer);
@@ -126,7 +124,7 @@ class MapboxStyleLayer extends Layer {
       return;
     }
 
-    this.styleLayers.forEach(styleLayer => {
+    this.styleLayers.forEach((styleLayer) => {
       if (mbMap.getLayer(styleLayer.id)) {
         mbMap.removeLayer(styleLayer.id);
       }
@@ -166,16 +164,13 @@ class MapboxStyleLayer extends Layer {
 
     return this.mapboxLayer
       .getFeatureInfoAtCoordinate(coordinate, {
-        layers: layers.map(layer => layer && layer.id),
+        layers: layers.map((layer) => layer && layer.id),
         validate: false,
       })
-      .then(featureInfo => {
-        const features = featureInfo.features.filter(feature => {
-          return this.featureInfoFilter(
-            feature,
-            this.map.getView().getResolution(),
-          );
-        });
+      .then((featureInfo) => {
+        const features = featureInfo.features.filter((feature) =>
+          this.featureInfoFilter(feature, this.map.getView().getResolution()),
+        );
         this.highlight(features);
         return { ...featureInfo, features, layer: this };
       });
@@ -225,7 +220,7 @@ class MapboxStyleLayer extends Layer {
   }
 
   setHoverState(features = [], state) {
-    features.forEach(feature => {
+    features.forEach((feature) => {
       const { source, sourceLayer } = feature.get('mapboxFeature') || {};
       if ((!source && !sourceLayer) || !feature.getId()) {
         if (!feature.getId()) {
@@ -258,11 +253,12 @@ class MapboxStyleLayer extends Layer {
 
   highlight(features = []) {
     // Filter out selected features
-    const filtered = this.highlightedFeatures.filter(feature => {
-      return !this.selectedFeatures
-        .map(feat => feat.getId())
-        .includes(feature.getId());
-    });
+    const filtered = this.highlightedFeatures.filter(
+      (feature) =>
+        !this.selectedFeatures
+          .map((feat) => feat.getId())
+          .includes(feature.getId()),
+    );
 
     // Remove previous highlight
     this.setHoverState(filtered, false);

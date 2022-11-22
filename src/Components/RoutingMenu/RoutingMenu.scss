@@ -11,7 +11,7 @@
     z-index: 2;
     flex-grow: 1;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: hidden;
     max-height: 100vh;
   }
 
@@ -42,10 +42,6 @@
 
   .rd-routing-menu-toggle-close:hover {
     background-color: rgba(0, 0, 0, 0.05);
-  }
-
-  .rd-routing-menu-header {
-    display: flex;
   }
 
   .rd-mot-checkbox {
@@ -99,7 +95,7 @@
 
 @media (min-width: 768px) {
   .rd-routing-menu {
-    width: 588px;
+    width: 700px;
     flex-direction: row;
 
     > div {
