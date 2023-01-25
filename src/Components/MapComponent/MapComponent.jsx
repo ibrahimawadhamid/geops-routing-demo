@@ -857,6 +857,7 @@ class MapComponent extends PureComponent {
           viewOptions={{
             projection: this.projection,
             extent: EUROPE_EXTENT,
+            maxZoom: 23,
           }}
         />
         {currentMot === 'foot' && this.map.getView().getZoom() >= 14 ? (
