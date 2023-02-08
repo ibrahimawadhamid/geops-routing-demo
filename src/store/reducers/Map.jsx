@@ -39,7 +39,6 @@ const initialState = {
   zoom: 6,
   mode: undefined,
   showTestGenerator: false,
-  expectedViaPoints: [],
   isDesktop: true,
 };
 
@@ -277,13 +276,6 @@ const setShowTestGenerator = (state, action) => {
   };
 };
 
-const setExpectedViaPoints = (state, action) => {
-  return {
-    ...state,
-    expectedViaPoints: action.expectedViaPoints,
-  };
-};
-
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_ZOOM:
@@ -334,8 +326,6 @@ const reducer = (state = initialState, action) => {
       return setMode(state, action);
     case actionTypes.SET_SHOW_TEST_GENERATOR:
       return setShowTestGenerator(state, action);
-    case actionTypes.SET_EXPECTED_VIA_POINTS:
-      return setExpectedViaPoints(state, action);
     default:
       return state;
   }

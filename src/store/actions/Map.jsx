@@ -168,10 +168,3 @@ export const setShowTestGenerator = (showTestGenerator) => {
     showTestGenerator,
   };
 };
-
-export const setExpectedViaPoints = (expectedViaPoints) => {
-  return {
-    type: actionTypes.SET_EXPECTED_VIA_POINTS,
-    expectedViaPoints,
-  };
-};

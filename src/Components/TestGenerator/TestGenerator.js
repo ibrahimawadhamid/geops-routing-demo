@@ -1,4 +1,5 @@
 import React, { useMemo, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   IconButton,
   Paper,
@@ -6,16 +7,16 @@ import {
   makeStyles,
   useMediaQuery,
 } from '@material-ui/core';
+import { Translate } from 'ol/interaction';
+import { Vector as VectorLayer } from 'ol/layer';
+import { Vector as VectorSource } from 'ol/source';
 import { LineString, Point } from 'ol/geom';
 import CloseIcon from '@material-ui/icons/Close';
 import { useSelector, useDispatch } from 'react-redux';
-import { Feature } from 'ol';
+import { Map, Feature } from 'ol';
 import { Style, Fill, Stroke, RegularShape } from 'ol/style';
 import { to4326 } from '../../utils';
-import {
-  setShowTestGenerator,
-  setExpectedViaPoints,
-} from '../../store/actions/Map';
+import { setShowTestGenerator } from '../../store/actions/Map';
 import getViaStrings from '../../utils/getViaStrings';
 
 const stroke = new Stroke({ color: 'black', width: 4 });
@@ -30,6 +31,8 @@ const expectedViaPointStyle = new Style({
     angle: Math.PI / 4,
   }),
 });
+
+const debugSource = new VectorSource({});
 
 const useStyles = makeStyles(() => {
   return {
@@ -46,33 +49,34 @@ const useStyles = makeStyles(() => {
     content: {
       padding: 20,
       minHeight: 195,
-      width: 250,
+      minWidth: 250,
     },
     codeBlock: {
       marginTop: 15,
       padding: '15px 10px',
       backgroundColor: '#eeeeee',
       fontSize: 14,
+      whiteSpace: 'pre',
+      maxWidth: 400,
+      overflowX: 'auto',
       fontFamily:
         'Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New',
     },
   };
 });
-/**
- * @author
- * @function TestGenerator
- * */
 
-function TestGenerator() {
+function TestGenerator({ map }) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const { selectedRoutes, currentStopsGeoJSON, currentMot, floorInfo, tracks } =
-    useSelector((state) => state.MapReducer);
+  const {
+    selectedRoutes,
+    currentStopsGeoJSON,
+    currentMot,
+    floorInfo,
+    tracks,
+    layerService,
+  } = useSelector((state) => state.MapReducer);
   const isDesktop = useMediaQuery('(min-width: 768px)');
-
-  useEffect(() => {
-    return () => dispatch(setExpectedViaPoints([]));
-  }, [dispatch]);
 
   const viaString = useMemo(() => {
     return getViaStrings(
@@ -80,10 +84,11 @@ function TestGenerator() {
       currentMot,
       floorInfo,
       tracks,
-    ).join('|\n');
+    ).join('|');
   }, [currentStopsGeoJSON, currentMot, floorInfo, tracks]);
 
   const expectedViaPoints = useMemo(() => {
+    if (!selectedRoutes.length) return [];
     const concatCoords = selectedRoutes.reduce(
       (finalCoords, currentRoute, idx) => {
         const routeCoords = currentRoute.getGeometry().getCoordinates();
@@ -107,15 +112,38 @@ function TestGenerator() {
       [],
     );
     features.forEach((feat) => feat.setStyle(expectedViaPointStyle));
-    dispatch(setExpectedViaPoints(features));
     return features;
-  }, [selectedRoutes, dispatch]);
+  }, [selectedRoutes]);
 
   const distance = useMemo(() => {
     return selectedRoutes.reduce((total, currentRoute) => {
       return total + currentRoute.get('line_length');
     }, 0);
   }, [selectedRoutes]);
+
+  useEffect(() => {
+    const debugLayer = new VectorLayer({
+      zIndex: 999,
+      source: debugSource,
+    });
+    const translate = new Translate({
+      layers: [debugLayer],
+      hitTolerance: 6,
+    });
+    if (map) {
+      map.addInteraction(translate);
+    }
+    map.addLayer(debugLayer);
+    return () => {
+      map.removeLayer(debugLayer);
+      map.removeInteraction(translate);
+    };
+  }, [map, layerService]);
+
+  useEffect(() => {
+    debugSource.clear();
+    debugSource.addFeatures(expectedViaPoints);
+  }, [expectedViaPoints, map]);
 
   if (!isDesktop) return null;
 
@@ -133,33 +161,56 @@ function TestGenerator() {
         </Tooltip>
         <div className={classes.content}>
           <div className={classes.codeBlock}>
-            <span>{`${currentMot}-xx:`}</span>
-            <br />
-            <span>description: Fill out</span>
-            <br />
-            <span>{`mot: ${currentMot}`}</span>
-            <br />
-            <span>{`via: ${viaString}`}</span>
-            <br />
-            <span>
-              expect_via:{' '}
-              {expectedViaPoints
-                .map((feat) => {
-                  return to4326(feat.getGeometry().getCoordinates())
-                    .slice()
-                    .reverse();
-                })
-                .join('|\n')}
-            </span>
-            <br />
-            <span>{`min_km: ${distance / 1.03}`}</span>
-            <br />
-            <span>{`max_km: ${distance * 1.03}`}</span>
+            <div>
+              <b>{`${currentMot}-xx:`}</b>
+            </div>
+            <div>
+              {'  '}
+              <b>description:</b>{' '}
+              <span className={classes.indented}>Fill out</span>
+            </div>
+            <div>
+              {'  '}
+              <b>mot:</b> <span>{currentMot}</span>
+            </div>
+            <div>
+              {'  '}
+              <b>via:</b> <span>&apos;{viaString}&apos;</span>
+            </div>
+            <div>
+              {'  '}
+              <b>expect_via:</b>{' '}
+              <span>
+                {expectedViaPoints.map((feat) => {
+                  const coord = to4326(
+                    feat.getGeometry().getCoordinates(),
+                  ).slice();
+                  return (
+                    <div>
+                      {'    '}- {coord.join(',')}
+                    </div>
+                  );
+                })}
+              </span>
+            </div>
+            <div>
+              {'  '}
+              <b>min_km:</b> <span>{(distance / 1.03 / 1000).toFixed(3)}</span>
+            </div>
+            <div>
+              {'  '}
+              <b>max_km:</b>{' '}
+              <span>{((distance * 1.03) / 1000).toFixed(3)}</span>
+            </div>
           </div>
         </div>
       </Paper>
     </div>
   );
 }
+
+TestGenerator.propTypes = {
+  map: PropTypes.instanceOf(Map).isRequired,
+};
 
 export default TestGenerator;
