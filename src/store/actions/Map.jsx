@@ -154,3 +154,24 @@ export const setGeneralizationActive = (generalizationActive) => {
     generalizationActive,
   };
 };
+
+export const setMode = (mode) => {
+  return {
+    type: actionTypes.SET_MODE,
+    mode,
+  };
+};
+
+export const setShowTestGenerator = (showTestGenerator) => {
+  return {
+    type: actionTypes.SET_SHOW_TEST_GENERATOR,
+    showTestGenerator,
+  };
+};
+
+export const setExpectedViaPoints = (expectedViaPoints) => {
+  return {
+    type: actionTypes.SET_EXPECTED_VIA_POINTS,
+    expectedViaPoints,
+  };
+};

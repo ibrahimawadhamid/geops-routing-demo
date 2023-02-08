@@ -20,8 +20,10 @@ import { touchOnly } from 'ol/events/condition';
 import MapFloorSwitcher from '../MapFloorSwitcher';
 import RoutingMenu from '../RoutingMenu';
 import FloorSwitcher from '../FloorSwitcher';
+import TestGenerator from '../TestGenerator/TestGenerator';
 import LevelLayer from '../../layers/LevelLayer';
 import { getGeneralization, graphs, to4326 } from '../../utils';
+import getViaStrings from '../../utils/getViaStrings';
 import {
   lineStyleFunction,
   pointStyleFunction,
@@ -135,8 +137,21 @@ class MapComponent extends PureComponent {
       }),
     );
 
+    this.debugSource = new VectorSource({});
+    layerService.addLayer(
+      new Layer({
+        key: 'debugLayer',
+        name: 'debugLayer',
+        olLayer: new VectorLayer({
+          zIndex: 2,
+          source: this.debugSource,
+        }),
+      }),
+    );
+
     this.markerVectorLayer = layerService.getLayer('markerLayer');
     this.routeVectorLayer = layerService.getLayer('routeLayer');
+    this.debugVectorLayer = layerService.getLayer('debugLayer');
     this.layers = [...layerService.getLayers()];
 
     this.loadBaseLayers();
@@ -370,6 +385,7 @@ class MapComponent extends PureComponent {
       generalizationGraph,
       generalizationActive,
       zoom,
+      expectedViaPoints,
     } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
     const tracksChanged = tracks !== prevProps.tracks;
@@ -384,6 +400,8 @@ class MapComponent extends PureComponent {
       generalizationGraph !== prevProps.generalizationGraph;
     const generalizationActiveChanged =
       generalizationActive !== prevProps.generalizationActive;
+    const expectedViaPointsActiveChanged =
+      expectedViaPoints !== prevProps.expectedViaPoints;
 
     if (generalizationActiveChanged) {
       this.loadBaseLayers();
@@ -449,6 +467,11 @@ class MapComponent extends PureComponent {
       ) {
         dispatchSetActiveFloor('2D');
       }
+    }
+
+    if (expectedViaPointsActiveChanged) {
+      this.debugSource.clear();
+      this.debugSource.addFeatures(expectedViaPoints);
     }
 
     if (activeFloorChanged) {
@@ -562,6 +585,7 @@ class MapComponent extends PureComponent {
       this.geschosseLayer,
       this.routeVectorLayer,
       this.markerVectorLayer,
+      this.debugVectorLayer,
     ];
     layerService.setLayers(allLayers);
     this.layers = allLayers;
@@ -573,7 +597,6 @@ class MapComponent extends PureComponent {
    * @category Map
    */
   drawNewRoute(useElevation) {
-    const hops = [];
     const {
       currentStopsGeoJSON,
       routingUrl,
@@ -590,39 +613,17 @@ class MapComponent extends PureComponent {
       generalizationGraph,
     } = this.props;
 
-    let hasNullViaPoint = false;
-
-    // find the index and use this instead.
-    currentStopsGeoJSON.forEach((val, idx) => {
-      if (!val) {
-        // That means the user is typing or selecting a new station or point.
-        hasNullViaPoint = true;
-        return;
-      }
-      if (!val.properties.uid) {
-        // If the current item is a point selected on the map, not a station.
-        hops.push(
-          `${to4326(val.geometry.coordinates).slice().reverse()}${
-            currentMot === 'foot' && floorInfo && floorInfo[idx] !== null
-              ? `${floorInfo[idx] ? `$${floorInfo[idx]}` : ''}`
-              : ''
-          }`,
-        );
-      } else {
-        hops.push(
-          `!${val.properties.uid}${
-            tracks[idx] !== null
-              ? `${tracks[idx] ? `$${tracks[idx]}` : ''}`
-              : ''
-          }`,
-        );
-      }
-    });
+    const hops = getViaStrings(
+      currentStopsGeoJSON,
+      currentMot,
+      floorInfo,
+      tracks,
+    );
 
     abortController.abort();
     abortController = new AbortController();
 
-    if (hasNullViaPoint || hops.length < 2) {
+    if (hops.length < 2) {
       dispatchShowLoadingBar(false);
       dispatchSetSelectedRoutes([]);
       return Promise.resolve();
@@ -820,6 +821,8 @@ class MapComponent extends PureComponent {
       APIKey,
       selectedRoutes,
       stationSearchUrl,
+      showTestGenerator,
+      isDesktop,
     } = this.props;
 
     const { isActiveRoute, hoveredPoint, hoveredStationName } = this.state;
@@ -886,6 +889,7 @@ class MapComponent extends PureComponent {
               return dialogs;
             })()
           : null}
+        {showTestGenerator && isDesktop ? <TestGenerator /> : null}
       </>
     );
   }
@@ -913,6 +917,9 @@ const mapStateToProps = (state) => {
     generalizationGraph: state.MapReducer.generalizationGraph,
     generalizationEnabled: state.MapReducer.generalizationEnabled,
     generalizationActive: state.MapReducer.generalizationActive,
+    showTestGenerator: state.MapReducer.showTestGenerator,
+    expectedViaPoints: state.MapReducer.expectedViaPoints,
+    isDesktop: state.MapReducer.isDesktop,
   };
 };
 
@@ -946,6 +953,9 @@ const mapDispatchToProps = (dispatch) => {
 MapComponent.defaultProps = {
   center: [47.99822, 7.84049],
   generalizationGraph: null,
+  showTestGenerator: false,
+  expectedViaPoints: [],
+  isDesktop: true,
 };
 
 MapComponent.propTypes = {
@@ -985,6 +995,9 @@ MapComponent.propTypes = {
   generalizationEnabled: PropTypes.bool.isRequired,
   generalizationActive: PropTypes.bool.isRequired,
   generalizationGraph: PropTypes.string,
+  showTestGenerator: PropTypes.bool,
+  expectedViaPoints: PropTypes.arrayOf(PropTypes.instanceOf(Feature)),
+  isDesktop: PropTypes.bool,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

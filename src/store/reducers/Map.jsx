@@ -37,6 +37,10 @@ const initialState = {
   generalizationGraph: null,
   generalizationActive: false,
   zoom: 6,
+  mode: undefined,
+  showTestGenerator: false,
+  expectedViaPoints: [],
+  isDesktop: true,
 };
 
 const setZoom = (state, action) => {
@@ -259,6 +263,27 @@ const setGeneralizationActive = (state, action) => {
   };
 };
 
+const setMode = (state, action) => {
+  return {
+    ...state,
+    mode: action.mode,
+  };
+};
+
+const setShowTestGenerator = (state, action) => {
+  return {
+    ...state,
+    showTestGenerator: action.showTestGenerator,
+  };
+};
+
+const setExpectedViaPoints = (state, action) => {
+  return {
+    ...state,
+    expectedViaPoints: action.expectedViaPoints,
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_ZOOM:
@@ -305,6 +330,12 @@ const reducer = (state = initialState, action) => {
       return setGeneralizationGraph(state, action);
     case actionTypes.SET_GENERALIZATION_ACTIVE:
       return setGeneralizationActive(state, action);
+    case actionTypes.SET_MODE:
+      return setMode(state, action);
+    case actionTypes.SET_SHOW_TEST_GENERATOR:
+      return setShowTestGenerator(state, action);
+    case actionTypes.SET_EXPECTED_VIA_POINTS:
+      return setExpectedViaPoints(state, action);
     default:
       return state;
   }

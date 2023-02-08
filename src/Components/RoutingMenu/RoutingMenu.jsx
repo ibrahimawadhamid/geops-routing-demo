@@ -1,28 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { transformExtent } from 'ol/proj';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import Slide from '@material-ui/core/Slide';
-import FormControl from '@material-ui/core/FormControl';
-import Typography from '@material-ui/core/Typography';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import Button from '@material-ui/core/Button';
-import Tooltip from '@material-ui/core/Tooltip';
-import Grid from '@material-ui/core/Grid';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
+import {
+  Button,
+  Checkbox,
+  FormControlLabel,
+  FormControl,
+  Grid,
+  IconButton,
+  LinearProgress,
+  MenuItem,
+  Paper,
+  Select,
+  Slide,
+  Tabs,
+  Tab,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  makeStyles,
+  withStyles,
+} from '@material-ui/core';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import ArrowLeftIcon from '@material-ui/icons/ArrowLeft';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import InfoIcon from '@material-ui/icons/Info';
+import BugReportIcon from '@material-ui/icons/BugReport';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import PropTypes from 'prop-types';
 import nextId from 'react-id-generator';
@@ -41,6 +46,7 @@ import {
   setIsRouteInfoOpen,
   setClickLocation,
   setGeneralizationActive,
+  setShowTestGenerator,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
 import {
@@ -243,6 +249,10 @@ function RoutingMenu({
   );
   const generalizationActive = useSelector(
     (state) => state.MapReducer.generalizationActive,
+  );
+  const mode = useSelector((state) => state.MapReducer.mode);
+  const showTestGenerator = useSelector(
+    (state) => state.MapReducer.showTestGenerator,
   );
 
   const [currentMots] = useState(currentMotsVal);
@@ -679,6 +689,18 @@ function RoutingMenu({
                     })}
                   </Select>
                 </FormControl>
+              ) : null}
+              {mode === 'dev' && isDesktop ? (
+                <Tooltip title="Display test snippet">
+                  <IconButton
+                    onClick={() => {
+                      dispatch(setShowTestGenerator(!showTestGenerator));
+                    }}
+                    color={showTestGenerator ? 'primary' : 'default'}
+                  >
+                    <BugReportIcon />
+                  </IconButton>
+                </Tooltip>
               ) : null}
               {motHasGeneralization(currentMot) && generalizationEnabled ? (
                 <FormControlLabel
