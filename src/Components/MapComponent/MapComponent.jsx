@@ -139,7 +139,6 @@ class MapComponent extends PureComponent {
 
     this.markerVectorLayer = layerService.getLayer('markerLayer');
     this.routeVectorLayer = layerService.getLayer('routeLayer');
-    this.debugVectorLayer = layerService.getLayer('debugLayer');
     this.layers = [...layerService.getLayers()];
 
     this.loadBaseLayers();
@@ -867,7 +866,7 @@ class MapComponent extends PureComponent {
               return dialogs;
             })()
           : null}
-        {showTestGenerator ? <TestGenerator map={this.map} /> : null}
+        {showTestGenerator ? <TestGenerator /> : null}
       </>
     );
   }

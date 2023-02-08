@@ -1,5 +1,4 @@
 import React, { useMemo, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import {
   IconButton,
   Paper,
@@ -13,18 +12,15 @@ import { Vector as VectorSource } from 'ol/source';
 import { LineString, Point } from 'ol/geom';
 import CloseIcon from '@material-ui/icons/Close';
 import { useSelector, useDispatch } from 'react-redux';
-import { Map, Feature } from 'ol';
-import { Style, Fill, Stroke, RegularShape } from 'ol/style';
+import { Feature } from 'ol';
+import { Style, Stroke, RegularShape } from 'ol/style';
 import { to4326 } from '../../utils';
 import { setShowTestGenerator } from '../../store/actions/Map';
 import getViaStrings from '../../utils/getViaStrings';
 
-const stroke = new Stroke({ color: 'black', width: 4 });
-const fill = new Fill({ color: 'red' });
 const expectedViaPointStyle = new Style({
   image: new RegularShape({
-    fill,
-    stroke,
+    stroke: new Stroke({ color: '#000000', width: 4 }),
     points: 4,
     radius: 10,
     radius2: 0,
@@ -65,7 +61,7 @@ const useStyles = makeStyles(() => {
   };
 });
 
-function TestGenerator({ map }) {
+function TestGenerator() {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {
@@ -74,7 +70,7 @@ function TestGenerator({ map }) {
     currentMot,
     floorInfo,
     tracks,
-    layerService,
+    olMap: map,
   } = useSelector((state) => state.MapReducer);
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
@@ -89,6 +85,7 @@ function TestGenerator({ map }) {
 
   const expectedViaPoints = useMemo(() => {
     if (!selectedRoutes.length) return [];
+    // Combine all route geometries to one LineString
     const concatCoords = selectedRoutes.reduce(
       (finalCoords, currentRoute, idx) => {
         const routeCoords = currentRoute.getGeometry().getCoordinates();
@@ -101,6 +98,7 @@ function TestGenerator({ map }) {
       [],
     );
     const concatGeom = new LineString(concatCoords);
+    // Create 5 default expected via points at a set of fraction coordinates on the line
     const features = [0.1, 0.3, 0.5, 0.7, 0.9].reduce(
       (finalPoints, fraction) => {
         const coord = concatGeom.getCoordinateAt(fraction);
@@ -138,7 +136,7 @@ function TestGenerator({ map }) {
       map.removeLayer(debugLayer);
       map.removeInteraction(translate);
     };
-  }, [map, layerService]);
+  }, [map]);
 
   useEffect(() => {
     debugSource.clear();
@@ -162,7 +160,7 @@ function TestGenerator({ map }) {
         <div className={classes.content}>
           <div className={classes.codeBlock}>
             <div>
-              <b>{`${currentMot}-xx:`}</b>
+              <b data-testid="header">{`${currentMot}-xx:`}</b>
             </div>
             <div>
               {'  '}
@@ -171,22 +169,23 @@ function TestGenerator({ map }) {
             </div>
             <div>
               {'  '}
-              <b>mot:</b> <span>{currentMot}</span>
+              <b>mot:</b> <span data-testid="mot">{currentMot}</span>
             </div>
             <div>
               {'  '}
-              <b>via:</b> <span>&apos;{viaString}&apos;</span>
+              <b>via:</b>{' '}
+              <span data-testid="viaString">&apos;{viaString}&apos;</span>
             </div>
             <div>
               {'  '}
               <b>expect_via:</b>{' '}
               <span>
-                {expectedViaPoints.map((feat) => {
+                {expectedViaPoints.map((feat, idx) => {
                   const coord = to4326(
                     feat.getGeometry().getCoordinates(),
                   ).slice();
                   return (
-                    <div>
+                    <div key={coord} data-testid={`expected-viastring-${idx}`}>
                       {'    '}- {coord.join(',')}
                     </div>
                   );
@@ -195,12 +194,17 @@ function TestGenerator({ map }) {
             </div>
             <div>
               {'  '}
-              <b>min_km:</b> <span>{(distance / 1.03 / 1000).toFixed(3)}</span>
+              <b>min_km:</b>{' '}
+              <span data-testid="min_km">
+                {(distance / 1.03 / 1000).toFixed(3)}
+              </span>
             </div>
             <div>
               {'  '}
               <b>max_km:</b>{' '}
-              <span>{((distance * 1.03) / 1000).toFixed(3)}</span>
+              <span data-testid="max_km">
+                {((distance * 1.03) / 1000).toFixed(3)}
+              </span>
             </div>
           </div>
         </div>
@@ -208,9 +212,5 @@ function TestGenerator({ map }) {
     </div>
   );
 }
-
-TestGenerator.propTypes = {
-  map: PropTypes.instanceOf(Map).isRequired,
-};
 
 export default TestGenerator;
