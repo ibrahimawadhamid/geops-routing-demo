@@ -1,10 +1,9 @@
-
 # geOps Routing Demo
 
 ![Vercel](https://vercelbadge.vercel.app/api/geops/geops-routing-demo)
 React app showing how to use the geOps Routing API.
 
-## Check the [Demo](https://geops-routing-demo.netlify.app/)
+## Check the [Demo](https://routing-demo.geops.io/)
 
 ![geops-routing-demo](https://user-images.githubusercontent.com/44545113/74161255-b6119180-4c2f-11ea-98ca-10103ade48a4.gif)
 
