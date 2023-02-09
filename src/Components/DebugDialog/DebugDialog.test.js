@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { render } from '@testing-library/react';
 import { Map } from 'ol';
 import mediaQuery from 'css-mediaquery';
-import TestGenerator from './TestGenerator';
+import DebugDialog from './DebugDialog';
 import fixture from './fixture';
 
 function createMatchMedia(width) {
@@ -18,10 +18,12 @@ function createMatchMedia(width) {
   });
 }
 
-describe('TestGenerator', () => {
-  window.matchMedia = createMatchMedia(window.innerWidth);
+describe('DebugDialog', () => {
   const mockStore = configureStore([thunk]);
   let store;
+  // Mock desktop window size
+  // https://mui.com/material-ui/react-use-media-query/#testing
+  window.matchMedia = createMatchMedia(window.innerWidth);
 
   beforeEach(() => {
     store = mockStore({
@@ -44,7 +46,7 @@ describe('TestGenerator', () => {
   it('should render the yaml code values correctly', async () => {
     const { getByTestId } = render(
       <Provider store={store}>
-        <TestGenerator />
+        <DebugDialog />
       </Provider>,
     );
     expect(getByTestId('header').innerHTML).toBe('rail-xx:');
@@ -69,5 +71,15 @@ describe('TestGenerator', () => {
     );
     expect(getByTestId('min_km').innerHTML).toBe('4.211');
     expect(getByTestId('max_km').innerHTML).toBe('4.467');
+  });
+
+  it('should not render on mobile', async () => {
+    window.matchMedia = createMatchMedia(375);
+    const { container } = render(
+      <Provider store={store}>
+        <DebugDialog />
+      </Provider>,
+    );
+    expect(container.innerHTML).toBeFalsy();
   });
 });

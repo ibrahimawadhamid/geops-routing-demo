@@ -15,7 +15,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Feature } from 'ol';
 import { Style, Stroke, RegularShape } from 'ol/style';
 import { to4326 } from '../../utils';
-import { setShowTestGenerator } from '../../store/actions/Map';
+import { setDebugDialogOpen } from '../../store/actions/Map';
 import getViaStrings from '../../utils/getViaStrings';
 
 const expectedViaPointStyle = new Style({
@@ -61,7 +61,7 @@ const useStyles = makeStyles(() => {
   };
 });
 
-function TestGenerator() {
+function DebugDialog() {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {
@@ -152,7 +152,7 @@ function TestGenerator() {
           <IconButton
             className={classes.closeBtn}
             size="small"
-            onClick={() => dispatch(setShowTestGenerator(false))}
+            onClick={() => dispatch(setDebugDialogOpen(false))}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -213,4 +213,4 @@ function TestGenerator() {
   );
 }
 
-export default TestGenerator;
+export default DebugDialog;

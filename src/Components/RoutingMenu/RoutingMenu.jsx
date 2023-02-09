@@ -46,7 +46,7 @@ import {
   setIsRouteInfoOpen,
   setClickLocation,
   setGeneralizationActive,
-  setShowTestGenerator,
+  setDebugDialogOpen,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
 import {
@@ -251,8 +251,8 @@ function RoutingMenu({
     (state) => state.MapReducer.generalizationActive,
   );
   const mode = useSelector((state) => state.MapReducer.mode);
-  const showTestGenerator = useSelector(
-    (state) => state.MapReducer.showTestGenerator,
+  const debugDialogOpen = useSelector(
+    (state) => state.MapReducer.debugDialogOpen,
   );
 
   const [currentMots] = useState(currentMotsVal);
@@ -694,9 +694,9 @@ function RoutingMenu({
                 <Tooltip title="Display test snippet">
                   <IconButton
                     onClick={() => {
-                      dispatch(setShowTestGenerator(!showTestGenerator));
+                      dispatch(setDebugDialogOpen(!debugDialogOpen));
                     }}
-                    color={showTestGenerator ? 'primary' : 'default'}
+                    color={debugDialogOpen ? 'primary' : 'default'}
                   >
                     <BugReportIcon />
                   </IconButton>

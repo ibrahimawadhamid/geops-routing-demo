@@ -20,7 +20,7 @@ import { touchOnly } from 'ol/events/condition';
 import MapFloorSwitcher from '../MapFloorSwitcher';
 import RoutingMenu from '../RoutingMenu';
 import FloorSwitcher from '../FloorSwitcher';
-import TestGenerator from '../TestGenerator/TestGenerator';
+import DebugDialog from '../DebugDialog';
 import LevelLayer from '../../layers/LevelLayer';
 import { getGeneralization, graphs, to4326 } from '../../utils';
 import getViaStrings from '../../utils/getViaStrings';
@@ -799,7 +799,7 @@ class MapComponent extends PureComponent {
       APIKey,
       selectedRoutes,
       stationSearchUrl,
-      showTestGenerator,
+      debugDialogOpen,
     } = this.props;
 
     const { isActiveRoute, hoveredPoint, hoveredStationName } = this.state;
@@ -866,7 +866,7 @@ class MapComponent extends PureComponent {
               return dialogs;
             })()
           : null}
-        {showTestGenerator ? <TestGenerator /> : null}
+        {debugDialogOpen ? <DebugDialog /> : null}
       </>
     );
   }
@@ -894,7 +894,7 @@ const mapStateToProps = (state) => {
     generalizationGraph: state.MapReducer.generalizationGraph,
     generalizationEnabled: state.MapReducer.generalizationEnabled,
     generalizationActive: state.MapReducer.generalizationActive,
-    showTestGenerator: state.MapReducer.showTestGenerator,
+    debugDialogOpen: state.MapReducer.debugDialogOpen,
   };
 };
 
@@ -928,7 +928,7 @@ const mapDispatchToProps = (dispatch) => {
 MapComponent.defaultProps = {
   center: [47.99822, 7.84049],
   generalizationGraph: null,
-  showTestGenerator: false,
+  debugDialogOpen: false,
 };
 
 MapComponent.propTypes = {
@@ -968,7 +968,7 @@ MapComponent.propTypes = {
   generalizationEnabled: PropTypes.bool.isRequired,
   generalizationActive: PropTypes.bool.isRequired,
   generalizationGraph: PropTypes.string,
-  showTestGenerator: PropTypes.bool,
+  debugDialogOpen: PropTypes.bool,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

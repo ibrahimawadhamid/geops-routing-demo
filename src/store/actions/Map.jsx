@@ -162,9 +162,9 @@ export const setMode = (mode) => {
   };
 };
 
-export const setShowTestGenerator = (showTestGenerator) => {
+export const setDebugDialogOpen = (debugDialogOpen) => {
   return {
-    type: actionTypes.SET_SHOW_TEST_GENERATOR,
-    showTestGenerator,
+    type: actionTypes.SET_DEBUG_DIALOG_OPEN,
+    debugDialogOpen,
   };
 };

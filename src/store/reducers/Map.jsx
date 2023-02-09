@@ -38,7 +38,7 @@ const initialState = {
   generalizationActive: false,
   zoom: 6,
   mode: undefined,
-  showTestGenerator: false,
+  debugDialogOpen: false,
   isDesktop: true,
 };
 
@@ -269,10 +269,10 @@ const setMode = (state, action) => {
   };
 };
 
-const setShowTestGenerator = (state, action) => {
+const setDebugDialogOpen = (state, action) => {
   return {
     ...state,
-    showTestGenerator: action.showTestGenerator,
+    debugDialogOpen: action.debugDialogOpen,
   };
 };
 
@@ -324,8 +324,8 @@ const reducer = (state = initialState, action) => {
       return setGeneralizationActive(state, action);
     case actionTypes.SET_MODE:
       return setMode(state, action);
-    case actionTypes.SET_SHOW_TEST_GENERATOR:
-      return setShowTestGenerator(state, action);
+    case actionTypes.SET_DEBUG_DIALOG_OPEN:
+      return setDebugDialogOpen(state, action);
     default:
       return state;
   }
