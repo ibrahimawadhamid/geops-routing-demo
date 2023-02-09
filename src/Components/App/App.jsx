@@ -55,10 +55,10 @@ function App(props) {
 
   const activateDevMode = useCallback(
     (evt) => {
-      evt.preventDefault();
-      evt.stopPropagation();
       if (platformModifierKeyOnly({ originalEvent: evt }) && evt.which === 68) {
-        dispatch(setMode(mode === 'dev' ? null : 'dev'));
+        evt.stopPropagation();
+        evt.preventDefault();
+        dispatch(setMode(mode ? null : 'dev'));
       }
     },
     [dispatch, mode],
