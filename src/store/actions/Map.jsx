@@ -154,3 +154,17 @@ export const setGeneralizationActive = (generalizationActive) => {
     generalizationActive,
   };
 };
+
+export const setMode = (mode) => {
+  return {
+    type: actionTypes.SET_MODE,
+    mode,
+  };
+};
+
+export const setYamlSnippetDialogOpen = (yamlSnippetDialogOpen) => {
+  return {
+    type: actionTypes.SET_DEBUG_DIALOG_OPEN,
+    yamlSnippetDialogOpen,
+  };
+};

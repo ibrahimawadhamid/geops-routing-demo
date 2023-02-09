@@ -20,8 +20,10 @@ import { touchOnly } from 'ol/events/condition';
 import MapFloorSwitcher from '../MapFloorSwitcher';
 import RoutingMenu from '../RoutingMenu';
 import FloorSwitcher from '../FloorSwitcher';
+import YamlSnippetDialog from '../YamlSnippetDialog';
 import LevelLayer from '../../layers/LevelLayer';
 import { getGeneralization, graphs, to4326 } from '../../utils';
+import getViaStrings from '../../utils/getViaStrings';
 import {
   lineStyleFunction,
   pointStyleFunction,
@@ -573,7 +575,6 @@ class MapComponent extends PureComponent {
    * @category Map
    */
   drawNewRoute(useElevation) {
-    const hops = [];
     const {
       currentStopsGeoJSON,
       routingUrl,
@@ -590,39 +591,17 @@ class MapComponent extends PureComponent {
       generalizationGraph,
     } = this.props;
 
-    let hasNullViaPoint = false;
-
-    // find the index and use this instead.
-    currentStopsGeoJSON.forEach((val, idx) => {
-      if (!val) {
-        // That means the user is typing or selecting a new station or point.
-        hasNullViaPoint = true;
-        return;
-      }
-      if (!val.properties.uid) {
-        // If the current item is a point selected on the map, not a station.
-        hops.push(
-          `${to4326(val.geometry.coordinates).slice().reverse()}${
-            currentMot === 'foot' && floorInfo && floorInfo[idx] !== null
-              ? `${floorInfo[idx] ? `$${floorInfo[idx]}` : ''}`
-              : ''
-          }`,
-        );
-      } else {
-        hops.push(
-          `!${val.properties.uid}${
-            tracks[idx] !== null
-              ? `${tracks[idx] ? `$${tracks[idx]}` : ''}`
-              : ''
-          }`,
-        );
-      }
-    });
+    const hops = getViaStrings(
+      currentStopsGeoJSON,
+      currentMot,
+      floorInfo,
+      tracks,
+    );
 
     abortController.abort();
     abortController = new AbortController();
 
-    if (hasNullViaPoint || hops.length < 2) {
+    if (hops.length < 2) {
       dispatchShowLoadingBar(false);
       dispatchSetSelectedRoutes([]);
       return Promise.resolve();
@@ -820,6 +799,7 @@ class MapComponent extends PureComponent {
       APIKey,
       selectedRoutes,
       stationSearchUrl,
+      yamlSnippetDialogOpen,
     } = this.props;
 
     const { isActiveRoute, hoveredPoint, hoveredStationName } = this.state;
@@ -886,6 +866,7 @@ class MapComponent extends PureComponent {
               return dialogs;
             })()
           : null}
+        {yamlSnippetDialogOpen ? <YamlSnippetDialog /> : null}
       </>
     );
   }
@@ -913,6 +894,7 @@ const mapStateToProps = (state) => {
     generalizationGraph: state.MapReducer.generalizationGraph,
     generalizationEnabled: state.MapReducer.generalizationEnabled,
     generalizationActive: state.MapReducer.generalizationActive,
+    yamlSnippetDialogOpen: state.MapReducer.yamlSnippetDialogOpen,
   };
 };
 
@@ -946,6 +928,7 @@ const mapDispatchToProps = (dispatch) => {
 MapComponent.defaultProps = {
   center: [47.99822, 7.84049],
   generalizationGraph: null,
+  yamlSnippetDialogOpen: false,
 };
 
 MapComponent.propTypes = {
@@ -985,6 +968,7 @@ MapComponent.propTypes = {
   generalizationEnabled: PropTypes.bool.isRequired,
   generalizationActive: PropTypes.bool.isRequired,
   generalizationGraph: PropTypes.string,
+  yamlSnippetDialogOpen: PropTypes.bool,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

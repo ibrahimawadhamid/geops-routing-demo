@@ -37,6 +37,9 @@ const initialState = {
   generalizationGraph: null,
   generalizationActive: false,
   zoom: 6,
+  mode: undefined,
+  yamlSnippetDialogOpen: false,
+  isDesktop: true,
 };
 
 const setZoom = (state, action) => {
@@ -259,6 +262,20 @@ const setGeneralizationActive = (state, action) => {
   };
 };
 
+const setMode = (state, action) => {
+  return {
+    ...state,
+    mode: action.mode,
+  };
+};
+
+const setYamlSnippetDialogOpen = (state, action) => {
+  return {
+    ...state,
+    yamlSnippetDialogOpen: action.yamlSnippetDialogOpen,
+  };
+};
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_ZOOM:
@@ -305,6 +322,10 @@ const reducer = (state = initialState, action) => {
       return setGeneralizationGraph(state, action);
     case actionTypes.SET_GENERALIZATION_ACTIVE:
       return setGeneralizationActive(state, action);
+    case actionTypes.SET_MODE:
+      return setMode(state, action);
+    case actionTypes.SET_DEBUG_DIALOG_OPEN:
+      return setYamlSnippetDialogOpen(state, action);
     default:
       return state;
   }

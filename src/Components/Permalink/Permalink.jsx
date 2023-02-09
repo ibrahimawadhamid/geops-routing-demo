@@ -15,6 +15,7 @@ import {
   setGeneralizationGraph,
   setGeneralizationActive,
   setTracks,
+  setMode,
 } from '../../store/actions/Map';
 
 const abortController = new AbortController();
@@ -141,6 +142,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       const generalizationParam = urlSearch.get('generalization');
       const generalizationActiveParam = urlSearch.get('generalizationActive');
       const graphParam = urlSearch.get('graph');
+      const mode = urlSearch.get('mode');
 
       if (zParam && !isNaN(parseFloat(zParam))) {
         // Set zoom if defined
@@ -219,6 +221,10 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
 
       if (graphParam) {
         dispatch(setGeneralizationGraph(graphParam));
+      }
+
+      if (mode === 'dev') {
+        dispatch(setMode('dev'));
       }
     }
     setParams(newParams);
