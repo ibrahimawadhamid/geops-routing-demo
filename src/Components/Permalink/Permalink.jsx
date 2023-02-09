@@ -115,6 +115,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
   const currentMot = useSelector((state) => state.MapReducer.currentMot);
   const floorInfo = useSelector((state) => state.MapReducer.floorInfo);
   const currentStops = useSelector((state) => state.MapReducer.currentStops);
+  const mode = useSelector((state) => state.MapReducer.mode);
   const currentStopsGeoJSON = useSelector(
     (state) => state.MapReducer.currentStopsGeoJSON,
   );
@@ -142,7 +143,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       const generalizationParam = urlSearch.get('generalization');
       const generalizationActiveParam = urlSearch.get('generalizationActive');
       const graphParam = urlSearch.get('graph');
-      const mode = urlSearch.get('mode');
+      const modeParam = urlSearch.get('mode');
 
       if (zParam && !isNaN(parseFloat(zParam))) {
         // Set zoom if defined
@@ -223,7 +224,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
         dispatch(setGeneralizationGraph(graphParam));
       }
 
-      if (mode === 'dev') {
+      if (modeParam === 'dev') {
         dispatch(setMode('dev'));
       }
     }
@@ -258,6 +259,12 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
       newParams.generalizationActive = undefined;
     }
 
+    if (mode) {
+      newParams.mode = mode;
+    } else {
+      newParams.mode = undefined;
+    }
+
     setParams(newParams);
   }, [
     generalizationActive,
@@ -270,6 +277,7 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
     resolveHops,
     map,
     tracks,
+    mode,
   ]);
 
   return <RSPermalink map={map} params={params} />;

@@ -800,6 +800,7 @@ class MapComponent extends PureComponent {
       selectedRoutes,
       stationSearchUrl,
       yamlSnippetDialogOpen,
+      mode,
     } = this.props;
 
     const { isActiveRoute, hoveredPoint, hoveredStationName } = this.state;
@@ -866,7 +867,7 @@ class MapComponent extends PureComponent {
               return dialogs;
             })()
           : null}
-        {yamlSnippetDialogOpen ? <YamlSnippetDialog /> : null}
+        {yamlSnippetDialogOpen && mode === 'dev' ? <YamlSnippetDialog /> : null}
       </>
     );
   }
@@ -895,6 +896,7 @@ const mapStateToProps = (state) => {
     generalizationEnabled: state.MapReducer.generalizationEnabled,
     generalizationActive: state.MapReducer.generalizationActive,
     yamlSnippetDialogOpen: state.MapReducer.yamlSnippetDialogOpen,
+    mode: state.MapReducer.mode,
   };
 };
 
@@ -929,6 +931,7 @@ MapComponent.defaultProps = {
   center: [47.99822, 7.84049],
   generalizationGraph: null,
   yamlSnippetDialogOpen: false,
+  mode: null,
 };
 
 MapComponent.propTypes = {
@@ -969,6 +972,7 @@ MapComponent.propTypes = {
   generalizationActive: PropTypes.bool.isRequired,
   generalizationGraph: PropTypes.string,
   yamlSnippetDialogOpen: PropTypes.bool,
+  mode: PropTypes.string,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapComponent);

@@ -186,7 +186,7 @@ function YamlSnippetDialog() {
                   ).slice();
                   return (
                     <div key={coord} data-testid={`expected-viastring-${idx}`}>
-                      {'    '}- {coord.join(',')}
+                      {'    '}- {`${coord.join(',')}$0`}
                     </div>
                   );
                 })}

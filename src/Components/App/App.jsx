@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import { useSelector, useDispatch } from 'react-redux';
+import { platformModifierKeyOnly } from 'ol/events/condition';
 import Footer from '../Footer';
 import MapComponent from '../MapComponent';
 import Permalink from '../Permalink';
 import NotificationHandler from '../NotificationHandler';
+import { setMode } from '../../store/actions/Map';
 import {
   VALID_MOTS,
   ROUTING_BASE_URL,
@@ -47,6 +50,24 @@ const theme = createMuiTheme({
 function App(props) {
   const { mots, routingUrl, stationSearchUrl } = props;
   const apiKey = process.env.REACT_APP_API_KEY;
+  const dispatch = useDispatch();
+  const mode = useSelector((state) => state.MapReducer.mode);
+
+  const activateDevMode = useCallback(
+    (evt) => {
+      if (platformModifierKeyOnly({ originalEvent: evt }) && evt.which === 68) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        dispatch(setMode(mode ? null : 'dev'));
+      }
+    },
+    [dispatch, mode],
+  );
+
+  useEffect(() => {
+    document.addEventListener('keydown', activateDevMode);
+    return () => document.removeEventListener('keydown', activateDevMode);
+  }, [activateDevMode]);
 
   return (
     <ThemeProvider theme={theme}>
