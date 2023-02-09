@@ -46,7 +46,7 @@ import {
   setIsRouteInfoOpen,
   setClickLocation,
   setGeneralizationActive,
-  setDebugDialogOpen,
+  setYamlSnippetDialogOpen,
 } from '../../store/actions/Map';
 import './RoutingMenu.scss';
 import {
@@ -251,8 +251,8 @@ function RoutingMenu({
     (state) => state.MapReducer.generalizationActive,
   );
   const mode = useSelector((state) => state.MapReducer.mode);
-  const debugDialogOpen = useSelector(
-    (state) => state.MapReducer.debugDialogOpen,
+  const yamlSnippetDialogOpen = useSelector(
+    (state) => state.MapReducer.yamlSnippetDialogOpen,
   );
 
   const [currentMots] = useState(currentMotsVal);
@@ -694,9 +694,11 @@ function RoutingMenu({
                 <Tooltip title="Display test snippet">
                   <IconButton
                     onClick={() => {
-                      dispatch(setDebugDialogOpen(!debugDialogOpen));
+                      dispatch(
+                        setYamlSnippetDialogOpen(!yamlSnippetDialogOpen),
+                      );
                     }}
-                    color={debugDialogOpen ? 'primary' : 'default'}
+                    color={yamlSnippetDialogOpen ? 'primary' : 'default'}
                   >
                     <BugReportIcon />
                   </IconButton>

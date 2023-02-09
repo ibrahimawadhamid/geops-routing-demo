@@ -15,7 +15,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Feature } from 'ol';
 import { Style, Stroke, RegularShape } from 'ol/style';
 import { to4326 } from '../../utils';
-import { setDebugDialogOpen } from '../../store/actions/Map';
+import { setYamlSnippetDialogOpen } from '../../store/actions/Map';
 import getViaStrings from '../../utils/getViaStrings';
 
 const expectedViaPointStyle = new Style({
@@ -61,7 +61,7 @@ const useStyles = makeStyles(() => {
   };
 });
 
-function DebugDialog() {
+function YamlSnippetDialog() {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {
@@ -152,7 +152,7 @@ function DebugDialog() {
           <IconButton
             className={classes.closeBtn}
             size="small"
-            onClick={() => dispatch(setDebugDialogOpen(false))}
+            onClick={() => dispatch(setYamlSnippetDialogOpen(false))}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -213,4 +213,4 @@ function DebugDialog() {
   );
 }
 
-export default DebugDialog;
+export default YamlSnippetDialog;

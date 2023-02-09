@@ -38,7 +38,7 @@ const initialState = {
   generalizationActive: false,
   zoom: 6,
   mode: undefined,
-  debugDialogOpen: false,
+  yamlSnippetDialogOpen: false,
   isDesktop: true,
 };
 
@@ -269,10 +269,10 @@ const setMode = (state, action) => {
   };
 };
 
-const setDebugDialogOpen = (state, action) => {
+const setYamlSnippetDialogOpen = (state, action) => {
   return {
     ...state,
-    debugDialogOpen: action.debugDialogOpen,
+    yamlSnippetDialogOpen: action.yamlSnippetDialogOpen,
   };
 };
 
@@ -325,7 +325,7 @@ const reducer = (state = initialState, action) => {
     case actionTypes.SET_MODE:
       return setMode(state, action);
     case actionTypes.SET_DEBUG_DIALOG_OPEN:
-      return setDebugDialogOpen(state, action);
+      return setYamlSnippetDialogOpen(state, action);
     default:
       return state;
   }

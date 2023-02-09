@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { render } from '@testing-library/react';
 import { Map } from 'ol';
 import mediaQuery from 'css-mediaquery';
-import DebugDialog from './DebugDialog';
+import YamlSnippetDialog from './YamlSnippetDialog';
 import fixture from './fixture';
 
 function createMatchMedia(width) {
@@ -18,7 +18,7 @@ function createMatchMedia(width) {
   });
 }
 
-describe('DebugDialog', () => {
+describe('YamlSnippetDialog', () => {
   const mockStore = configureStore([thunk]);
   let store;
   // Mock desktop window size
@@ -43,10 +43,10 @@ describe('DebugDialog', () => {
     });
   });
 
-  it('should render the yaml code values correctly', async () => {
+  it('should render the yaml code values correctly on desktop', async () => {
     const { getByTestId } = render(
       <Provider store={store}>
-        <DebugDialog />
+        <YamlSnippetDialog />
       </Provider>,
     );
     expect(getByTestId('header').innerHTML).toBe('rail-xx:');
@@ -77,7 +77,7 @@ describe('DebugDialog', () => {
     window.matchMedia = createMatchMedia(375);
     const { container } = render(
       <Provider store={store}>
-        <DebugDialog />
+        <YamlSnippetDialog />
       </Provider>,
     );
     expect(container.innerHTML).toBeFalsy();

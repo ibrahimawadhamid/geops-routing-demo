@@ -162,9 +162,9 @@ export const setMode = (mode) => {
   };
 };
 
-export const setDebugDialogOpen = (debugDialogOpen) => {
+export const setYamlSnippetDialogOpen = (yamlSnippetDialogOpen) => {
   return {
     type: actionTypes.SET_DEBUG_DIALOG_OPEN,
-    debugDialogOpen,
+    yamlSnippetDialogOpen,
   };
 };
