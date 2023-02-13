@@ -119,6 +119,7 @@ function YamlSnippetDialog() {
       feat.set('floor', closestRoute.get('floor'));
       feat.setStyle(expectedViaPointStyle);
     });
+    debugSource.clear();
     return features;
   }, [selectedRoutes]);
 
