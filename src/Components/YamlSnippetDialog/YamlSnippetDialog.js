@@ -71,6 +71,7 @@ function YamlSnippetDialog() {
     floorInfo,
     tracks,
     olMap: map,
+    generalizationGraph,
   } = useSelector((state) => state.MapReducer);
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
@@ -109,7 +110,16 @@ function YamlSnippetDialog() {
       },
       [],
     );
-    features.forEach((feat) => feat.setStyle(expectedViaPointStyle));
+    debugSource.clear();
+    debugSource.addFeatures(selectedRoutes);
+    features.forEach((feat) => {
+      const closestRoute = debugSource.getClosestFeatureToCoordinate(
+        feat.getGeometry().getCoordinates(),
+      );
+      feat.set('floor', closestRoute.get('floor'));
+      feat.setStyle(expectedViaPointStyle);
+    });
+    debugSource.clear();
     return features;
   }, [selectedRoutes]);
 
@@ -186,7 +196,11 @@ function YamlSnippetDialog() {
                   ).slice();
                   return (
                     <div key={coord} data-testid={`expected-viastring-${idx}`}>
-                      {'    '}- {`${coord.join(',')}$0`}
+                      {'    '}-{' '}
+                      {`${coord.join(',')}$${parseFloat(
+                        feat.get('floor') || '0',
+                        10,
+                      ).toFixed(0)}`}
                     </div>
                   );
                 })}
@@ -206,6 +220,13 @@ function YamlSnippetDialog() {
                 {((distance * 1.03) / 1000).toFixed(3)}
               </span>
             </div>
+            {generalizationGraph ? (
+              <div>
+                {'  '}
+                <b>graph:</b>{' '}
+                <span data-testid="gen_graph">{generalizationGraph}</span>
+              </div>
+            ) : null}
           </div>
         </div>
       </Paper>
