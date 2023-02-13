@@ -39,6 +39,7 @@ describe('YamlSnippetDialog', () => {
         }),
         floorInfo: [null, null],
         tracks: [null, null],
+        generalizationGraph: 'gen5',
       },
     });
   });
@@ -71,6 +72,7 @@ describe('YamlSnippetDialog', () => {
     );
     expect(getByTestId('min_km').innerHTML).toBe('4.211');
     expect(getByTestId('max_km').innerHTML).toBe('4.467');
+    expect(getByTestId('gen_graph').innerHTML).toBe('gen5');
   });
 
   it('should not render on mobile', async () => {
