@@ -56,19 +56,19 @@ describe('YamlSnippetDialog', () => {
       "'!4be65028749bb705|!bed0b934e1c5647c'",
     );
     expect(getByTestId('expected-viastring-0').innerHTML).toBe(
-      '    - 7.59589,47.54508$0',
+      '    - 7.59589,47.54508',
     );
     expect(getByTestId('expected-viastring-1').innerHTML).toBe(
-      '    - 7.60670,47.54596$0',
+      '    - 7.60670,47.54596',
     );
     expect(getByTestId('expected-viastring-2').innerHTML).toBe(
-      '    - 7.61551,47.54955$0',
+      '    - 7.61551,47.54955',
     );
     expect(getByTestId('expected-viastring-3').innerHTML).toBe(
-      '    - 7.61526,47.55715$0',
+      '    - 7.61526,47.55715',
     );
     expect(getByTestId('expected-viastring-4').innerHTML).toBe(
-      '    - 7.61035,47.56419$0',
+      '    - 7.61035,47.56419',
     );
     expect(getByTestId('min_km').innerHTML).toBe('4.211');
     expect(getByTestId('max_km').innerHTML).toBe('4.467');

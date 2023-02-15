@@ -194,13 +194,12 @@ function YamlSnippetDialog() {
                   const coord = to4326(
                     feat.getGeometry().getCoordinates(),
                   ).slice();
+                  const floor =
+                    currentMot === 'foot' &&
+                    `$${parseFloat(feat.get('floor') || '0', 10).toFixed(0)}`;
                   return (
                     <div key={coord} data-testid={`expected-viastring-${idx}`}>
-                      {'    '}-{' '}
-                      {`${coord.join(',')}$${parseFloat(
-                        feat.get('floor') || '0',
-                        10,
-                      ).toFixed(0)}`}
+                      {'    '}- {`${coord.join(',')}${floor || ''}`}
                     </div>
                   );
                 })}
