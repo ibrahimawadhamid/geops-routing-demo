@@ -514,7 +514,6 @@ class MapComponent extends PureComponent {
       activeFloor,
     } = this.props;
 
-    console.log(generalizationEnabled, generalizationActive);
     this.dataLayer = new MapboxLayer({
       name: 'data',
       visible: true,
