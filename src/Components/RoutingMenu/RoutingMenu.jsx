@@ -691,7 +691,7 @@ function RoutingMenu({
                 </FormControl>
               ) : null}
               {mode === 'dev' && isDesktop ? (
-                <Tooltip title="Display test snippet">
+                <Tooltip title="Toggle YAML test snippet">
                   <IconButton
                     onClick={() => {
                       dispatch(
@@ -705,21 +705,24 @@ function RoutingMenu({
                 </Tooltip>
               ) : null}
               {motHasGeneralization(currentMot) && generalizationEnabled ? (
-                <FormControlLabel
-                  disabled={showLoadingBar}
-                  className={classes.checkbox}
-                  classes={{ label: classes.checkboxLabel }}
-                  control={
-                    <RdCheckbox
-                      checked={generalizationActive}
-                      onChange={() =>
-                        dispatch(setGeneralizationActive(!generalizationActive))
-                      }
-                    />
-                  }
-                  label="Generalization"
-                  title="Generalization"
-                />
+                <Tooltip title="Toggle generalization">
+                  <FormControlLabel
+                    disabled={showLoadingBar}
+                    className={classes.checkbox}
+                    classes={{ label: classes.checkboxLabel }}
+                    control={
+                      <RdCheckbox
+                        checked={generalizationActive}
+                        onChange={() =>
+                          dispatch(
+                            setGeneralizationActive(!generalizationActive),
+                          )
+                        }
+                      />
+                    }
+                    label="Generalization"
+                  />
+                </Tooltip>
               ) : null}
             </div>
           </div>
