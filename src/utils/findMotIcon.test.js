@@ -9,19 +9,19 @@ describe('utils', () => {
   it('should return the correct icon', () => {
     let icon = findMotIcon('bus');
     expect(icon).toEqual(
-      <span title="Bus">
+      <span>
         <DirectionsBusIcon />
       </span>,
     );
     icon = findMotIcon('foot');
     expect(icon).toEqual(
-      <span title="Foot">
+      <span>
         <DirectionsWalkIcon />
       </span>,
     );
     icon = findMotIcon('rail');
     expect(icon).toEqual(
-      <span title="Rail">
+      <span>
         <DirectionsRailwayIcon />
       </span>,
     );

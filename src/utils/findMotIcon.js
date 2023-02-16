@@ -11,7 +11,6 @@ import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
  */
 const findMotIcon = (name) => {
   let result = null;
-  const capitalName = name.charAt(0).toUpperCase() + name.slice(1);
   switch (name) {
     case 'rail':
       result = <DirectionsRailwayIcon />;
@@ -23,7 +22,7 @@ const findMotIcon = (name) => {
       result = <DirectionsBusIcon />;
       break;
   }
-  return <span title={capitalName}>{result}</span>;
+  return <span>{result}</span>;
 };
 
 export default findMotIcon;

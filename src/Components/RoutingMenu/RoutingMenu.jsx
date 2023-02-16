@@ -628,15 +628,20 @@ function RoutingMenu({
               aria-label="mots icons"
             >
               {currentMots.map((singleMot) => {
+                const { name, icon } = singleMot;
+                const capitalName =
+                  name.charAt(0).toUpperCase() + name.slice(1);
                 return (
-                  <Tab
-                    className={classes.tab}
-                    key={`mot-${singleMot.name}`}
-                    value={singleMot.name}
-                    icon={singleMot.icon}
-                    aria-label={singleMot.name}
-                    disabled={showLoadingBar}
-                  />
+                  <Tooltip title={capitalName}>
+                    <Tab
+                      className={classes.tab}
+                      key={`mot-${name}`}
+                      value={name}
+                      icon={icon}
+                      aria-label={name}
+                      disabled={showLoadingBar}
+                    />
+                  </Tooltip>
                 );
               })}
             </Tabs>
