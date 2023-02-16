@@ -371,6 +371,7 @@ class MapComponent extends PureComponent {
       dispatchSetActiveFloor,
       generalizationGraph,
       generalizationActive,
+      generalizationEnabled,
       zoom,
     } = this.props;
     const currentMotChanged = currentMot && currentMot !== prevProps.currentMot;
@@ -384,14 +385,15 @@ class MapComponent extends PureComponent {
     const zoomChanged = zoom !== prevProps.zoom;
     const generalizationGraphChanged =
       generalizationGraph !== prevProps.generalizationGraph;
-    const generalizationActiveChanged =
-      generalizationActive !== prevProps.generalizationActive;
+    const generalizationStateChanged =
+      generalizationActive !== prevProps.generalizationActive ||
+      generalizationEnabled !== prevProps.generalizationEnabled;
 
-    if (generalizationActiveChanged) {
+    if (generalizationStateChanged) {
       this.loadBaseLayers();
     }
 
-    if (zoomChanged || currentMotChanged || generalizationActiveChanged) {
+    if (zoomChanged || currentMotChanged || generalizationStateChanged) {
       this.updateGeneralization();
     }
 
@@ -512,6 +514,7 @@ class MapComponent extends PureComponent {
       activeFloor,
     } = this.props;
 
+    console.log(generalizationEnabled, generalizationActive);
     this.dataLayer = new MapboxLayer({
       name: 'data',
       visible: true,
