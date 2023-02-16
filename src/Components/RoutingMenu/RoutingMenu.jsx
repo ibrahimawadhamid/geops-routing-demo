@@ -128,9 +128,9 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   tab: {
-    minWidth: 120,
+    minWidth: 100,
     [theme.breakpoints.only('sm')]: {
-      minWidth: '14vw',
+      minWidth: '10vw',
     },
     [theme.breakpoints.only('xs')]: {
       minWidth: 100,

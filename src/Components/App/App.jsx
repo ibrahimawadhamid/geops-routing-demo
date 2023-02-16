@@ -7,7 +7,11 @@ import Footer from '../Footer';
 import MapComponent from '../MapComponent';
 import Permalink from '../Permalink';
 import NotificationHandler from '../NotificationHandler';
-import { setMode } from '../../store/actions/Map';
+import {
+  setMode,
+  setGeneralizationEnabled,
+  setGeneralizationActive,
+} from '../../store/actions/Map';
 import {
   VALID_MOTS,
   ROUTING_BASE_URL,
@@ -52,22 +56,39 @@ function App(props) {
   const apiKey = process.env.REACT_APP_API_KEY;
   const dispatch = useDispatch();
   const mode = useSelector((state) => state.MapReducer.mode);
+  const generalizationEnabled = useSelector(
+    (state) => state.MapReducer.generalizationEnabled,
+  );
 
-  const activateDevMode = useCallback(
+  const handleKeyboarEvent = useCallback(
     (evt) => {
-      if (platformModifierKeyOnly({ originalEvent: evt }) && evt.which === 68) {
+      const preventBroweserDefaults = () => {
         evt.stopPropagation();
         evt.preventDefault();
+      };
+      const ctrlDPressed =
+        platformModifierKeyOnly({ originalEvent: evt }) && evt.which === 68;
+      const ctrlGPressed =
+        platformModifierKeyOnly({ originalEvent: evt }) && evt.which === 71;
+
+      if (ctrlDPressed) {
+        preventBroweserDefaults();
         dispatch(setMode(mode ? null : 'dev'));
       }
+
+      if (ctrlGPressed) {
+        preventBroweserDefaults();
+        dispatch(setGeneralizationActive(!generalizationEnabled));
+        dispatch(setGeneralizationEnabled(!generalizationEnabled));
+      }
     },
-    [dispatch, mode],
+    [dispatch, mode, generalizationEnabled],
   );
 
   useEffect(() => {
-    document.addEventListener('keydown', activateDevMode);
-    return () => document.removeEventListener('keydown', activateDevMode);
-  }, [activateDevMode]);
+    document.addEventListener('keydown', handleKeyboarEvent);
+    return () => document.removeEventListener('keydown', handleKeyboarEvent);
+  }, [handleKeyboarEvent]);
 
   return (
     <ThemeProvider theme={theme}>

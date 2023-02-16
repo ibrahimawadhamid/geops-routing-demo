@@ -255,8 +255,16 @@ function Permalink({ mots, APIKey, stationSearchUrl }) {
 
     if (generalizationEnabled) {
       newParams.generalizationActive = generalizationActive;
+      newParams.generalization = true;
     } else {
       newParams.generalizationActive = undefined;
+      newParams.generalization = undefined;
+    }
+
+    if (mode) {
+      newParams.mode = mode;
+    } else {
+      newParams.mode = undefined;
     }
 
     if (mode) {
