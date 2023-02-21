@@ -569,6 +569,7 @@ class MapComponent extends PureComponent {
     ];
     layerService.setLayers(allLayers);
     this.layers = allLayers;
+    this.map.changed();
   }
 
   /**

@@ -632,10 +632,9 @@ function RoutingMenu({
                 const capitalName =
                   name.charAt(0).toUpperCase() + name.slice(1);
                 return (
-                  <Tooltip title={capitalName}>
+                  <Tooltip title={capitalName} value={name} key={`mot-${name}`}>
                     <Tab
                       className={classes.tab}
-                      key={`mot-${name}`}
                       value={name}
                       icon={icon}
                       aria-label={name}
