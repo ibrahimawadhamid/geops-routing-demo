@@ -1,7 +1,7 @@
 import React from 'react';
-import DirectionsBusIcon from '@material-ui/icons/DirectionsBus';
-import DirectionsRailwayIcon from '@material-ui/icons/DirectionsRailway';
-import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import DirectionsRailwayIcon from '@mui/icons-material/DirectionsRailway';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 
 /**
  * Map each mot to an icon

@@ -1,5 +1,5 @@
 import { Map } from 'ol';
-import LayerService from 'react-spatial/LayerService';
+import LayerService from '../../utils/LayerService';
 import * as actionTypes from '../actions/actionTypes';
 import { SEARCH_MODES, EUROPE_EXTENT } from '../../constants';
 
@@ -276,6 +276,7 @@ const setYamlSnippetDialogOpen = (state, action) => {
   };
 };
 
+// eslint-disable-next-line default-param-last
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.SET_ZOOM:

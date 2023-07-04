@@ -90,7 +90,7 @@ const getGeoJson = (viaString, APIKey, stationSearchUrl) => {
     });
 };
 
-const compileViaString = (currentStopsGeoJson = [], tracks) => {
+const compileViaString = (currentStopsGeoJson, tracks) => {
   if (!currentStopsGeoJson || currentStopsGeoJson.length < 2) {
     return null;
   }

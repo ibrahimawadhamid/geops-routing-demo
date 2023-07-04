@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 import React from 'react';
-import DirectionsBusIcon from '@material-ui/icons/DirectionsBus';
-import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk';
-import DirectionsRailwayIcon from '@material-ui/icons/DirectionsRailway';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
+import DirectionsRailwayIcon from '@mui/icons-material/DirectionsRailway';
 import findMotIcon from './findMotIcon';
 
 describe('utils', () => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useSelector, useDispatch } from 'react-redux';
 import { platformModifierKeyOnly } from 'ol/events/condition';
 import Footer from '../Footer';
@@ -32,7 +32,7 @@ const defaultProps = {
 
 const fontSize = '1rem';
 const color = '#515151';
-const theme = createMuiTheme({
+const theme = createTheme({
   typography: {
     body: { fontSize },
     button: { fontSize },
@@ -92,19 +92,19 @@ function App(props) {
 
   return (
     <ThemeProvider theme={theme}>
-      <Permalink
+      {/* <Permalink
         mots={mots}
         APIKey={apiKey}
         stationSearchUrl={stationSearchUrl}
-      />
+      /> */}
       <MapComponent
         mots={mots}
         routingUrl={routingUrl}
         APIKey={apiKey}
         stationSearchUrl={stationSearchUrl}
       />
-      <NotificationHandler />
-      <Footer />
+      {/* <NotificationHandler />
+      <Footer /> */}
     </ThemeProvider>
   );
 }

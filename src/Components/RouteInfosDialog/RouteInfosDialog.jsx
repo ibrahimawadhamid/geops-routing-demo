@@ -9,8 +9,8 @@ import PropTypes from 'prop-types';
 import { Feature } from 'ol';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Point } from 'ol/geom';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 import combine from '@turf/combine';
 import {

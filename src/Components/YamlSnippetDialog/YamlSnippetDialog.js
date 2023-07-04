@@ -1,16 +1,11 @@
 import React, { useMemo, useEffect } from 'react';
-import {
-  IconButton,
-  Paper,
-  Tooltip,
-  makeStyles,
-  useMediaQuery,
-} from '@material-ui/core';
+import { IconButton, Paper, Tooltip, useMediaQuery } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { Translate } from 'ol/interaction';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 import { LineString, Point } from 'ol/geom';
-import CloseIcon from '@material-ui/icons/Close';
+import CloseIcon from '@mui/icons-material/Close';
 import { useSelector, useDispatch } from 'react-redux';
 import { Feature } from 'ol';
 import { Style, Stroke, RegularShape } from 'ol/style';

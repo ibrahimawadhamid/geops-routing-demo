@@ -1,7 +1,7 @@
 import React from 'react';
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 import { connect } from 'react-redux';
-import Alert from '@material-ui/lab/Alert';
+import { Alert } from '@mui/material';
 import PropTypes from 'prop-types';
 import { showNotification } from '../../store/actions';
 

@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
-import { Layer, MapboxLayer, MapboxStyleLayer } from 'mobility-toolbox-js/ol';
+import { Layer, MaplibreLayer, MapboxStyleLayer } from 'mobility-toolbox-js/ol';
 import BasicMap from 'react-spatial/components/BasicMap';
 import { Map, Feature } from 'ol';
 import { containsExtent } from 'ol/extent';
@@ -15,7 +15,7 @@ import {
   Modify,
 } from 'ol/interaction';
 import PropTypes from 'prop-types';
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 import { touchOnly } from 'ol/events/condition';
 import MapFloorSwitcher from '../MapFloorSwitcher';
 import RoutingMenu from '../RoutingMenu';
@@ -457,11 +457,12 @@ class MapComponent extends PureComponent {
 
     if (activeFloorChanged) {
       layerService.getLayer(`ch.sbb.geschosse`).children.forEach((layer) => {
-        layer.setVisible(false);
+        // eslint-disable-next-line no-param-reassign
+        layer.visible = false;
       });
       const layer = layerService.getLayer(`ch.sbb.geschosse${activeFloor}`);
       if (layer) {
-        layer.setVisible(true);
+        layer.visible = true;
       }
     }
   }
@@ -514,7 +515,7 @@ class MapComponent extends PureComponent {
       activeFloor,
     } = this.props;
 
-    this.dataLayer = new MapboxLayer({
+    this.dataLayer = new MaplibreLayer({
       name: 'data',
       visible: true,
       url: `https://maps.geops.io/styles/travic_v2${
@@ -697,8 +698,8 @@ class MapComponent extends PureComponent {
         this.toggleBasemapMask(mapboxLayer);
       });
     } else {
-      layerService.getLayer('basemap.others').setVisible(currentMot !== 'foot');
-      layerService.getLayer('basemap.foot').setVisible(currentMot === 'foot');
+      layerService.getLayer('basemap.others').visible = currentMot !== 'foot';
+      layerService.getLayer('basemap.foot').visible = currentMot === 'foot';
     }
   }
 

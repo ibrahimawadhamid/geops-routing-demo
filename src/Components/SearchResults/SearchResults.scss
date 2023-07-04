@@ -5,7 +5,7 @@
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 .rd-result-list::-webkit-scrollbar {
-  -webkit-appearance: none;
+  appearance: none;
   width: 0;
   height: 0;
 }

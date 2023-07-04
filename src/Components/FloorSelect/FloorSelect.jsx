@@ -1,11 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import InputLabel from '@material-ui/core/InputLabel';
-import Select from '@material-ui/core/Select';
-import FormControl from '@material-ui/core/FormControl';
-import MenuItem from '@material-ui/core/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import MenuItem from '@mui/material/MenuItem';
 import { to4326 } from '../../utils';
 import { WALKING_BASE_URL } from '../../constants';
 import { setFloorInfo, showNotification } from '../../store/actions/Map';
@@ -20,27 +19,10 @@ const defaultProps = {
   singleStop: null,
 };
 
-const useStyles = makeStyles((theme) => ({
-  wrapper: {
-    width: '12%',
-    padding: '0 10px 4px 10px',
-    [theme.breakpoints.down('xs')]: {
-      padding: '0 5px 4px 5px',
-    },
-    '& label': {
-      left: '10px',
-      [theme.breakpoints.down('xs')]: {
-        left: '5px',
-      },
-    },
-  },
-}));
-
 /**
  * The component that displays the floor selector
  */
 function FloorSelect({ index, disabled, singleStop }) {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const floorInfo = useSelector((state) => state.MapReducer.floorInfo);
   const floor = useMemo(() => floorInfo[index], [index, floorInfo]);
@@ -118,7 +100,7 @@ function FloorSelect({ index, disabled, singleStop }) {
   }
 
   return (
-    <FormControl className={classes.wrapper}>
+    <FormControl variant="standard" fullWidth>
       <InputLabel shrink id="rd-floor-select-label">
         Floor
       </InputLabel>
@@ -134,6 +116,7 @@ function FloorSelect({ index, disabled, singleStop }) {
           newFloorInfo[index] = value;
           dispatch(setFloorInfo(newFloorInfo));
         }}
+        style={{ textAlign: 'center' }}
       >
         {floors.reverse().map((fl) => {
           return (

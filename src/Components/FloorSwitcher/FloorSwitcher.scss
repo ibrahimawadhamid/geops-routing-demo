@@ -1,11 +1,9 @@
-@import '../../globals.scss';
-
 .tm-floor-switcher,
 .tm-floor-switcher-mobile {
   position: absolute;
   right: 10px;
   bottom: 20px;
-  box-shadow: 0 0 7px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 7px rgb(0 0 0 / 40%);
 
   // Remove ol and  li styles,
   &,
@@ -33,7 +31,7 @@
     font-size: 120%;
     border: 1px solid #aaa;
     text-align: center;
-    padding: 9px 7px 4px 7px;
+    padding: 9px 7px 4px;
     color: #000;
     background: white;
 

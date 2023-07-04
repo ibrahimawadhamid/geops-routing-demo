@@ -1,8 +1,8 @@
-/* eslint-disable no-restricted-globals */
 import { Style, Circle, Stroke, Fill, Text } from 'ol/style';
 
 // Convert '0.0' to '0'
 const cleanFloor = (floor) =>
+  // eslint-disable-next-line no-restricted-globals
   !isNaN(floor) ? parseFloat(floor, 10).toString() : floor;
 
 const lineStyler = (lineStyle) => {

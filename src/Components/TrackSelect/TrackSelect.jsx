@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import InputLabel from '@material-ui/core/InputLabel';
-import Select from '@material-ui/core/Select';
-import FormControl from '@material-ui/core/FormControl';
-import MenuItem from '@material-ui/core/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import MenuItem from '@mui/material/MenuItem';
 import { setTracks } from '../../store/actions/Map';
 
 const propTypes = {
@@ -13,30 +12,10 @@ const propTypes = {
   disabled: PropTypes.bool.isRequired,
 };
 
-const useStyles = makeStyles((theme) => ({
-  wrapper: {
-    width: '12%',
-    padding: '0 10px 4px 10px',
-    [theme.breakpoints.down('xs')]: {
-      padding: '0 5px 4px 5px',
-    },
-    '& label': {
-      left: '10px',
-      [theme.breakpoints.down('xs')]: {
-        left: '5px',
-      },
-    },
-  },
-  select: {
-    textAlign: 'center',
-  },
-}));
-
 /**
  * The component that displays the track selector
  */
 function TrackSelect({ index, disabled }) {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const tracks = useSelector((state) => state.MapReducer.tracks);
   const currentMot = useSelector((state) => state.MapReducer.currentMot);
@@ -62,7 +41,7 @@ function TrackSelect({ index, disabled }) {
   }, [index, currentMot, currentStopsGeoJSON]);
 
   return (
-    <FormControl className={classes.wrapper}>
+    <FormControl variant="standard" fullWidth>
       <InputLabel shrink id="rd-track-select-label">
         Track
       </InputLabel>
@@ -78,7 +57,7 @@ function TrackSelect({ index, disabled }) {
           newTracks[index] = value;
           dispatch(setTracks(newTracks));
         }}
-        classes={{ select: classes.select }}
+        style={{ textAlign: 'center' }}
       >
         {tracksValues.map((t) => {
           return (

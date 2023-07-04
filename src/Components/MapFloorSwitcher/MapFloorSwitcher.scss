@@ -5,9 +5,9 @@ $popup-height: 30px;
   width: 50px;
   height: $popup-height;
   border-radius: 20px;
-  border: solid 2px rgba(0, 0, 0, 0.54); // Like the button;
+  border: solid 2px rgb(0 0 0 / 54%); // Like the button;
   transform: translateX(-50%) translateY(15px);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgb(255 255 255 / 70%);
 
   .rs-popup-close-bt {
     display: none;
@@ -30,7 +30,7 @@ $popup-height: 30px;
 
     > div:first-child {
       p {
-        color: rgba(0, 0, 0, 0.54); // Like the button
+        color: rgb(0 0 0 / 54%); // Like the button
         font-weight: bold;
         padding-top: 1px;
         padding-left: 2px;
