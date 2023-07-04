@@ -1,8 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-// import Button from '@geops/react-ui/components/Button';
-// import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { getBottomLeft, getTopRight } from 'ol/extent';
 import { to4326 } from '../../utils';
 import { FLOOR_LEVELS, WALKING_BASE_URL } from '../../constants';

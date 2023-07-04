@@ -5,7 +5,6 @@
   "version": "1.0.0",
   "homepage": "https://routing-demo.geops.io/",
   "dependencies": {
-    "@geops/react-ui": "^1.0.8",
     "@material-ui/core": "^4.8.3",
     "@material-ui/icons": "^4.5.1",
     "@material-ui/lab": "^4.0.0-alpha.39",
@@ -55,6 +54,7 @@
     "eslint-plugin-react": "7.31.10",
     "eslint-plugin-react-hooks": "4.6.0",
     "fixpack": "^2.3.1",
+    "generact": "^0.4.0",
     "gh-pages": "^2.2.0",
     "html-webpack-plugin": "^3.2.0",
     "husky": "^4.2.3",
@@ -74,13 +74,15 @@
   },
   "scripts": {
     "build": "react-scripts build",
+    "cp": "generact --root src/Components",
     "deploy:ghpages": "gh-pages -d build",
     "docs": "./node_modules/.bin/jsdoc -c jsdoc.json",
     "eject": "react-scripts eject",
     "format": "prettier --write 'src/**/*.{js,jsx}' && eslint 'src/**/*.{js,jsx}' --fix && stylelint 'src/**/*.css' 'src/**/*.scss' --fix",
     "lint": "eslint 'src/**/*.{js,jsx}' && stylelint 'src/**/*.{css,scss}'",
     "start": "ESLINT_NO_DEV_ERRORS=true  react-scripts start",
-    "test": "react-scripts test  --env=jsdom --transformIgnorePatterns \"/node_modules/(?!(ol|react-spatial)/).*/\""
+    "test": "react-scripts test  --env=jsdom --transformIgnorePatterns \"/node_modules/(?!(ol|react-spatial)/).*/\"",
+    "up": "yarn upgrade-interactive --latest"
   },
   "browserslist": [
     ">0.2%",

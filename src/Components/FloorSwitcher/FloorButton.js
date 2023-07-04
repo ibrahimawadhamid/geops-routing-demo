@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Button from '@geops/react-ui/components/Button';
+import { Button } from '@material-ui/core';
 
 import { floorsColor } from '../../config/styleConfig';
 import './FloorButton.scss';
