@@ -4,7 +4,6 @@ import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
 import { Map, View } from 'ol';
 import { render } from '@testing-library/react';
-import { prettyDOM } from '@testing-library/dom';
 import SearchResults from './SearchResults';
 
 describe('Search Results', () => {
