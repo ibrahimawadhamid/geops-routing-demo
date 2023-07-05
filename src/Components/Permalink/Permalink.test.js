@@ -1,14 +1,10 @@
-/* eslint-disable no-undef */
 import React from 'react';
-import { configure, mount } from 'enzyme';
 import thunk from 'redux-thunk';
-import Adapter from 'enzyme-adapter-react-16';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
+import { render } from '@testing-library/react';
 import { Map } from 'ol';
 import Permalink from './Permalink';
-
-configure({ adapter: new Adapter() });
 
 describe('Permalink', () => {
   const setState = jest.fn();
@@ -18,7 +14,6 @@ describe('Permalink', () => {
   let store;
 
   beforeEach(() => {
-    global.window = Object.create(window);
     store = mockStore({
       MapReducer: {
         center: [0, 0],
@@ -46,7 +41,7 @@ describe('Permalink', () => {
       },
       writable: true,
     });
-    const component = mount(
+    render(
       <Provider store={store}>
         <Permalink
           mots={['rail', 'bus']}
@@ -56,7 +51,7 @@ describe('Permalink', () => {
       </Provider>,
     );
 
-    expect(component.props().store.getActions().length).toBe(0);
+    expect(store.getActions().length).toBe(0);
   });
 
   it('should dispatch defined URL search params', () => {
@@ -70,7 +65,7 @@ describe('Permalink', () => {
       writable: true,
     });
 
-    const component = mount(
+    render(
       <Provider store={store}>
         <Permalink
           mots={['rail', 'bus']}
@@ -80,11 +75,11 @@ describe('Permalink', () => {
       </Provider>,
     );
 
-    expect(component.props().store.getActions()[0]).toEqual({
+    expect(store.getActions()[0]).toEqual({
       type: 'SET_CURRENT_MOT',
       currentMot: 'bus',
     });
-    expect(component.props().store.getActions()[2]).toEqual({
+    expect(store.getActions()[2]).toEqual({
       type: 'SET_RESOLVE_HOPS',
       resolveHops: true,
     });

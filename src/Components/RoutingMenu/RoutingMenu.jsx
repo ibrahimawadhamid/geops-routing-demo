@@ -75,7 +75,7 @@ function TabPanel(props) {
       role="tabpanel"
       hidden={value !== index}
       id={nextId()}
-      style={{ paddingBottom: '20px' }}
+      style={{ paddingTop: '10px', paddingBottom: '10px' }}
       aria-labelledby={`simple-tab-${index}`}
     >
       {value === index && children}
@@ -745,12 +745,11 @@ function RoutingMenu({
               ) : null}
             </div>
           </div>
-          <TabPanel>
+          <TabPanel padding={10}>
             <DragDropContext onDragEnd={onDragEnd}>
               <Droppable droppableId="droppable">
                 {(provided) => (
                   <div
-                    className="stops-container"
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...provided.droppableProps}
                     ref={provided.innerRef}
@@ -811,27 +810,23 @@ function RoutingMenu({
               currentSearchResults={currentSearchResults}
               processClickedResultHandler={processClickedResultHandler}
             />
-            <div className="rd-route-buttons">
-              <Grid container spacing={3}>
-                <Grid item xs={6}>
-                  <Tooltip title="Zoom to the route">
+            <Grid container style={{ margin: '10px 0px' }}>
+              <Grid item xs={6} textAlign="center">
+                <Tooltip title="Zoom to the route">
+                  <span>
                     <Button
                       onClick={() => onZoomRouteClick()}
                       disabled={!isActiveRoute}
-                      component={isActiveRoute ? undefined : 'span'}
-                      variant="contained"
-                      classes={{
-                        root: 'rd-button-root',
-                        disabled: 'rd-button-disabled',
-                      }}
                       startIcon={<ZoomIn fontSize="small" />}
                     >
-                      <Typography>Zoom to the route</Typography>
+                      Zoom to the route
                     </Button>
-                  </Tooltip>
-                </Grid>
-                <Grid item xs={6}>
-                  <Tooltip title="Route information">
+                  </span>
+                </Tooltip>
+              </Grid>
+              <Grid item xs={6} textAlign="center">
+                <Tooltip title="Route information">
+                  <span>
                     <Button
                       onClick={() =>
                         isRouteInfoOpen
@@ -840,24 +835,17 @@ function RoutingMenu({
                               dispatch(setIsRouteInfoOpen(true));
                             })
                       }
-                      aria-label="Route information"
                       disabled={!isActiveRoute}
-                      component={isActiveRoute ? undefined : 'span'}
-                      variant="contained"
-                      // color="default"
-                      className={isRouteInfoOpen ? 'rd-button-active' : ''}
-                      classes={{
-                        root: 'rd-button-root',
-                        disabled: 'rd-button-disabled',
-                      }}
+                      selected={isRouteInfoOpen}
                       startIcon={<Info fontSize="small" />}
+                      variant={isRouteInfoOpen ? 'contained' : 'text'}
                     >
-                      <Typography>Route information</Typography>
+                      Route information
                     </Button>
-                  </Tooltip>
-                </Grid>
+                  </span>
+                </Tooltip>
               </Grid>
-            </div>
+            </Grid>
             {isRouteInfoOpen && selectedRoutes.length ? (
               <RouteInfosDialog
                 closeInfo={() => dispatch(setIsRouteInfoOpen(false))}

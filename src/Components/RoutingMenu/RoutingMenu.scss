@@ -49,47 +49,6 @@
     padding: 10px 10px 0 0;
   }
 
-  .rd-route-buttons {
-    display: flex;
-    padding: 20px 20px 0;
-
-    .rd-button-root,
-    .rd-button-disabled {
-      background-color: white;
-      text-transform: none;
-      box-shadow: none;
-
-      p {
-        padding-left: 8px;
-      }
-    }
-
-    .rd-button-root {
-      svg {
-        color: #3f51b5;
-      }
-
-      &:hover {
-        background-color: rgb(0 0 0 / 5%);
-      }
-    }
-
-    .rd-button-active {
-      background-color: rgb(0 0 0 / 10%);
-    }
-
-    .rd-button-disabled {
-      svg {
-        color: rgb(0 0 0 / 26%);
-      }
-
-      color: rgb(0 0 0 / 26%);
-    }
-  }
-
-  .stops-container {
-    padding: 0.5rem 0;
-  }
 }
 
 @media (width >= 768px) {

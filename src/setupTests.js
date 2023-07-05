@@ -28,3 +28,13 @@ global.mockStore = configureStore([thunk]);
 global.crypto = {
   getRandomValues: (arr) => crypto.randomBytes(arr.length),
 };
+
+/* eslint-disable */
+global.ResizeObserver = class ResizeObserver {
+  constructor(onResize) {
+    ResizeObserver.onResize = onResize;
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};

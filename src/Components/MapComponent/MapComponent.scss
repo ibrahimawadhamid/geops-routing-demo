@@ -17,13 +17,3 @@
     color: #555;
   }
 }
-
-/* stylelint-disable */
-.MuiSnackbar-anchorOriginBottomLeft,
-.MuiSnackbar-anchorOriginBottomRight {
-  bottom: 36px !important;
-}
-
-.MuiSnackbar-anchorOriginBottomRight {
-  right: 76px !important;
-}

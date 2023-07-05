@@ -33,15 +33,40 @@ const defaultProps = {
 const fontSize = '1rem';
 const color = '#515151';
 const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#3f51b5',
+    },
+  },
   typography: {
     body: { fontSize },
-    button: { fontSize },
+    button: { fontSize, color: 'red' },
     h1: { fontSize: '1.2rem', color },
     h2: { fontSize, color },
     h3: { fontSize, color },
     h4: { fontSize, color },
     h5: { fontSize, color },
     h6: { fontSize, color },
+  },
+  components: {
+    MuiButton: {
+      defaultProps: {
+        variant: 'text',
+      },
+      styleOverrides: {
+        root: {
+          fontWeight: 'normal',
+          textTransform: 'none',
+        },
+      },
+    },
+    MuiSnackbar: {
+      styleOverrides: {
+        anchorOriginBottomRight: {
+          bottom: '36px !important',
+        },
+      },
+    },
   },
 });
 
@@ -92,19 +117,19 @@ function App(props) {
 
   return (
     <ThemeProvider theme={theme}>
-      {/* <Permalink
+      <Permalink
         mots={mots}
         APIKey={apiKey}
         stationSearchUrl={stationSearchUrl}
-      /> */}
+      />
       <MapComponent
         mots={mots}
         routingUrl={routingUrl}
         APIKey={apiKey}
         stationSearchUrl={stationSearchUrl}
       />
-      {/* <NotificationHandler />
-      <Footer /> */}
+      <NotificationHandler />
+      <Footer />
     </ThemeProvider>
   );
 }

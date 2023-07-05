@@ -1,14 +1,11 @@
-/* eslint-disable no-undef */
 import React from 'react';
-import Enzyme, { mount } from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
 import configureStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
 import { Map, View } from 'ol';
+import { render } from '@testing-library/react';
+import { prettyDOM } from '@testing-library/dom';
 import SearchResults from './SearchResults';
-
-Enzyme.configure({ adapter: new Adapter() });
 
 describe('Search Results', () => {
   const mockStore = configureStore([thunk]);
@@ -39,7 +36,7 @@ describe('Search Results', () => {
       },
     });
 
-    const wrapper = mount(
+    const { container } = render(
       <Provider store={store}>
         <SearchResults
           currentSearchResults={props.currentSearchResults}
@@ -48,9 +45,8 @@ describe('Search Results', () => {
         ,
       </Provider>,
     );
-    const navList = wrapper.find('WithStyles(ForwardRef(List))');
-    const navItem = navList.find('WithStyles(ForwardRef(ListItemText))');
-    expect(navItem.props().primary).toEqual(
+    const navItem = container.querySelector('.MuiListItemText-primary');
+    expect(navItem.textContent).toEqual(
       props.currentSearchResults[0].properties.name,
     );
   });

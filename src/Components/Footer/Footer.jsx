@@ -1,25 +1,20 @@
 import React from 'react';
 import { makeStyles } from '@mui/styles';
+import { Typography } from '@mui/material';
 
 const useStyles = makeStyles(() => ({
   container: {
     background: 'white',
     position: 'absolute',
     bottom: 0,
-    fontSize: '0.8em',
     display: 'flex',
     justifyContent: 'space-between',
     height: '24px',
     alignItems: 'center',
     width: '100%',
+    boxSizing: 'border-box',
     boxShadow: '0 0 5px #555',
-    '& div': {
-      margin: '0 10px',
-      '& a': {
-        color: '#555',
-        textDecoration: 'none',
-      },
-    },
+    padding: '0 5px',
   },
 }));
 
@@ -29,16 +24,16 @@ export default function Footer() {
     <div className={classes.container}>
       <div>
         <a href="https://geops.ch/impressum" target="geops">
-          Impressum
+          <Typography variant="caption">Impressum</Typography>
         </a>
       </div>
       <div>
         <a href="https://geops.ch/" target="geops">
-          geOps
-        </a>{' '}
-        |{' '}
+          <Typography variant="caption">geOps</Typography>
+        </a>
+        <Typography variant="caption"> | </Typography>
         <a href="https://developer.geops.io/" target="geops">
-          Developer Portal
+          <Typography variant="caption">Developer Portal</Typography>
         </a>
       </div>
     </div>
